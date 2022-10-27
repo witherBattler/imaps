@@ -16,7 +16,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo } from "./util"
+import { getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray } from "./util"
 import { ColorFill, FlagFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
@@ -32,7 +32,6 @@ import Divider from '@mui/material/Divider';
 import Switch from '@mui/material/Switch';
 import { RgbaColorPicker } from "react-colorful";
 import { GeometryDashDataVisualizer, DataVisualizer } from "./dataVisualization"
-import NumberInput from 'material-ui-number-input';
 import 'typeface-roboto'
 
 
@@ -72,6 +71,8 @@ function App() {
     </ThemeProvider>
   )
 }
+
+
 
 function Editor(props) {
   const chosenMap = props.chosenMap
@@ -140,13 +141,15 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
   </Paper>
 }
 
+let selectingTerritories = false
+
 function EditableMap(props) {
   const {currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   
   let defs = <></>
 
   return (
-    <div id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onClick={function(event) {
+    <div id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={function(event) {
       if(event.target.id == "map-div" || event.target.id == "map-svg") {
         setSelectedTerritory(null)
       }
@@ -158,6 +161,8 @@ function EditableMap(props) {
         let unrounded = Math.min(currentZoom - ((0 - currentZoom) / 5) || 0.1, 3)
         setCurrentZoom(roundToTwo(unrounded))
       }
+    }} onMouseUp={function(event) {
+      selectingTerritories = false
     }}>
       <svg id="map-svg" width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${currentZoom})`, transition: "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
           {
@@ -171,20 +176,40 @@ function EditableMap(props) {
                   {defs}
                   {style.defs}
                 </>
-
-                return <g key={territory.index} style={selectedTerritory ? {opacity: selectedTerritory.index == territory.index ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
+                let selected = false
+                if(selectedTerritory) {
+                  if(Array.isArray(selectedTerritory)) {
+                    selected = selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)
+                  } else {
+                    selected = selectedTerritory.index == territory.index
+                  }
+                }
+                return <g key={territory.index} style={selectedTerritory ? {opacity: selected ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
                   <path
                     d={territory.path}
                     fill={style.fill}
                     stroke={style.outlineColor}
                     strokeWidth={style.outlineSize}
                     style={defaultMapCSSStyle}
-                    onClick={
+                    onMouseDown={
                       function(event) {
                         if(selectedTerritory && (territory.index == selectedTerritory.index)) {
                           setSelectedTerritory(null)
                         } else {
                           setSelectedTerritory(territory)
+                        }
+                        selectingTerritories = true
+                      }
+                    }
+                    onMouseEnter={
+                      function(event) {
+                        if(selectingTerritories) {
+                          if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
+                            return
+                          } else if(selectedTerritory.index == territory.index) {
+                            return
+                          }
+                          setSelectedTerritory(createArray(selectedTerritory, territory))
                         }
                       }
                     }
@@ -205,7 +230,6 @@ function EditableMap(props) {
 
 function Properties(props) {
   const {defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
-
 
   return (
     <div style={{position: "absolute", top: "0px", left: "0px", height: "100vh", width: "350px", padding: "20px", boxSizing: "border-box"}}>
@@ -228,9 +252,21 @@ function DefaultsProperties(props) {
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker color={defaultStyle.fill} style={defaultStyle} updateStyle={setDefaultStyle} mode={"fill"}></TerritoryFillPicker>
+      <TerritoryFillPicker color={defaultStyle.fill} style={defaultStyle} updateStyle={function(fill) {
+        let newStyle = {
+          ...defaultStyle,
+          fill: fill
+        }
+        setDefaultStyle(newStyle)
+      }}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker color={defaultStyle.outlineColor} style={defaultStyle} updateStyle={setDefaultStyle} mode={"outlineColor"}></TerritoryFillPicker>
+      <TerritoryFillPicker color={defaultStyle.outlineColor} style={defaultStyle} updateStyle={function(fill) {
+        let newStyle = {
+          ...defaultStyle,
+          outlineColor: fill
+        }
+        setDefaultStyle(newStyle)
+      }}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
       <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
         <Slider value={defaultStyle.outlineSize} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={function(event) {
@@ -263,7 +299,6 @@ function RightBar(props) {
 }
 
 function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
-  console.log(dataVisualizerGetter.reverse)
   switch(dataVisualizerGetter.type) {
     case "geometryDash":
       return <div>
@@ -287,7 +322,6 @@ function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
         </div>
         <FormControlLabel control={
             <Switch checked={dataVisualizerGetter.reverse} onChange={function (event) {
-              console.log(event.target.value)
               let newDataVisualizer = {
                 ...dataVisualizerGetter,
                 reverse: !dataVisualizerGetter.reverse
@@ -304,127 +338,121 @@ function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
       return <p>Error: Data visualizer type invalid.</p>
   }
 }
-function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, setSelectedTerritory, territories, setTerritories}) {
+function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, onChange, territories}) {
   switch(dataVisualizer.type) {
     case "geometryDash":
       return <div style={{display: "flex", flexDirection: "column"}}>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Displace</Typography>
         <PositionSelect x={selectedTerritory.dataOffsetX} y={selectedTerritory.dataOffsetY} onChange={function(x, y) {
-          let newTerritory = {
-            ...selectedTerritory,
-            dataOffsetX: x,
-            dataOffsetY: y
-          }
-          setSelectedTerritory(newTerritory)
-          setTerritories(territories.map(territory => {
-            if(territory.index == selectedTerritory.index) {
-              return newTerritory
-            } else {
-              return territory
-            }
-          }))
+          onChange({x, y})
         }}/>
       </div>
   }
 }
 
 function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
-  console.log(selectedTerritory.value, selectedTerritory.dataOffsetX, selectedTerritory.dataOffsetY)
+  // we want support for multiple selected territories as well as one only.
+  function changeValueSelectedTerritory(type, object2) {
+    if(type == 0) {
+      let setSelectedTerritoryValue = selectedTerritory
+      let setTerritoriesValue = territories
+      for(let i = 0; i != setSelectedTerritoryValue.length; i++) {
+        let newSelectedTerritory = { ...selectedTerritory[i], ...object2 }
+        setSelectedTerritoryValue[i] = newSelectedTerritory
+        setTerritoriesValue = setTerritoriesValue.map(territory => {
+          if(territory.index == newSelectedTerritory.index) {
+            return newSelectedTerritory
+          }
+          return territory
+        })
+      }
+      setSelectedTerritory(setSelectedTerritoryValue)
+      setTerritories(setTerritoriesValue)
+    } else {
+      let newSelectedTerritory = { ...selectedTerritory, ...object2 }
+      let newTerritories = territories.map(territory => {
+        if(territory.index == newSelectedTerritory.index) {
+          return newSelectedTerritory
+        }
+        return territory
+      })
+      setTerritories(newTerritories)
+      setSelectedTerritory(newSelectedTerritory)
+    }
+  }
+
+  let territoryIdentifier = null
+  let fillPickerValue = null
+  let fillPickerOnUpdate = null
+  let sizePickerSliderValue = null
+  let sizeSliderOnChange = null
+  let resetButtonStyleDisabled = false
+  let outlineColorPickerValue = null
+  let outlineColorOnUpdate = null
+  let resetButtonStyleOnClick = null
+  let valueInputValue = null
+  let valueInputOnChange = null
+  let secondaryDataVisualizationEditorValue = null
+  let secondaryDataVisualizationEditorOnChange = null
+  let resetButtonDataDisabled = false
+  let resetButtonDataOnClick = null
+
+
+
+  if(Array.isArray(selectedTerritory)) {
+    territoryIdentifier = `TERRITORIES (${selectedTerritory.length})`
+    fillPickerValue = selectedTerritory[0].fill || defaultStyle.fill
+    fillPickerOnUpdate = function(newValue) { changeValueSelectedTerritory(0, {fill: newValue}) }
+    outlineColorOnUpdate = function(newValue) { changeValueSelectedTerritory(0, {outlineColor: newValue}) }
+    outlineColorPickerValue = selectedTerritory[0].outlineColor || defaultStyle.outlineColor
+    sizePickerSliderValue = selectedTerritory[0].outlineSize || defaultStyle.outlineSize
+    sizeSliderOnChange = function(event) { changeValueSelectedTerritory(0, {outlineSize: event.target.value}) }
+    for(let i = 0; i != selectedTerritory.length; i++) {
+      resetButtonStyleDisabled = selectedTerritory[i].fill == null && selectedTerritory[i].outlineColor == null && selectedTerritory[i].outlineSize == null
+    }
+    resetButtonStyleOnClick = function() { changeValueSelectedTerritory(0, {fill: null, outlineColor: null, outlineSize: null})}
+    valueInputValue = orEmptyString(selectedTerritory[0].value, defaultValue)
+    valueInputOnChange = function(newValue) { changeValueSelectedTerritory(0, {value: newValue}) }
+    secondaryDataVisualizationEditorValue = selectedTerritory[0]
+    secondaryDataVisualizationEditorOnChange = function(newValue) { changeValueSelectedTerritory(0, newValue) }
+    for(let i = 0; i != selectedTerritory.length; i++) {
+      resetButtonDataDisabled = selectedTerritory[i].value == null && selectedTerritory[i].dataOffsetX == null && selectedTerritory[i].dataOffsetY == null
+    }
+    resetButtonDataOnClick = function() { changeValueSelectedTerritory(0, {value: null, dataOffsetX: 0, dataOffsetY: 0}) }
+  } else {
+    territoryIdentifier = selectedTerritory.name.toUpperCase()
+    fillPickerValue = selectedTerritory.fill || defaultStyle.fill
+    fillPickerOnUpdate = function(newValue) { changeValueSelectedTerritory(1, {fill: newValue}) }
+    outlineColorOnUpdate = function(newValue) { changeValueSelectedTerritory(1, {outlineColor: newValue}) }
+    outlineColorPickerValue = selectedTerritory.outlineColor || defaultStyle.outlineColor
+    sizePickerSliderValue = selectedTerritory.outlineSize || defaultStyle.outlineSize
+    sizeSliderOnChange = function(event) { changeValueSelectedTerritory(1, {outlineSize: event.target.value}) }
+    resetButtonStyleDisabled = selectedTerritory.fill == null && selectedTerritory.outlineColor == null && selectedTerritory.outlineSize == null
+    resetButtonStyleOnClick = function() { changeValueSelectedTerritory(1, {fill: null, outlineColor: null, outlineSize: null})}
+    valueInputValue = orEmptyString(selectedTerritory.value, defaultValue)
+    valueInputOnChange = function(newValue) { changeValueSelectedTerritory(1, {value: newValue}) }
+    secondaryDataVisualizationEditorValue = selectedTerritory
+    secondaryDataVisualizationEditorOnChange = function(newValue) { changeValueSelectedTerritory(1, newValue) }
+    resetButtonDataDisabled = selectedTerritory.value == null && selectedTerritory.dataOffsetX == null && selectedTerritory.dataOffsetY == null
+    resetButtonDataOnClick = function() { changeValueSelectedTerritory(1, {value: null, dataOffsetX: 0, dataOffsetY: 0}) }
+  }
+
   return (
     <div>
-      <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED TERRITORY STYLE: {selectedTerritory.name.toUpperCase()}</Typography>
+      <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED TERRITORY STYLE: {territoryIdentifier}</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker color={selectedTerritory.fill || defaultStyle.fill} style={selectedTerritory} updateStyle={function(newValue) {
-        // the bug happens because selectedTerritory stays the same.
-        let newTerritories = territories.map(territory => {
-          if(territory.index == newValue.index) {
-            return newValue
-          }
-          return territory
-        })
-        setTerritories(newTerritories)
-        setSelectedTerritory(newValue)
-      }} mode={"fill"}></TerritoryFillPicker>
+      <TerritoryFillPicker color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker color={selectedTerritory.outlineColor || defaultStyle.outlineColor} style={selectedTerritory} updateStyle={function(newValue) {
-        // the bug happens because selectedTerritory stays the same.
-        let newTerritories = territories.map(territory => {
-          if(territory.index == newValue.index) {
-            return newValue
-          }
-          return territory
-        })
-        setTerritories(newTerritories)
-        setSelectedTerritory(newValue)
-      }} mode={"outlineColor"}></TerritoryFillPicker>
+      <TerritoryFillPicker color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
       <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
-        <Slider value={selectedTerritory.outlineSize || defaultStyle.outlineSize} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={function(event) {
-          let newTerritories = territories.map(territory => {
-            if(territory.index == selectedTerritory.index) {
-              return {
-                ...territory,
-                outlineSize: event.target.value
-              }
-            }
-            return territory
-          })
-          setTerritories(newTerritories)
-          setSelectedTerritory({
-            ...selectedTerritory,
-            outlineSize: event.target.value
-          })
-        }}/>
+        <Slider value={sizePickerSliderValue} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={sizeSliderOnChange}/>
       </div>
-      <Button style={{marginTop: "5px"}} variant="contained" disabled={selectedTerritory.fill == null && selectedTerritory.outlineColor == null && selectedTerritory.outlineSize == null} onClick={function() {
-        let selectedTerritoryUpdated = {
-          ...selectedTerritory,
-          fill: null,
-          outlineColor: null,
-          outlineSize: null
-        }
-        let newTerritories = territories.map(territory => {
-          if(territory.index == selectedTerritory.index) {
-            return selectedTerritoryUpdated
-          }
-          return territory
-        })
-        setTerritories(newTerritories)
-        setSelectedTerritory(selectedTerritoryUpdated)
-      }}>Reset</Button>
-
-      <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid", marginTop: "25px"}}>DATA VISUALIZATION: {selectedTerritory.name.toUpperCase()}</Typography>
-      <TextField variant="filled" label="Value" size="small" sx={{marginTop: "5px", width: "100%"}} value={orEmptyString(selectedTerritory.value, defaultValue)} onChange={function(event) {
-        let selectedTerritoryUpdated = {
-          ...selectedTerritory,
-          value: event.target.value,
-        }
-        let newTerritories = territories.map(territory => {
-          if(territory.index == selectedTerritory.index) {
-            return selectedTerritoryUpdated
-          }
-          return territory
-        })
-        setTerritories(newTerritories)
-        setSelectedTerritory(selectedTerritoryUpdated)
-      }}></TextField>
-      <SecondaryDataVisualizationEditor dataVisualizer={defaultDataVisualizer} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} setTerritories={setTerritories} territories={territories}></SecondaryDataVisualizationEditor>
-      <Button style={{marginTop: "5px"}} variant="contained" disabled={selectedTerritory.value == null && selectedTerritory.dataOffsetX == 0 && selectedTerritory.dataOffsetY == 0} onClick={function() {
-        let selectedTerritoryUpdated = {
-          ...selectedTerritory,
-          value: null,
-          dataOffsetX: 0,
-          dataOffsetY: 0
-        }
-        let newTerritories = territories.map(territory => {
-          if(territory.index == selectedTerritory.index) {
-            return selectedTerritoryUpdated
-          }
-          return territory
-        })
-        setTerritories(newTerritories)
-        setSelectedTerritory(selectedTerritoryUpdated)
-      }}>Reset</Button>
+      <Button style={{marginTop: "5px"}} variant="contained" disabled={resetButtonStyleDisabled} onClick={resetButtonStyleOnClick}>Reset</Button>
+      <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid", marginTop: "25px"}}>DATA VISUALIZATION: {territoryIdentifier}</Typography>
+      <TextField variant="filled" label="Value" size="small" sx={{marginTop: "5px", width: "100%"}} value={valueInputValue} onChange={valueInputOnChange}></TextField>
+      <SecondaryDataVisualizationEditor dataVisualizer={defaultDataVisualizer} onChange={secondaryDataVisualizationEditorOnChange} selectedTerritory={secondaryDataVisualizationEditorValue}></SecondaryDataVisualizationEditor>
+      <Button style={{marginTop: "5px"}} variant="contained" disabled={resetButtonDataDisabled} onClick={resetButtonDataOnClick}>Reset</Button>
     </div>
   )
 }
@@ -457,7 +485,7 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 
 
 function TerritoryFillPicker(props) {
-  const {color, style, updateStyle, mode, onColorChange, onColorFillChange} = props
+  const {color, style, updateStyle, mode, onColorChange, onColorFillChange, onUpdate} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
@@ -474,7 +502,7 @@ function TerritoryFillPicker(props) {
     }}>
       <div style={{flexGrow: "1", padding: "6.5px", paddingRight: "0px", boxSizing: "border-box"}}>
         <div style={{background: color.getBackgroundCSS(), width: "100%", height: "100%", borderRadius: "3px"}}>
-          <TerritoryFillPickerPopup backgroundId={backgroundId} style={style} mode={mode} updateStyle={updateStyle} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
+          <TerritoryFillPickerPopup backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
         </div>
       </div>
       
@@ -486,7 +514,7 @@ function TerritoryFillPicker(props) {
 }
 
 function TerritoryFillPickerPopup(props) {
-  let {color, opened, setOpened, style, updateStyle, mode, backgroundId} = props
+  let {color, opened, setOpened, style, onUpdate, mode, backgroundId} = props
   const [flagSearch, setFlagSearch] = useState("")
   const [tabIndex, setTabIndex] = useState(typeToValue(color.type))
 
@@ -505,11 +533,7 @@ function TerritoryFillPickerPopup(props) {
           color.b = newValue.b
           color.a = newValue.a
           color.setUpdate(color)
-          let updateStyleArgument = {
-            ...style
-          }
-          updateStyleArgument[mode] = color
-          updateStyle(updateStyleArgument)
+          onUpdate(color)
         }}></RgbaColorPicker>
       </div>
       break;
@@ -526,11 +550,7 @@ function TerritoryFillPickerPopup(props) {
                     color = color.clone()
                     color.id = flag.id
                     color.setUpdate(color)
-                    let updateStyleArgument = {
-                      ...style
-                    }
-                    updateStyleArgument[mode] = color
-                    updateStyle(updateStyleArgument)
+                    onUpdate(color)
                   }} key={flag.id} style={{marginRight: "15px", display: "flex", alignItems: "center"}}>
                     <div style={{backgroundImage: `url(flags/${flag.id}.svg)`, backgroundRepeat: "no-repeat", backgroundPosition: "center", backgroundSize: "contain", height: "30px", width: "40px", marginRight: "10px"}}>
 
@@ -573,15 +593,11 @@ function TerritoryFillPickerPopup(props) {
               switch(newValue) {
                 case 0:
                   // color fill
-                  updateStyleArgument = {...style}
-                  updateStyleArgument[mode] = color.toColorFill()
-                  updateStyle(updateStyleArgument)
+                  onUpdate(color.toColorFill())
                   break
                 case 1:
                   // flag fill
-                  updateStyleArgument = {...style}
-                  updateStyleArgument[mode] = color.toFlagFill()
-                  updateStyle(updateStyleArgument)
+                  onUpdate(color.toFlagFill())
                   break
                 default:
                   throw new Error("Unknown value: ", newValue)

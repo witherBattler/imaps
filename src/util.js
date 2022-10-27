@@ -78,6 +78,14 @@ function roundToTwo(num) {
     return +(Math.round(num + "e+2")  + "e-2");
 }
 
+function createArray(element1, element2) {
+    if(Array.isArray(element1)) {
+        let toReturn = [...element1, element2]
+        return toReturn
+    } else {
+        return [element1, element2]
+    }
+}
 
 export {
     getMapImageUrl,
@@ -87,5 +95,6 @@ export {
     typeToValue,
     generateId,
     orEmptyString,
-    roundToTwo
+    roundToTwo,
+    createArray
 }
