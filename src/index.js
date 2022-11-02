@@ -16,7 +16,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray } from "./util"
+import { getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download } from "./util"
 import { ColorFill, FlagFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
@@ -30,33 +30,123 @@ import Select from '@mui/material/Select';
 import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Switch from '@mui/material/Switch';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { RgbaColorPicker } from "react-colorful";
 import { GeometryDashDataVisualizer, DataVisualizer } from "./dataVisualization"
+import MenuIcon from '@mui/icons-material/Menu';
 import 'typeface-roboto'
+
+const SvgSaver = require("svg-saver-node")
+const svgSaver = new SvgSaver(window)
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const darkTheme = createTheme({
   palette: {
     mode: 'dark',
+    primary: {
+      main: '#00A1FF'
+    }
+  },
+  typography: {
+    fontFamily: "rubik"
   },
 });
-
+const lightTheme = createTheme({
+  palette: {
+    mode: "light",
+    primary: {
+      main: '#00A1FF'
+    }
+  },
+  typography: {
+    fontFamily: "rubik"
+  },
+})
 
 
 function App() {
   const [mapSearch, setMapSearch] = useState("");
-  const [stage, setStage] = useState("maps")
+  const [stage, setStage] = useState("landing page")
+  const [secondaryStage, setSecondaryStage] = useState(null)
   const [chosenMap, setChosenMap] = useState(null)
+  const staticDivRef = useRef()
+  const navbarRef = useRef()
+
+  useEffect(() => {
+    if(stage == "landing page") {
+      staticDivRef.current.addEventListener("scroll", (event) => {
+        if(staticDivRef.current.scrollTop > 0) {
+          navbarRef.current.style.boxShadow = "10px 10px 50px rgba(0, 0, 0, 0.3)"
+        } else {
+          navbarRef.current.style.boxShadow = ""
+        }
+      })
+    }
+  }, [])
 
   let toShow
   switch(stage) {
-    case "maps":
+    case "landing page":
+      let toShowSecondary = null
+      switch(secondaryStage) {
+        case "map picker":
+          toShowSecondary = <ThemeProvider theme={lightTheme}>
+            <div className="overlay">
+              <div className="popup-content big" id="popup-choose-map">
+                <div className="popup-header">
+                  Choose map
+                </div>
+                <SearchBarMaps setMapSearch={setMapSearch}></SearchBarMaps>
+                <MapsChoiceContainer search={mapSearch} setStage={setStage} setChosenMap={setChosenMap}></MapsChoiceContainer>
+              </div>
+            </div>
+          </ThemeProvider>
+          break
+      }
       toShow =
-        <Paper style={{height: "100vh", overflow: "auto", display: "flex", flexDirection: "column", alignItems: "center"}}>
-          <SearchBarMaps setMapSearch={setMapSearch}></SearchBarMaps>
-          <MapsChoiceContainer search={mapSearch} setStage={setStage} setChosenMap={setChosenMap}></MapsChoiceContainer>
-        </Paper>
+        <>
+          <div id="navbar" ref={navbarRef}>
+            <div className="content-row" id="navbar-content-row">
+              <img src="./logo.svg"/>
+              <div id="navbar-buttons">
+                <a>Premium</a>
+                <a>Create</a>
+                <a>Login</a>
+              </div>
+              <IconButton id="menu-icon" style={{width: "60px", height: "60px"}}>
+                <MenuIcon></MenuIcon>
+              </IconButton>
+            </div>
+          </div>
+
+          <div id="static" ref={staticDivRef}>
+            <Paper id="intro">
+              <div className="content-row" id="intro-content">
+                <div id="intro-left">
+                  <p id="intro-left-big"><span className="important">Periphern</span> makes creating <span className="important">maps</span> simpler than ever.</p>
+                  <p id="intro-left-subtitle">This is the #1 tool for creating maps.</p>
+                  <div id="intro-buttons">
+                    <button id="intro-button-start" onClick={() => {setSecondaryStage("map picker")}}>
+                      <span>Start now</span>
+                      <ArrowForwardIosIcon style={{color: "white", marginRight: "5px"}}/>
+                    </button>
+                    <a id="intro-button-about-us" href="#about-us">Learn more</a>
+                  </div>
+                </div>
+                <div id="intro-right">
+                  <img src="logo-globe.svg"></img>
+                </div>
+              </div>
+            </Paper>
+            <Paper id="bottom">
+              <div className="content-row" id="usages-content">
+                <p className="title">Ways you can use Periphern</p>
+              </div>
+            </Paper>
+          </div>
+          {toShowSecondary}
+        </>
       break
     case "editor":
       toShow =
@@ -71,8 +161,6 @@ function App() {
     </ThemeProvider>
   )
 }
-
-
 
 function Editor(props) {
   const chosenMap = props.chosenMap
@@ -89,12 +177,14 @@ function Editor(props) {
   const [defaultValue, setDefaultValue] = useState("")
   const [currentZoom, setCurrentZoom] = useState(1)
 
+  
+
   useEffect(function() {
     ajax(getMapImageUrl(chosenMap.id), "GET").then(data => {
       let svgData = parseSvg(data)
       setTerritoriesHTML(svgData.mapNodes)
       setTerritories(svgData.mapNodes.map((node, index) => {
-        return {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name, fill: null, outlineColor: null, outlineSize: null, hidden: false}
+        return {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title"), fill: null, outlineColor: null, outlineSize: null, hidden: false}
       }))
       svgData.close() // parseSvg pastes the svg into the dom to make node.getBBox() possible. .close() removes the svg from the document.
       setMapDimensions(svgData.dimensions)
@@ -108,18 +198,18 @@ function Editor(props) {
 
 
   return(
-    <Paper style={{height: "100%", width: "100%", display: "flex", overflow: "hidden"}}>
+    <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none"}}>
       <EditableMap currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML}></EditableMap>
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
       
-    </Paper>
+    </div>
   )
 }
 
 function ZoomWidget({currentZoom, setCurrentZoom}) {
-  return <Paper elevation={24} style={{display: "flex", width: "180px", height: "50px", borderRadius: "10px", position: "absolute", right: "350px", top: "20px"}}>
+  return <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "180px", height: "50px", borderRadius: "10px", position: "absolute", right: "350px", top: "20px"}}>
     <Typography style={{fontSize: "18px", width: "80px", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>{(currentZoom * 100).toFixed()}%</Typography>
     <Divider orientation="vertical"/>
     <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexGrow: "1"}}>
@@ -138,7 +228,7 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
     </div>
 
     
-  </Paper>
+  </div>
 }
 
 let selectingTerritories = false
@@ -233,13 +323,13 @@ function Properties(props) {
 
   return (
     <div style={{position: "absolute", top: "0px", left: "0px", height: "100vh", width: "350px", padding: "20px", boxSizing: "border-box"}}>
-      <Paper id="properties-panel" elevation={24} style={{width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
+      <div id="properties-panel" elevation={24} style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
         {
           selectedTerritory
             ? <TerritoryProperties defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
             : <DefaultsProperties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
         }
-      </Paper>
+      </div>
     </div>
   )
 }
@@ -252,7 +342,7 @@ function DefaultsProperties(props) {
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker color={defaultStyle.fill} style={defaultStyle} updateStyle={function(fill) {
+      <TerritoryFillPicker color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           fill: fill
@@ -260,7 +350,7 @@ function DefaultsProperties(props) {
         setDefaultStyle(newStyle)
       }}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker color={defaultStyle.outlineColor} style={defaultStyle} updateStyle={function(fill) {
+      <TerritoryFillPicker color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           outlineColor: fill
@@ -291,9 +381,9 @@ function RightBar(props) {
 
   return (
     <div style={{position: "absolute", top: "0px", right: "0px", height: "100vh", width: "350px", padding: "20px", boxSizing: "border-box"}}>
-      <Paper id="right-panel" elevation={24} style={{width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
+      <div id="right-bar" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
         
-      </Paper>
+      </div>
     </div>
   )
 }
@@ -412,11 +502,11 @@ function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelec
     }
     resetButtonStyleOnClick = function() { changeValueSelectedTerritory(0, {fill: null, outlineColor: null, outlineSize: null})}
     valueInputValue = orEmptyString(selectedTerritory[0].value, defaultValue)
-    valueInputOnChange = function(newValue) { changeValueSelectedTerritory(0, {value: newValue}) }
+    valueInputOnChange = function(event) { changeValueSelectedTerritory(0, {value: event.target.value}) }
     secondaryDataVisualizationEditorValue = selectedTerritory[0]
-    secondaryDataVisualizationEditorOnChange = function(newValue) { changeValueSelectedTerritory(0, newValue) }
+    secondaryDataVisualizationEditorOnChange = function(newValue) { console.log("it doing the changing"); changeValueSelectedTerritory(0, newValue) }
     for(let i = 0; i != selectedTerritory.length; i++) {
-      resetButtonDataDisabled = selectedTerritory[i].value == null && selectedTerritory[i].dataOffsetX == null && selectedTerritory[i].dataOffsetY == null
+      resetButtonDataDisabled = selectedTerritory[i].value == null && selectedTerritory[i].dataOffsetX == 0 && selectedTerritory[i].dataOffsetY == 0
     }
     resetButtonDataOnClick = function() { changeValueSelectedTerritory(0, {value: null, dataOffsetX: 0, dataOffsetY: 0}) }
   } else {
@@ -430,10 +520,10 @@ function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelec
     resetButtonStyleDisabled = selectedTerritory.fill == null && selectedTerritory.outlineColor == null && selectedTerritory.outlineSize == null
     resetButtonStyleOnClick = function() { changeValueSelectedTerritory(1, {fill: null, outlineColor: null, outlineSize: null})}
     valueInputValue = orEmptyString(selectedTerritory.value, defaultValue)
-    valueInputOnChange = function(newValue) { changeValueSelectedTerritory(1, {value: newValue}) }
+    valueInputOnChange = function(event) { changeValueSelectedTerritory(1, {value: event.target.value}) }
     secondaryDataVisualizationEditorValue = selectedTerritory
     secondaryDataVisualizationEditorOnChange = function(newValue) { changeValueSelectedTerritory(1, newValue) }
-    resetButtonDataDisabled = selectedTerritory.value == null && selectedTerritory.dataOffsetX == null && selectedTerritory.dataOffsetY == null
+    resetButtonDataDisabled = selectedTerritory.value == null && selectedTerritory.dataOffsetX == 0 && selectedTerritory.dataOffsetY == 0
     resetButtonDataOnClick = function() { changeValueSelectedTerritory(1, {value: null, dataOffsetX: 0, dataOffsetY: 0}) }
   }
 
@@ -493,7 +583,7 @@ function TerritoryFillPicker(props) {
   const backgroundId = generateId()
 
   return (
-    <div id={containerId} style={{borderRadius: "5px", display: "flex", width: "100%", height: "40px", backgroundColor: "#525252", cursor: "pointer"}} onClick={function(event) {
+    <div id={containerId} style={{borderRadius: "5px", display: "flex", width: "100%", height: "40px", backgroundColor: "#565F83", cursor: "pointer"}} onClick={function(event) {
       if(!document.getElementById(backgroundId).matches(":hover")) {
         setOffsetLeft(event.target.offsetLeft - 5)
         setOffsetTop(parseInt(event.target.offsetTop + event.target.offsetHeight) + 10)
@@ -507,7 +597,7 @@ function TerritoryFillPicker(props) {
       </div>
       
       <div style={{width: "45px", display: "flex", alignItems: "center", justifyContent: "center"}}>
-        <img src="icons/color-picker-sign.svg"></img>
+        <img src="icons/color-picker-sign.svg" style={{width: "10px"}}></img>
       </div>
     </div>
   )
@@ -586,8 +676,8 @@ function TerritoryFillPickerPopup(props) {
 
         }
       }}>
-        <Paper style={{borderTopLeftRadius: "10px", borderTopRightRadius: "10px", width: "800px", height: "400px", display: "flex", flexDirection: "column"}}>
-          <Paper elevation={3} xs={{width: "100%", borderRadius: "10px"}}>
+        <div className="territory-fill-picker popup-content" style={{borderTopLeftRadius: "10px", borderTopRightRadius: "10px", width: "800px", height: "400px", display: "flex", flexDirection: "column"}}>
+          <div className="popup-header" elevation={3} style={{padding: "0px", width: "100%"}}>
             <Tabs value={tabIndex} onChange={function(event, newValue) {
               let updateStyleArgument
               switch(newValue) {
@@ -607,9 +697,11 @@ function TerritoryFillPickerPopup(props) {
               <Tab value={0} label="Color"></Tab>
               <Tab value={1} label="Flag"></Tab>
             </Tabs>
-          </Paper>
-          { content }
-        </Paper>
+          </div>
+          <ThemeProvider theme={lightTheme}>
+            { content }
+          </ThemeProvider>
+        </div>
       </div>
     </>
   )
@@ -617,51 +709,70 @@ function TerritoryFillPickerPopup(props) {
 
 function MapsChoiceContainer(props) {
   const {setStage, setChosenMap} = props
-  const searchedMapNames = MAP_NAMES.filter(element => element.name.includes(props.search))
+  const searchedMapNames = MAP_NAMES.filter(element => element.name.toLowerCase().includes(props.search.toLowerCase()))
+  searchedMapNames.length = Math.min(searchedMapNames.length, 12)
   function editMap(element) {
     setStage("editor")
     setChosenMap(element)
   }
+  const [currentlySelectedMap, setCurrentlySelectedMap] = useState(null)
   return (
-    <Box display="flex" justifyContent="center">
-      <Grid container spacing={6} style={{width: "1600px", marginTop: "0px"}}>
-        {searchedMapNames.map((element, index) => {
-          return <MapChoiceBox key={index} editMap={editMap} sx={12/5} element={element}></MapChoiceBox>
-        })}
-      </Grid>
-    </Box>
+    <>
+      <div id="map-choice-container">
+        <div id="map-choice-scrollbars-container">
+          <Scrollbars height="100px">
+            <div id="map-choice-grid" style={{marginRight: "15px"}}>
+              {searchedMapNames.map((element, index) => {
+                let selected = currentlySelectedMap && currentlySelectedMap.id == element.id
+                return <MapChoiceBox key={index} editMap={editMap} sx={4} element={element} selected={selected} onSelect={function() {
+                  if(selected) {
+                    setCurrentlySelectedMap(null)
+                  } else {
+                    setCurrentlySelectedMap(element)
+                  }
+                }}></MapChoiceBox>
+              })}
+            </div>
+            {props.search == "" ? <p style={{fontFamily: "rubik"}}>Search to see more...</p> : null}
+          </Scrollbars>
+        </div>
+        
+        <Button endIcon={<CheckIcon/>} variant="contained" id="choose-map-confirm-button" disabled={currentlySelectedMap == null} onClick={function() {
+          editMap(currentlySelectedMap)
+        }}>
+          Confirm
+        </Button>
+      </div>
+      
+    </>
+    
   )
 }
 
 function SearchBarMaps(props) {
   const {setMapSearch} = props
   return (
-    <div style={{width: "1542px", marginTop: "60px", marginBottom: "-20px"}}>
-      <TextField id="filled-basic" label="Search" variant="standard" onChange={function(event) {
+    <div id="maps-search-bar">
+      <TextField label="Search" fullWidth variant="standard" onChange={function(event) {
         setMapSearch(event.target.value)
       }}/>
     </div>
+    
   )
 }
 
 function MapChoiceBox(props) {
-  const {editMap} = props
+  const {onSelect, MapChoiceBox, selected} = props
   return (
-    <Grid item xs={12/5}>
-      <Card variant="outlined">
-        <div style={{height: "180px", width: "100%", backgroundImage: `url(${getMapImageUrl(props.element.id)})`, backgroundPosition: "center", backgroundSize: "contain", backgroundRepeat: "no-repeat"}}></div>
-        <CardContent style={{textAlign: "center"}}>
-          <Typography style={{fontSize: "22px"}}>
-            {props.element.name}
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button variant="outlined" onClick={function() {
-            editMap(props.element)
-          }}>Edit</Button>
-        </CardActions>
-      </Card>
-    </Grid>
+    <Card variant="outlined" onClick={onSelect} style={{cursor: "pointer", border: selected ? "2px #11A7F5 solid" : null, boxSizing: "border-box"}}>
+      <div style={{height: "180px", width: "100%", backgroundImage: `url(${getMapImageUrl(props.element.id)})`, backgroundPosition: "center", backgroundSize: "contain", backgroundRepeat: "no-repeat"}}></div>
+      <CardContent style={{textAlign: "center"}}>
+        <Typography style={{fontSize: "22px"}}>
+          {props.element.name}
+        </Typography>
+      </CardContent>
+    </Card>
+    
   )
 }
 

@@ -87,6 +87,43 @@ function createArray(element1, element2) {
     }
 }
 
+function svgToPng(svg, callback) {
+    const url = getSvgUrl(svg);
+    svgUrlToPng(url, (imgData) => {
+      callback(imgData);
+      URL.revokeObjectURL(url);
+    });
+  }
+function getSvgUrl(svg) {
+    return URL.createObjectURL(new Blob([svg], {
+        type: 'image/svg+xml'
+    }));
+}
+function svgUrlToPng(svgUrl, callback) {
+    const svgImage = document.createElement('img');
+    document.body.appendChild(svgImage);
+    svgImage.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = svgImage.clientWidth;
+        canvas.height = svgImage.clientHeight;
+        const canvasCtx = canvas.getContext('2d');
+        canvasCtx.drawImage(svgImage, 0, 0);
+        const imgData = canvas.toDataURL('image/png');
+        callback(imgData);
+        document.body.removeChild(svgImage);
+    };
+    svgImage.src = svgUrl;
+}
+
+
+function download(text, name, type) {
+  var a = document.getElementById("a");
+  var file = new Blob([text], {type: type});
+  a.href = URL.createObjectURL(file);
+  a.download = name;
+}
+
+
 export {
     getMapImageUrl,
     ajax,
@@ -96,5 +133,7 @@ export {
     generateId,
     orEmptyString,
     roundToTwo,
-    createArray
+    createArray,
+    svgToPng,
+    download
 }
