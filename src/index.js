@@ -33,6 +33,7 @@ import Switch from '@mui/material/Switch';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { RgbaColorPicker } from "react-colorful";
 import { GeometryDashDataVisualizer, DataVisualizer } from "./dataVisualization"
+import * as ReactDOMServer from 'react-dom/server';
 import MenuIcon from '@mui/icons-material/Menu';
 import 'typeface-roboto'
 
@@ -162,6 +163,38 @@ function App() {
   )
 }
 
+function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML) {
+  let svgElement = document.createElement("svg")
+  svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+  svgElement.setAttribute("width", mapDimensions.width)
+  svgElement.setAttribute("height", mapDimensions.height)
+  
+  let defsElement = document.createElementNS("http://www.w3.org/2000/svg", "defs")
+  svgElement.appendChild(defsElement)
+
+
+  for(let i = 0; i != territories.length; i++) {
+    let territory = territories[i]
+    if(territory.hidden) {
+      continue
+    }
+
+    let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
+    defsElement.innerHTML += ReactDOMServer.renderToStaticMarkup(style.defs)
+
+    let gElement = document.createElementNS("http://www.w3.org/2000/svg", "g")
+    let pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    pathElement.setAttribute("d", territory.path)
+    pathElement.setAttribute("fill", style.fill)
+    pathElement.setAttribute("stroke", style.outlineColor)
+    pathElement.setAttribute("strokeWidth", style.outlineSize)
+    gElement.appendChild(pathElement)
+    svgElement.appendChild(gElement)
+  }
+
+  return svgElement
+}
+
 function Editor(props) {
   const chosenMap = props.chosenMap
   const [defaultStyle, setDefaultStyle] = useState({
@@ -173,11 +206,21 @@ function Editor(props) {
   const [selectedTerritory, setSelectedTerritory] = useState(null)
   const [territoriesHTML, setTerritoriesHTML] = useState([])
   const [territories, setTerritories] = useState([])
-  const [mapDimensions, setMapDimensions] = useState([])
+  const [mapDimensions, setMapDimensions] = useState({})
   const [defaultValue, setDefaultValue] = useState("")
   const [currentZoom, setCurrentZoom] = useState(1)
+  const [currentTool, setCurrentTool] = useState("cursor")
 
-  
+
+  function downloadSvg() {
+    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML)
+    let base64 = btoa(unescape(encodeURIComponent(element.outerHTML)))
+    const a = document.createElement("a")
+    const e = new MouseEvent("click")
+    a.download = "map.svg"
+    a.href = "data:image/svg+xml;base64," + base64
+    a.dispatchEvent(e)
+  }
 
   useEffect(function() {
     ajax(getMapImageUrl(chosenMap.id), "GET").then(data => {
@@ -191,6 +234,11 @@ function Editor(props) {
     })
   }, [])
 
+  
+
+  
+  
+
   const defaultMapCSSStyle = {
     cursor: "pointer",
     transition: "opacity 0.3s"
@@ -203,9 +251,37 @@ function Editor(props) {
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
-      
+      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
+}
+
+function Toolbar({setCurrentTool, currentTool}) {
+  return <div id="toolbar">
+    <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
+      setCurrentTool("cursor")
+    }}></ToolbarButton>
+    <ToolbarButton name="RECTANGLE" icon="icons/rectangle.svg" selected={currentTool == "rectangle"} onClick={function() {
+      setCurrentTool("rectangle")
+    }}></ToolbarButton>
+    <ToolbarButton name="ELLIPSE" icon="icons/ellipse.svg" selected={currentTool == "ellipse"} onClick={function() {
+      setCurrentTool("ellipse")
+    }}></ToolbarButton>
+    <ToolbarButton name="TEXT" icon="icons/text.svg" selected={currentTool == "text"} onClick={function() {
+      setCurrentTool("text")
+    }}></ToolbarButton>
+  </div>
+}
+function ToolbarButton({name, icon, selected, onClick}) {
+  return <div onClick={onClick} className="toolbar-button">
+    <div className={selected ? "top selected" : "top"}>
+      <img src={icon}></img>
+    </div>
+    <div className="bottom">
+      {name}
+    </div>
+
+  </div>
 }
 
 function ZoomWidget({currentZoom, setCurrentZoom}) {
@@ -226,8 +302,6 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
         <RemoveIcon/>
       </IconButton>
     </div>
-
-    
   </div>
 }
 

@@ -411,3 +411,64 @@ code {
 .territory-fill-picker {
   color: black
 }
+
+#toolbar {
+  box-shadow: #00000059 -7px 12px 60px;
+  background-color: #465077;
+  display: flex;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  -webkit-transform: translateX(-50%);
+  -moz-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  -o-transform: translateX(-50%);
+  width: 500px;
+  height: 110px;
+  border-radius: 10px;
+  justify-content: space-between;
+}
+.toolbar-button {
+  height: 100%;
+  width: 130px;
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.toolbar-button:hover > .top {
+  background-color: #3f4869;
+}
+.toolbar-button > .top.selected {
+  background-color: #3e445b;
+}
+.toolbar-button > .top {
+  height: 65px;
+  width: 100px;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toolbar-button > .top > img {
+  max-width: 100%;
+  max-height: 100%;
+}
+.toolbar-button > .bottom {
+  font-family: rubik;
+  font-weight: 500;
+  color: white;
+  opacity: 0.8;
+  user-select: none;
+}
