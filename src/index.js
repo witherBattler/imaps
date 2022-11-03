@@ -239,15 +239,18 @@ function Editor(props) {
   
   
 
-  const defaultMapCSSStyle = {
+  let defaultMapCSSStyle = {
     cursor: "pointer",
     transition: "opacity 0.3s"
+  }
+  if(currentTool != "cursor") {
+    defaultMapCSSStyle.cursor = null
   }
 
 
   return(
-    <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none"}}>
-      <EditableMap currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML}></EditableMap>
+    <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "cursor" ? null : "crosshair"}}>
+      <EditableMap currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML}></EditableMap>
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
@@ -308,7 +311,7 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
 let selectingTerritories = false
 
 function EditableMap(props) {
-  const {currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
+  const {currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   
   let defs = <></>
 
@@ -357,6 +360,7 @@ function EditableMap(props) {
                     style={defaultMapCSSStyle}
                     onMouseDown={
                       function(event) {
+                        if(currentTool != "cursor") return
                         if(selectedTerritory && (territory.index == selectedTerritory.index)) {
                           setSelectedTerritory(null)
                         } else {
@@ -649,7 +653,7 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 
 
 function TerritoryFillPicker(props) {
-  const {color, style, updateStyle, mode, onColorChange, onColorFillChange, onUpdate} = props
+  const {color, style, updateStyle, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
