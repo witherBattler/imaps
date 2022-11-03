@@ -16,7 +16,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download } from "./util"
+import { getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile } from "./util"
 import { ColorFill, FlagFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
@@ -254,12 +254,12 @@ function Editor(props) {
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
-      <Toolbar currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+      <Toolbar downloadSvg={downloadSvg} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
 }
 
-function Toolbar({setCurrentTool, currentTool}) {
+function Toolbar({setCurrentTool, currentTool, downloadSvg}) {
   return <div id="toolbar">
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
@@ -272,6 +272,9 @@ function Toolbar({setCurrentTool, currentTool}) {
     }}></ToolbarButton>
     <ToolbarButton name="TEXT" icon="icons/text.svg" selected={currentTool == "text"} onClick={function() {
       setCurrentTool("text")
+    }}></ToolbarButton>
+    <ToolbarButton name="DOWNLOAD" icon="icons/download.svg" selected={false} onClick={function() {
+      downloadSvg()
     }}></ToolbarButton>
   </div>
 }
@@ -288,7 +291,7 @@ function ToolbarButton({name, icon, selected, onClick}) {
 }
 
 function ZoomWidget({currentZoom, setCurrentZoom}) {
-  return <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "180px", height: "50px", borderRadius: "10px", position: "absolute", right: "350px", top: "20px"}}>
+  return <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "180px", height: "50px", borderRadius: "10px", position: "absolute", top: "20px"}}>
     <Typography style={{fontSize: "18px", width: "80px", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>{(currentZoom * 100).toFixed()}%</Typography>
     <Divider orientation="vertical"/>
     <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexGrow: "1"}}>
@@ -314,6 +317,7 @@ function EditableMap(props) {
   const {currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   
   let defs = <></>
+  let mobile = isMobile()
 
   return (
     <div id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={function(event) {
@@ -328,10 +332,26 @@ function EditableMap(props) {
         let unrounded = Math.min(currentZoom - ((0 - currentZoom) / 5) || 0.1, 3)
         setCurrentZoom(roundToTwo(unrounded))
       }
-    }} onMouseUp={function(event) {
+    }} onMouseUp={mobile ? null : function(event) {
+      selectingTerritories = false
+    }} onTouchEnd={mobile ? null : function(event) {
       selectingTerritories = false
     }}>
-      <svg id="map-svg" width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${currentZoom})`, transition: "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
+      <svg id="map-svg" onTouchMove={!mobile ? null : function(event) {
+        if(!selectingTerritories) return
+        let clientX = event.touches[0].clientX;
+        let clientY = event.touches[0].clientY;
+        let element = document.elementFromPoint(clientX, clientY)
+        if(element.dataset.index) {
+          let territory = territories[element.dataset.index]
+          if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
+            return
+          } else if(selectedTerritory.index == territory.index) {
+            return
+          }
+          setSelectedTerritory(createArray(selectedTerritory, territory))
+        }
+      }} width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${currentZoom})`, transition: "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
           {
             territories
               .filter(territory => {
@@ -353,12 +373,13 @@ function EditableMap(props) {
                 }
                 return <g key={territory.index} style={selectedTerritory ? {opacity: selected ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
                   <path
+                    data-index={territory.index}
                     d={territory.path}
                     fill={style.fill}
                     stroke={style.outlineColor}
                     strokeWidth={style.outlineSize}
                     style={defaultMapCSSStyle}
-                    onMouseDown={
+                    onMouseDown={mobile ? null :
                       function(event) {
                         if(currentTool != "cursor") return
                         if(selectedTerritory && (territory.index == selectedTerritory.index)) {
@@ -369,7 +390,23 @@ function EditableMap(props) {
                         selectingTerritories = true
                       }
                     }
-                    onMouseEnter={
+                    onTouchStart={!mobile ? null :
+                      function(event) {
+                        if(currentTool != "cursor") return
+                        if(selectedTerritory && (territory.index == selectedTerritory.index)) {
+                          setSelectedTerritory(null)
+                        } else {
+                          setSelectedTerritory(territory)
+                        }
+                        selectingTerritories = true
+                      }
+                    }
+                    onTouchEnd={!mobile ? null :
+                      function(event) {
+                        selectingTerritories = false
+                      }
+                    }
+                    onMouseEnter={mobile ? null :
                       function(event) {
                         if(selectingTerritories) {
                           if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
@@ -400,7 +437,7 @@ function Properties(props) {
   const {defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
-    <div style={{position: "absolute", top: "0px", left: "0px", height: "100vh", width: "350px", padding: "20px", boxSizing: "border-box"}}>
+    <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100vh", padding: "20px", boxSizing: "border-box"}}>
       <div id="properties-panel" elevation={24} style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
         {
           selectedTerritory
@@ -458,7 +495,7 @@ function RightBar(props) {
   const {} = props
 
   return (
-    <div style={{position: "absolute", top: "0px", right: "0px", height: "100vh", width: "350px", padding: "20px", boxSizing: "border-box"}}>
+    <div id="right-bar-container" style={{position: "absolute", top: "0px", right: "0px", height: "100vh", padding: "20px", boxSizing: "border-box"}}>
       <div id="right-bar" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
         
       </div>

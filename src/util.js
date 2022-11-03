@@ -123,6 +123,7 @@ function download(text, name, type) {
   a.download = name;
 }
 
+function isMobile() { return ('ontouchstart' in document.documentElement); }
 
 export {
     getMapImageUrl,
@@ -135,5 +136,6 @@ export {
     roundToTwo,
     createArray,
     svgToPng,
-    download
+    download,
+    isMobile
 }

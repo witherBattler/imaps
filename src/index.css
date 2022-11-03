@@ -420,12 +420,7 @@ code {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%) scale(0.8);
-  -webkit-transform: translateX(-50%) scale(0.8);
-  -moz-transform: translateX(-50%) scale(0.8);
-  -ms-transform: translateX(-50%) scale(0.8);
-  -o-transform: translateX(-50%) scale(0.8);
   transform-origin: 50% 100%;
-  width: 500px;
   height: 110px;
   border-radius: 10px;
   justify-content: space-between;
@@ -472,4 +467,28 @@ code {
   color: white;
   opacity: 0.8;
   user-select: none;
+}
+
+#properties-container, #right-bar-container {
+  width: 350px;
+}
+#zoom-panel {
+  right: 350px;
+}
+
+@media only screen and (max-width: 1220px) {
+  #properties-container, #right-bar-container {
+    width: 300px;
+  }
+  #zoom-panel {
+    right: 300px;
+  }
+  #toolbar {
+    transform: translateX(-50%) scale(0.7);
+  }
+}
+@media only screen and (max-width: 1055px) {
+  #toolbar {
+    transform: translateX(-50%) scale(0.6);
+  }
 }
