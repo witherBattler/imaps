@@ -16,7 +16,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile } from "./util"
+import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle } from "./util"
 import { ColorFill, FlagFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
@@ -172,6 +172,7 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
   let defsElement = document.createElementNS("http://www.w3.org/2000/svg", "defs")
   svgElement.appendChild(defsElement)
 
+  let domParser = new DOMParser()
 
   for(let i = 0; i != territories.length; i++) {
     let territory = territories[i]
@@ -191,7 +192,19 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     gElement.appendChild(pathElement)
     svgElement.appendChild(gElement)
   }
-
+  for(let i = 0; i != territories.length; i++) {
+    let territory = territories[i]
+    if(territory.hidden) {
+      continue
+    }
+    svgElement.appendChild(
+      domParser.parseFromString(
+        ReactDOMServer.renderToStaticMarkup((territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")),
+        'application/xml'
+      ).firstElementChild
+    )
+  }
+  
   return svgElement
 }
 
@@ -210,6 +223,7 @@ function Editor(props) {
   const [defaultValue, setDefaultValue] = useState("")
   const [currentZoom, setCurrentZoom] = useState(1)
   const [currentTool, setCurrentTool] = useState("cursor")
+  const [annotations, setAnnotations] = useState([])
 
 
   function downloadSvg() {
@@ -249,8 +263,8 @@ function Editor(props) {
 
 
   return(
-    <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "cursor" ? null : "crosshair"}}>
-      <EditableMap currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML}></EditableMap>
+    <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" || currentTool == "text" ? "crosshair" : null}}>
+      <EditableMap currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
@@ -263,6 +277,9 @@ function Toolbar({setCurrentTool, currentTool, downloadSvg}) {
   return <div id="toolbar">
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
+    }}></ToolbarButton>
+    <ToolbarButton name="ANNOTATIONS" icon="icons/cursor-annotation.svg" selected={currentTool == "annotations"} onClick={function() {
+      setCurrentTool("annotations")
     }}></ToolbarButton>
     <ToolbarButton name="RECTANGLE" icon="icons/rectangle.svg" selected={currentTool == "rectangle"} onClick={function() {
       setCurrentTool("rectangle")
@@ -312,17 +329,38 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
 }
 
 let selectingTerritories = false
+let annotationFirstPoint = {x: null, y: null}
+let currentlyDrawingAnnotation = false
 
 function EditableMap(props) {
-  const {currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
-  
+  const {annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
+  const [previewAnnotation, setPreviewAnnotation] = useState(null)
+  const [annotationFirstPoint, setAnnotationFirstPoint] = useState({x: null, y: null})
+
   let defs = <></>
   let mobile = isMobile()
+  
 
   return (
-    <div id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={function(event) {
+    <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={function(event) {
       if(event.target.id == "map-div" || event.target.id == "map-svg") {
         setSelectedTerritory(null)
+      }
+      if(currentTool == "rectangle" || currentTool == "ellipse" || currentTool == "text") {
+        let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+        let [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
+        setAnnotationFirstPoint({x: mouseX, y: mouseY})
+      }
+      switch(currentTool) {
+        case "rectangle":
+          setPreviewAnnotation(<rect/>)
+          break;
+        case "ellipse":
+          setPreviewAnnotation(<ellipse/>)
+          break;
+        case "text":
+          setPreviewAnnotation(<text/>)
+          break;
       }
     }} onWheel={function(event) {
       if(event.deltaY > 0) {
@@ -334,7 +372,53 @@ function EditableMap(props) {
       }
     }} onMouseUp={mobile ? null : function(event) {
       selectingTerritories = false
-    }} onTouchEnd={mobile ? null : function(event) {
+      if(currentTool == "rectangle" || currentTool == "ellipse" || currentTool == "text") {
+        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+        var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
+        var annotationRect = getRectFromPoints({x: mouseX, y: mouseY}, annotationFirstPoint)
+      }
+      if(currentTool == "rectangle") {
+        setAnnotations([...annotations, {
+          type: "rectangle",
+          x: annotationRect.left,
+          y: annotationRect.top,
+          width: annotationRect.width,
+          height: annotationRect.height,
+          borderRadius: 3,
+          fill: null,
+          outlineColor: null,
+          outlineSize: null
+        }])
+        setPreviewAnnotation(null)
+      } else if(currentTool == "ellipse") {
+        setAnnotations([...annotations, {
+          type: "ellipse",
+          x: annotationRect.left,
+          y: annotationRect.top,
+          width: annotationRect.width,
+          height: annotationRect.height,
+          fill: null,
+          outlineColor: null,
+          outlineSize: null
+        }])
+        setPreviewAnnotation(null)
+      }
+    }} onMouseMove={mobile ? null : function(event) {
+      if(!previewAnnotation) return
+      let mapRect, mouseX, mouseY, annotationRect
+      if(previewAnnotation && currentTool == "rectangle" || currentTool == "ellipse" || currentTool == "text") {
+        mapRect = document.getElementById("map-svg").getBoundingClientRect()
+        mouseX = (event.clientX - mapRect.x) / currentZoom
+        mouseY = (event.clientY - mapRect.y) / currentZoom
+        annotationRect = getRectFromPoints({x: mouseX, y: mouseY}, annotationFirstPoint)
+      }
+      if(currentTool == "rectangle" && previewAnnotation) {
+        setPreviewAnnotation(<rect fill="#0188D299" x={annotationRect.left} y={annotationRect.top} width={annotationRect.width} height={annotationRect.height}/>)
+      }
+      if(currentTool == "ellipse" && previewAnnotation) {
+        setPreviewAnnotation(<ellipse fill="#0188D299" cx={annotationRect.left + annotationRect.width / 2} cy={annotationRect.top + annotationRect.height / 2} ry={annotationRect.height / 2} rx={annotationRect.width / 2}/>)
+      }
+    }} onTouchEnd={!mobile ? null : function(event) {
       selectingTerritories = false
     }}>
       <svg id="map-svg" onTouchMove={!mobile ? null : function(event) {
@@ -371,7 +455,7 @@ function EditableMap(props) {
                     selected = selectedTerritory.index == territory.index
                   }
                 }
-                return <g key={territory.index} style={selectedTerritory ? {opacity: selected ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
+                return <g className="territory" key={territory.index} style={selectedTerritory ? {opacity: selected ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
                   <path
                     data-index={territory.index}
                     d={territory.path}
@@ -419,11 +503,22 @@ function EditableMap(props) {
                       }
                     }
                   ></path>
-                  {(territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")}
                 </g>
               }
             )
           }
+          {
+            territories
+              .filter(territory => {
+                return !territory.hidden
+              })
+              .map((territory) => {
+                return (territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")
+              })
+          }
+          
+          <AnnotationRenderer currentTool={currentTool} annotations={annotations} setAnnotations={setAnnotations}></AnnotationRenderer>
+          {previewAnnotation}
         <defs>
           {defs}
         </defs>
@@ -431,6 +526,38 @@ function EditableMap(props) {
     </div>
     
   )
+}
+
+function AnnotationRenderer({currentTool, annotations, setAnnotations}) {
+  let defs = <></>
+
+  let defaultAnnotationStyle = {
+    fill: new ColorFill(1, 136, 210, 1),
+    outlineColor: new ColorFill(0, 0, 0, 1),
+    outlineSize: 2
+  }
+
+  return <>
+    {
+      annotations.map((annotation, index) => {
+        // annotations use the same thing as territories
+        let style = getAnnotationComputedStyle(annotation, defaultAnnotationStyle)
+        defs = <>
+          {defs}
+          {style.defs}
+        </>
+        switch(annotation.type) {
+          case "ellipse":
+            return <ellipse key={index} className="annotation" sharprendering="crispEdges" cx={annotation.x + annotation.width / 2} cy={annotation.y + annotation.height / 2} rx={annotation.width / 2} ry={annotation.height / 2} fill={style.fill} stroke={style.outlineColor} strokeWidth={style.outlineSize}/>
+          case "rectangle":
+            return <rect key={index} className="annotation" sharprendering="crispEdges" x={annotation.x} y={annotation.y} width={annotation.width} height={annotation.height} rx={annotation.borderRadius} ry={annotation.borderRadius} fill={style.fill} stroke={style.outlineColor} strokeWidth={style.outlineSize}/>
+        }
+      })
+    }
+    <defs>
+      {defs}
+    </defs>
+  </>
 }
 
 function Properties(props) {
@@ -549,7 +676,7 @@ function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, on
       return <div style={{display: "flex", flexDirection: "column"}}>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Displace</Typography>
         <PositionSelect x={selectedTerritory.dataOffsetX} y={selectedTerritory.dataOffsetY} onChange={function(x, y) {
-          onChange({x, y})
+          onChange({dataOffsetX: x, dataOffsetY: y})
         }}/>
       </div>
   }
@@ -944,6 +1071,7 @@ function PositionSelect({x, y, onChange}) {
         let x = event.clientX - box.x - centerX
         let y = event.clientY - box.y - centerY
         onChange(x, y)
+        console.log("dragging~!!!!!!!")
       }
     }}></canvas>
     <Typography>x: {x} y: {y}</Typography>

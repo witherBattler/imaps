@@ -492,3 +492,27 @@ code {
     transform: translateX(-50%) scale(0.6);
   }
 }
+
+#map-div .annotation {
+  transition: opacity 0.2s;
+  -webkit-transition: opacity 0.2s;
+  -moz-transition: opacity 0.2s;
+  -ms-transition: opacity 0.2s;
+  -o-transition: opacity 0.2s;
+}
+#map-div.cursor .annotation {
+  opacity: 0.2;
+  pointer-events: none;
+}
+#map-div.annotations .annotation {
+  cursor: pointer;
+}
+#map-div.annotations .annotation {
+  cursor: pointer;
+}
+#map-div.annotations .territory {
+  opacity: 0.1;
+}
+.data-visualizer {
+  z-index: 10;
+}

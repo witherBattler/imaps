@@ -6,21 +6,24 @@ class DataVisualizer {
     constructor(data) {
         this.type = null
         this.id = generateId()
-        this.data = {
+        this.data = data || {
             text: {
-                fillType: 0,
-                fillStyles: [
-                    {
-                        color: new ColorFill(255, 0, 0, 1)
-                    }
-                ]
+                style: {
+                    fill: new ColorFill(255, 255, 255, 1),
+                    outlineColor: new ColorFill(0, 0, 0, 1),
+                    outlineSize: 4,
+                    fontSize: 22,
+                    fontFamily: "rubik",
+                    fontWeight: "400",
+                    italic: false,
+                }
             },
             geometryDash: {
                 min: 0,
                 max: 10,
                 reverse: false
             }
-        } || data
+        }
     }
     render() {
 
@@ -30,7 +33,7 @@ class DataVisualizer {
             case 0:
                 return new DataVisualizer(this.data)
             case 1:
-                return new TextDataVisualizer(this.data.text.fillType, this.data.text.fillStyles[this.data.text.fillType], this.data)
+                return new TextDataVisualizer(this.data.text.style, this.data)
             case 2:
                 return new GeometryDashDataVisualizer(this.data.geometryDash.min, this.data.geometryDash.max, this.data.geometryDash.reverse, this.data)
         }
@@ -48,26 +51,34 @@ class DataVisualizer {
 }
 
 class TextDataVisualizer extends DataVisualizer {
-    constructor(fillType, fillStyle, data) {
+    constructor(style, data) {
         super()
         this.data = data || this.data;
-        this.fillType = fillType
-        this.fillStyle = fillStyle
+        this.style = style
         this.type = "text"
     }
     render(boundingBox, data, territory, id) {
         let center = {x: boundingBox.x + boundingBox.width / 2, y: boundingBox.y + boundingBox.height / 2}
-        console.log(this.fillStyle)
 
-
-        switch(this.fillType) {
-            case 0:
-                // normal
-                return <>
-                    {this.fillStyle.color.getDefs(territory, "data-visualizer")}
-                    <text x={center.x} y={center.y} style={{textAnchor: "middle", dominantBaseline: "middle", pointerEvents: "none"}} fill={this.fillStyle.color.getBackground(territory, "data-visualizer")}>{data}</text>
-                </>
-        }
+        return <>
+            <defs>
+                {this.style.fill.getDefs(territory, "data-visualizer.fill")}
+                {this.style.outlineColor.getDefs(territory, "data-visualizer.outline-color")}
+            </defs>
+            <text
+                fill={this.style.fill.getBackground(territory, "data-visualizer.fill")}
+                stroke={this.style.outlineColor.getBackground(territory, "data-visualizer.fill")}
+                strokeWidth={this.style.outlineSize}
+                className="data-visualizer"
+                x={center.x}
+                y={center.y}
+                fontSize={this.style.fontSize}
+                fontFamily={this.style.fontFamily}
+                fontWeight={this.style.fontFamily}
+                fontStyle={this.style.italic ? "italic" : null}
+                style={{paintOrder: "stroke", zIndex: "10", textAnchor: "middle", dominantBaseline: "middle", pointerEvents: "none", userSelect: "none"}}
+            >{data}</text>
+        </>
     }
     clone() {
         return new TextDataVisualizer(this.fillType, this.fillStyle, this.data)
@@ -99,7 +110,7 @@ class GeometryDashDataVisualizer extends DataVisualizer {
         let imagePosition = {x: center.x - GEOMETRY_DASH_ICON_WIDTH / 2, y: center.y - GEOMETRY_DASH_ICON_HEIGHT / 2}
         let imageUrl
         if(!data || isNaN(parseInt(data))) {
-            imageUrl = "./geometryDash/Unrated.webp"
+            imageUrl = "https://periphern.impixel.tech/geometryDash/Unrated.webp"
         } else {
             data = parseInt(data)
             // return the <> according to the boundingBox.
@@ -108,9 +119,9 @@ class GeometryDashDataVisualizer extends DataVisualizer {
             if(this.reverse) {
                 imageIndex = 10 - imageIndex
             }
-            imageUrl = "./geometryDash/" + GEOMETRY_DASH_ICONS[imageIndex].id + ".webp"
+            imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[imageIndex].id + ".webp"
         }
-        return <image style={{pointerEvents: "none"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
+        return <image style={{pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
     }
     clone() {
         return new GeometryDashDataVisualizer(this.min, this.max, this.reverse, this.data)

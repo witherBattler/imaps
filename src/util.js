@@ -45,14 +45,33 @@ function getTerritoryComputedStyle(territory, defaultStyle, territoryHTML) {
     }, territory, territoryHTML)
 }
 
-function getComputedStyleFromObject(style, territory, territoryHTML) {
+function getAnnotationComputedStyle(annotation, defaultStyle) {
+    return getComputedStyleFromAnnotationObject({
+        fill: annotation.fill || defaultStyle.fill,
+        outlineColor: annotation.outlineColor || defaultStyle.outlineColor,
+        outlineSize: annotation.outlineSiz || defaultStyle.outlineSize
+    }, annotation)
+}
+
+function getComputedStyleFromAnnotationObject(style, annotation) {
     return {
-        fill: style.fill.getBackground(territory, "fill", territoryHTML),
-        outlineColor: style.outlineColor.getBackground(territory, "outlineColor", territoryHTML),
+        fill: style.fill.getBackground(annotation, "annotation-fill"),
+        outlineColor: style.outlineColor.getBackground(annotation, "annotation-outlineColor"),
         outlineSize: style.outlineSize,
         defs: <>
-            {style.fill.getDefs(territory, "fill", territoryHTML)}
-            {style.outlineColor.getDefs(territory, "outlineColor", territoryHTML)}
+            {style.fill.getDefs(annotation, "annotation-fill")}
+            {style.outlineColor.getDefs(annotation, "annotation-outlineColor")}
+        </>
+    }
+}
+function getComputedStyleFromObject(style, territory, territoryHTML) {
+    return {
+        fill: style.fill.getBackground(territory, "fill"),
+        outlineColor: style.outlineColor.getBackground(territory, "outlineColor"),
+        outlineSize: style.outlineSize,
+        defs: <>
+            {style.fill.getDefs(territory, "fill")}
+            {style.outlineColor.getDefs(territory, "outlineColor")}
         </>
     }
 }
@@ -125,6 +144,18 @@ function download(text, name, type) {
 
 function isMobile() { return ('ontouchstart' in document.documentElement); }
 
+function getRectFromPoints(point1, point2) {
+    console.log(point1, point2)
+    let left = Math.min(point1.x, point2.x)
+    let right = Math.max(point1.x, point2.x)
+    let top = Math.min(point1.y, point2.y)
+    let bottom = Math.max(point1.y, point2.y)
+    let width = right - left
+    let height = bottom - top
+    console.log(width, height)
+    return {left, right, top, bottom, width, height}
+}
+
 export {
     getMapImageUrl,
     ajax,
@@ -137,5 +168,7 @@ export {
     createArray,
     svgToPng,
     download,
-    isMobile
+    isMobile,
+    getAnnotationComputedStyle,
+    getRectFromPoints
 }
