@@ -156,8 +156,17 @@ function getRectFromPoints(point1, point2) {
     let bottom = Math.max(point1.y, point2.y)
     let width = right - left
     let height = bottom - top
-    console.log(width, height)
     return {left, right, top, bottom, width, height}
+}
+
+async function convertSvgUrlsToBase64(svg) {
+    let images = Array.from(svg.getElementsByTagName("image"))
+    for(let i = 0; i != images.length; i++) {
+        let image = images[0]
+        let base64href = await ajax(image.getAttribute("href"), "GET")
+        image.href = base64href
+    }
+    return svg
 }
 
 export {
@@ -174,5 +183,6 @@ export {
     download,
     isMobile,
     getAnnotationComputedStyle,
-    getRectFromPoints
+    getRectFromPoints,
+    convertSvgUrlsToBase64
 }
