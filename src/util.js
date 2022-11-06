@@ -161,6 +161,7 @@ function getRectFromPoints(point1, point2) {
 
 async function convertSvgUrlsToBase64(svg) {
     let images = Array.from(svg.getElementsByTagName("image"))
+    console.log(images)
     for(let i = 0; i != images.length; i++) {
         let image = images[0]
         console.log(image.getAttribute("href"))
