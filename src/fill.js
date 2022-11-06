@@ -70,7 +70,7 @@ class FlagFill extends Fill {
         this.data = data || this.data
     }
     getBackgroundCSS(territory, mode) {
-        return `url("flags/${this.id}.svg")`
+        return `url("https://periphern.impixel.tech/flags/${this.id}.svg")`
     }
     getBackground(territory, mode) {
         return `url(#${territory.index}.${mode})`
@@ -78,7 +78,7 @@ class FlagFill extends Fill {
     getDefs(territory, mode) {
         return <>
             <pattern id={`${territory.index}.${mode}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
-                <image preserveAspectRatio="xMidYMid slice" href={"flags/" + this.id + ".svg"} width="1" height="1"></image>
+                <image preserveAspectRatio="xMidYMid slice" href={"https://periphern.impixel.tech/flags/" + this.id + ".svg"} width="1" height="1"></image>
             </pattern>
         </>
     }

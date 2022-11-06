@@ -74,21 +74,63 @@ class TextDataVisualizer extends DataVisualizer {
                 y={center.y}
                 fontSize={this.style.fontSize}
                 fontFamily={this.style.fontFamily}
-                fontWeight={this.style.fontFamily}
+                fontWeight={this.style.fontWeight}
                 fontStyle={this.style.italic ? "italic" : null}
                 style={{paintOrder: "stroke", zIndex: "10", textAnchor: "middle", dominantBaseline: "middle", pointerEvents: "none", userSelect: "none"}}
             >{data}</text>
         </>
     }
     clone() {
-        return new TextDataVisualizer(this.fillType, this.fillStyle, this.data)
+        return new TextDataVisualizer(this.style, this.data)
     }
     setUpdate(newObject) {
-        this.fillType = newObject.fillType
-        this.fillStyle = newObject.fillStyle
+        this.style = newObject.style
         this.data.text = {
-            fillType: newObject.fillType,
-            fillStyle: newObject.fillStyle
+            style: newObject.style
+        }
+    }
+    getFontIndex() {
+        switch(this.style.fontFamily) {
+            case "rubik":
+                return 1
+            case "helvetica":
+                return 2
+            case "oblivian":
+                return 3
+            case "georgia":
+                return 4
+            case "trebuchet":
+                return 5
+            case "roboto":
+                return 6
+            case "century gothic":
+                return 7
+            case "rockwell":
+                return 8
+            case "verdana":
+                return 9
+        }
+    }
+    getFontFromIndex(index) {
+        switch(index) {
+            case 1:
+                return "rubik"
+            case 2:
+                return "helvetica"
+            case 3:
+                return "oblivian"
+            case 4:
+                return "georgia"
+            case 5:
+                return "trebuchet"
+            case 6:
+                return "roboto"
+            case 7:
+                return "century gothic"
+            case 8:
+                return "rockwell"
+            case 9:
+                return "verdana"
         }
     }
 }

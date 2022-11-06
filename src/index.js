@@ -1,5 +1,6 @@
 import React, {useState, useEffect, componentDidMount, useRef} from 'react';
 import ReactDOM from 'react-dom/client';
+import './default.css';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import { MAP_NAMES, FLAGS } from "./constants"
@@ -653,17 +654,128 @@ function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
           }}></TextField>
         </div>
         <FormControlLabel control={
-            <Switch checked={dataVisualizerGetter.reverse} onChange={function (event) {
+          <Switch checked={dataVisualizerGetter.reverse} onChange={function (event) {
+            let newDataVisualizer = {
+              ...dataVisualizerGetter,
+              reverse: !dataVisualizerGetter.reverse
+            }
+            dataVisualizerGetter.setUpdate(newDataVisualizer)
+            dataVisualizerSetter(dataVisualizerGetter.clone())
+          }}/>
+        } label="Reverse"/>
+      </div>
+    
+    case "text":
+      var id = generateId()
+      return <>
+        <div style={{display: "flex", justifyContent: "space-between"}}>
+          <TextField value={dataVisualizerGetter.style.fontSize} variant="filled" label="Font size" size="small" style={{width: "49%"}} onChange={function(event) {
+            let newDataVisualizer = {
+              ...dataVisualizerGetter,
+              style: {
+                ...dataVisualizerGetter.style,
+                fontSize: parseInt(event.target.value) || 0
+              }
+            }
+            dataVisualizerGetter.setUpdate(newDataVisualizer)
+            dataVisualizerSetter(dataVisualizerGetter.clone())
+          }}></TextField>
+          <FormControl variant="filled" size="small" style={{width: "49%"}}>
+            <InputLabel id={id}>Font weight</InputLabel>
+            <Select
+              labelId={id}
+              value={dataVisualizerGetter.style.fontWeight / 100}
+              defaultValue={2}
+              onChange={function(event) {
+                let newDataVisualizer = {
+                  ...dataVisualizerGetter,
+                  style: {
+                    ...dataVisualizerGetter.style,
+                    fontWeight: event.target.value * 100
+                  }
+                }
+                dataVisualizerGetter.setUpdate(newDataVisualizer)
+                dataVisualizerSetter(dataVisualizerGetter.clone())
+              }}
+            >
+              <MenuItem value={1}>
+                100
+              </MenuItem>
+              <MenuItem value={2}>
+                200
+              </MenuItem>
+              <MenuItem value={3}>
+                300
+              </MenuItem>
+              <MenuItem value={4}>
+                400
+              </MenuItem>
+              <MenuItem value={5}>
+                500
+              </MenuItem>
+              <MenuItem value={6}>
+                600
+              </MenuItem>
+              <MenuItem value={7}>
+                700
+              </MenuItem>
+              <MenuItem value={8}>
+                800
+              </MenuItem>
+              <MenuItem value={9}>
+                900
+              </MenuItem>
+            </Select>
+          </FormControl>
+        </div>
+        <FormControl fullWidth variant="filled" size="small" style={{marginTop: "5px"}}>
+          <InputLabel id={id}>Font family</InputLabel>
+          <Select
+            labelId={id}
+            value={dataVisualizerGetter.getFontIndex()}
+            onChange={function(event) {
               let newDataVisualizer = {
                 ...dataVisualizerGetter,
-                reverse: !dataVisualizerGetter.reverse
+                style: {
+                  ...dataVisualizerGetter.style,
+                  fontFamily: dataVisualizerGetter.getFontFromIndex(event.target.value)
+                }
               }
               dataVisualizerGetter.setUpdate(newDataVisualizer)
               dataVisualizerSetter(dataVisualizerGetter.clone())
-            }}/>
-        } label="Reverse"/>
-      </div>
-        
+            }}
+          >
+            <MenuItem value={1}>
+              Rubik
+            </MenuItem>
+            <MenuItem value={2}>
+              Helvetica
+            </MenuItem>
+            <MenuItem value={3}>
+              Oblivian
+            </MenuItem>
+            <MenuItem value={4}>
+              Georgia
+            </MenuItem>
+            <MenuItem value={5}>
+              Trebuchet
+            </MenuItem>
+            <MenuItem value={6}>
+              Roboto
+            </MenuItem>
+            <MenuItem value={7}>
+              Century Gothic
+            </MenuItem>
+            <MenuItem value={8}>
+              Rockwell
+            </MenuItem>
+            <MenuItem value={9}>
+              Verdana
+            </MenuItem>
+          </Select>
+        </FormControl>
+      </>
+      break;
     case null:
       break;
     default:
