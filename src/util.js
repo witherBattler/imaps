@@ -106,12 +106,14 @@ function createArray(element1, element2) {
     }
 }
 
-function svgToPng(svg, callback) {
+async function svgToPng(svg) {
     const url = getSvgUrl(svg);
-    svgUrlToPng(url, (imgData) => {
-      callback(imgData);
-      URL.revokeObjectURL(url);
-    });
+    return new Promise(function(resolve, reject) {
+        svgUrlToPng(url, (imgData) => {
+            resolve(imgData);
+            URL.revokeObjectURL(url);
+        });
+    })
   }
 function getSvgUrl(svg) {
     return URL.createObjectURL(new Blob([svg], {
@@ -121,6 +123,8 @@ function getSvgUrl(svg) {
 function svgUrlToPng(svgUrl, callback) {
     const svgImage = document.createElement('img');
     document.body.appendChild(svgImage);
+    
+    // it "loads", not the images in the svg
     svgImage.onload = () => {
         const canvas = document.createElement('canvas');
         canvas.width = svgImage.clientWidth;

@@ -60,6 +60,7 @@ class TextDataVisualizer extends DataVisualizer {
     render(boundingBox, data, territory, id) {
         let center = {x: territory.dataOffsetX + boundingBox.x + boundingBox.width / 2, y: territory.dataOffsetY + boundingBox.y + boundingBox.height / 2}
 
+        
         return <>
             <defs>
                 {this.style.fill.getDefs(territory, "data-visualizer.fill")}

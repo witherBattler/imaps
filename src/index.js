@@ -232,6 +232,15 @@ function Editor(props) {
     a.href = "data:image/svg+xml;base64," + base64
     a.dispatchEvent(e)
   }
+  async function downloadPng() {
+    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML)
+    let converted = await svgToPng(element.outerHTML)
+    const a = document.createElement("a")
+    const e = new MouseEvent("click")
+    a.download = "map.png"
+    a.href = converted
+    a.dispatchEvent(e)
+  }
 
   useEffect(function() {
     ajax(getMapImageUrl(chosenMap.id), "GET").then(data => {
@@ -265,12 +274,12 @@ function Editor(props) {
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
-      <Toolbar downloadSvg={downloadSvg} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+      <Toolbar downloadSvg={downloadSvg} downloadPng={downloadPng} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
 }
 
-function Toolbar({setCurrentTool, currentTool, downloadSvg}) {
+function Toolbar({setCurrentTool, currentTool, downloadSvg, downloadPng}) {
   return <div id="toolbar">
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
@@ -287,13 +296,29 @@ function Toolbar({setCurrentTool, currentTool, downloadSvg}) {
     <ToolbarButton name="TEXT" icon="icons/text.svg" selected={currentTool == "text"} onClick={function() {
       setCurrentTool("text")
     }}></ToolbarButton>
-    <ToolbarButton name="DOWNLOAD" icon="icons/download.svg" selected={false} onClick={function() {
-      downloadSvg()
-    }}></ToolbarButton>
+    <ToolbarButton name="DOWNLOAD" downloadSvg={downloadSvg} downloadPng={downloadPng} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
   </div>
 }
-function ToolbarButton({name, icon, selected, onClick}) {
-  return <div onClick={onClick} className="toolbar-button">
+function ToolbarButton({name, icon, selected, onClick, special, downloadSvg, downloadPng}) {
+  let specialContent = <></>
+  switch(special) {
+    case "download":
+      specialContent = <div className="special download" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
+        <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
+          <div onClick={downloadSvg} className="button">
+            SVG
+          </div>
+          <div onClick={downloadPng} className="button">
+            PNG
+          </div>
+        </div>
+
+        
+      </div>
+      break;
+  }
+  return <div onClick={onClick} className="toolbar-button" style={{position: "relative"}}>
+    {specialContent}
     <div className={selected ? "top selected" : "top"}>
       <img src={icon}></img>
     </div>
@@ -305,24 +330,26 @@ function ToolbarButton({name, icon, selected, onClick}) {
 }
 
 function ZoomWidget({currentZoom, setCurrentZoom}) {
-  return <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "180px", height: "50px", borderRadius: "10px", position: "absolute", top: "20px"}}>
-    <Typography style={{fontSize: "18px", width: "80px", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>{(currentZoom * 100).toFixed()}%</Typography>
-    <Divider orientation="vertical"/>
-    <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexGrow: "1"}}>
-      <IconButton disabled={currentZoom == 3} style={{aspectRatio: "1/1", height: "40px"}} onClick={function() {
-        let unrounded = Math.min(currentZoom - ((0 - currentZoom) / 5) || 0.1, 3)
-        setCurrentZoom(roundToTwo(unrounded))
-      }}>
-        <AddIcon/>
-      </IconButton>
-      <IconButton disabled={currentZoom == 0.25} style={{aspectRatio: "1/1", height: "40px", marginLeft: "5px"}} onClick={function() {
-        let unrounded = Math.max(currentZoom + ((0 - currentZoom) / 5) || 0.1, 0.25)
-        setCurrentZoom(roundToTwo(unrounded))
-      }}>
-        <RemoveIcon/>
-      </IconButton>
+  return <>
+    <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "180px", height: "50px", borderRadius: "10px", position: "absolute", top: "20px"}}>
+      <Typography style={{fontSize: "18px", width: "80px", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>{(currentZoom * 100).toFixed()}%</Typography>
+      <Divider orientation="vertical"/>
+      <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexGrow: "1"}}>
+        <IconButton disabled={currentZoom == 3} style={{aspectRatio: "1/1", height: "40px"}} onClick={function() {
+          let unrounded = Math.min(currentZoom - ((0 - currentZoom) / 5) || 0.1, 3)
+          setCurrentZoom(roundToTwo(unrounded))
+        }}>
+          <AddIcon/>
+        </IconButton>
+        <IconButton disabled={currentZoom == 0.25} style={{aspectRatio: "1/1", height: "40px", marginLeft: "5px"}} onClick={function() {
+          let unrounded = Math.max(currentZoom + ((0 - currentZoom) / 5) || 0.1, 0.25)
+          setCurrentZoom(roundToTwo(unrounded))
+        }}>
+          <RemoveIcon/>
+        </IconButton>
+      </div>
     </div>
-  </div>
+  </>
 }
 
 let selectingTerritories = false

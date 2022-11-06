@@ -429,6 +429,19 @@ code {
   justify-content: space-between;
   cursor: pointer;
 }
+.toolbar-button > .special {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  -webkit-transition: opacity 0.2s;
+  -moz-transition: opacity 0.2s;
+  -ms-transition: opacity 0.2s;
+  -o-transition: opacity 0.2s;
+}
+.toolbar-button:hover > .special {
+  pointer-events: all;
+  opacity: 1;
+}
 
 .toolbar-button:hover > .top {
   background-color: #3f4869;
@@ -508,4 +521,30 @@ code {
 }
 .data-visualizer {
   z-index: 10;
+}
+.special.download > .panel > .button {
+  width: 100%;
+  height: 40px;
+  color: white;
+  font-family: rubik;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  transition: background-color 0.1s;
+  -webkit-transition: background-color 0.1s;
+  -moz-transition: background-color 0.1s;
+  -ms-transition: background-color 0.1s;
+  -o-transition: background-color 0.1s;
+}
+.special.download > .panel > .button:first-child {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px
+}
+.special.download > .panel > .button:last-child {
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+.special.download > .panel > .button:hover {
+  background-color: #3f4869;
 }

@@ -13,6 +13,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@use-gesture/react": "^10.2.20",
     "@welldone-software/why-did-you-render": "^7.0.1",
+    "convert-svg-to-png": "^0.6.4",
     "cross-fetch": "^3.1.5",
     "dotenv": "^16.0.3",
     "https": "^1.0.0",
@@ -27,6 +28,7 @@
     "react-scripts": "5.0.1",
     "save-svg-as-png": "^1.4.17",
     "svg-saver-node": "^0.0.2",
+    "svg-to-png": "^4.0.0",
     "typeface-roboto": "^1.1.13",
     "use-zoom-pan": "^1.0.2",
     "web-vitals": "^2.1.4"
