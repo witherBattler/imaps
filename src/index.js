@@ -38,10 +38,6 @@ import * as ReactDOMServer from 'react-dom/server';
 import MenuIcon from '@mui/icons-material/Menu';
 import 'typeface-roboto'
 
-const SvgSaver = require("svg-saver-node")
-const svgSaver = new SvgSaver(window)
-
-
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const darkTheme = createTheme({
   palette: {
@@ -668,6 +664,44 @@ function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
     case "text":
       var id = generateId()
       return <>
+        <Typography style={{fontSize: "20px", lineHeight: "120%"}}>Fill</Typography>
+        <TerritoryFillPicker allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
+          let newDataVisualizer = {
+            ...dataVisualizerGetter,
+            style: {
+              ...dataVisualizerGetter.style,
+              fill: newFill
+            }
+          }
+          dataVisualizerGetter.setUpdate(newDataVisualizer)
+          dataVisualizerSetter(dataVisualizerGetter.clone())
+        }}></TerritoryFillPicker>
+        <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
+        <TerritoryFillPicker allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
+          let newDataVisualizer = {
+            ...dataVisualizerGetter,
+            style: {
+              ...dataVisualizerGetter.style,
+              outlineColor: newFill
+            }
+          }
+          dataVisualizerGetter.setUpdate(newDataVisualizer)
+          dataVisualizerSetter(dataVisualizerGetter.clone())
+        }}></TerritoryFillPicker>
+        <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
+        <div style={{width: "100%", display: "flex", justifyContent: "center", marginBottom: "4px"}}>
+          <Slider value={dataVisualizerGetter.style.outlineSize} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={function(event) {
+            let newDataVisualizer = {
+              ...dataVisualizerGetter,
+              style: {
+                ...dataVisualizerGetter.style,
+                outlineSize: event.target.value
+              }
+            }
+            dataVisualizerGetter.setUpdate(newDataVisualizer)
+            dataVisualizerSetter(dataVisualizerGetter.clone())
+          }}/>
+        </div>
         <div style={{display: "flex", justifyContent: "space-between"}}>
           <TextField value={dataVisualizerGetter.style.fontSize} variant="filled" label="Font size" size="small" style={{width: "49%"}} onChange={function(event) {
             let newDataVisualizer = {
@@ -774,6 +808,19 @@ function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
             </MenuItem>
           </Select>
         </FormControl>
+        <FormControlLabel control={
+          <Switch checked={dataVisualizerGetter.style.italic} onChange={function (event) {
+            let newDataVisualizer = {
+              ...dataVisualizerGetter,
+              style: {
+                ...dataVisualizerGetter.style,
+                italic: !dataVisualizerGetter.style.italic
+              }
+            }
+            dataVisualizerGetter.setUpdate(newDataVisualizer)
+            dataVisualizerSetter(dataVisualizerGetter.clone())
+          }}/>
+        } label="Italic"/>
       </>
       break;
     case null:
@@ -785,6 +832,13 @@ function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
 function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, onChange, territories}) {
   switch(dataVisualizer.type) {
     case "geometryDash":
+      return <div style={{display: "flex", flexDirection: "column"}}>
+        <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Displace</Typography>
+        <PositionSelect x={selectedTerritory.dataOffsetX} y={selectedTerritory.dataOffsetY} onChange={function(x, y) {
+          onChange({dataOffsetX: x, dataOffsetY: y})
+        }}/>
+      </div>
+    case "text":
       return <div style={{display: "flex", flexDirection: "column"}}>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Displace</Typography>
         <PositionSelect x={selectedTerritory.dataOffsetX} y={selectedTerritory.dataOffsetY} onChange={function(x, y) {
@@ -929,7 +983,7 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 
 
 function TerritoryFillPicker(props) {
-  const {color, style, updateStyle, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
+  const {allowFlagFill, color, style, updateStyle, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
@@ -946,7 +1000,7 @@ function TerritoryFillPicker(props) {
     }}>
       <div style={{flexGrow: "1", padding: "6.5px", paddingRight: "0px", boxSizing: "border-box"}}>
         <div style={{background: color.getBackgroundCSS(), width: "100%", height: "100%", borderRadius: "3px"}}>
-          <TerritoryFillPickerPopup backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
+          <TerritoryFillPickerPopup allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
         </div>
       </div>
       
@@ -958,7 +1012,10 @@ function TerritoryFillPicker(props) {
 }
 
 function TerritoryFillPickerPopup(props) {
-  let {color, opened, setOpened, style, onUpdate, mode, backgroundId} = props
+  let {color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
+  if(allowFlagFill !== false) {
+    allowFlagFill = true
+  }
   const [flagSearch, setFlagSearch] = useState("")
   const [tabIndex, setTabIndex] = useState(typeToValue(color.type))
 
@@ -1049,7 +1106,7 @@ function TerritoryFillPickerPopup(props) {
               setTabIndex(newValue)
             }}>
               <Tab value={0} label="Color"></Tab>
-              <Tab value={1} label="Flag"></Tab>
+              {allowFlagFill ? <Tab value={1} label="Flag"></Tab> : null}
             </Tabs>
           </div>
           <ThemeProvider theme={lightTheme}>
