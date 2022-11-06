@@ -164,7 +164,7 @@ async function convertSvgUrlsToBase64(svg) {
     for(let i = 0; i != images.length; i++) {
         let image = images[0]
         let base64href = await ajax(image.getAttribute("href"), "GET")
-        image.href = base64href
+        image.setAttribute("href", base64href)
     }
     return svg
 }

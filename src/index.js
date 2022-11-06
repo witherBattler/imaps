@@ -234,6 +234,7 @@ function Editor(props) {
   }
   async function downloadPng() {
     let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML))
+    console.log(element)
     let converted = await svgToPng(element.outerHTML)
     const a = document.createElement("a")
     const e = new MouseEvent("click")
