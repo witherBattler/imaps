@@ -172,7 +172,7 @@ function convertSvgUrlsToBase64(svg) {
                 image.setAttribute("href", this.result)
                 loadedCount++
                 if(loadedCount == images.length) {
-                    resolve(images)
+                    resolve(svg)
                 }
             }
             reader.readAsDataURL(blob)
