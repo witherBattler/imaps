@@ -242,7 +242,10 @@ function Editor(props) {
     a.dispatchEvent(e)
   }
   async function downloadJpg() {
-    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML))
+    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML)
+    console.log(element)
+    element = await convertSvgUrlsToBase64(element)
+    console.log("good?")
     let converted = await svgToJpg(element.outerHTML)
     const a = document.createElement("a")
     const e = new MouseEvent("click")

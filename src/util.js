@@ -116,6 +116,7 @@ async function svgToPng(svg) {
     })
 }
 async function svgToJpg(svg) {
+    console.log("even getting ran?")
     const url = getSvgUrl(svg)
     return new Promise(function(resolve, reject) {
         svgUrlToType(url, "image/jpeg", (imgData) => {
@@ -142,7 +143,6 @@ function svgUrlToType(svgUrl, type, callback) {
     const svgImage = document.createElement('img');
     document.body.appendChild(svgImage);
     
-    // it "loads", not the images in the svg
     svgImage.onload = () => {
         const canvas = document.createElement('canvas');
         canvas.width = svgImage.clientWidth;
@@ -179,22 +179,27 @@ function getRectFromPoints(point1, point2) {
 
 function convertSvgUrlsToBase64(svg) {
     let images = Array.from(svg.getElementsByTagName("image"))
-    let loadedCount = 0
     return new Promise(async function(resolve, reject) {
-        for(let i = 0; i != images.length; i++) {
-            let image = images[i]
-            let response = await fetch(image.getAttribute("href"))
-            let blob = await response.blob()
-            let reader = new FileReader()
-            reader.onload = function() {
-                image.setAttribute("href", this.result)
-                loadedCount++
-                if(loadedCount == images.length) {
-                    resolve(svg)
+        if(images) {
+            let loadedCount = 0
+            for(let i = 0; i != images.length; i++) {
+                let image = images[i]
+                let response = await fetch(image.getAttribute("href"))
+                let blob = await response.blob()
+                let reader = new FileReader()
+                reader.onload = function() {
+                    image.setAttribute("href", this.result)
+                    loadedCount++
+                    if(loadedCount == images.length) {
+                        resolve(svg)
+                    }
                 }
+                reader.readAsDataURL(blob)
             }
-            reader.readAsDataURL(blob)
+        } else {
+            resolve(svg)
         }
+        
     })
 }
 
