@@ -159,16 +159,25 @@ function getRectFromPoints(point1, point2) {
     return {left, right, top, bottom, width, height}
 }
 
-async function convertSvgUrlsToBase64(svg) {
+function convertSvgUrlsToBase64(svg) {
     let images = Array.from(svg.getElementsByTagName("image"))
-    console.log(images)
-    for(let i = 0; i != images.length; i++) {
-        let image = images[0]
-        console.log(image, image.getAttribute("href"))
-        let base64href = await ajax(image.getAttribute("href"), "GET")
-        image.setAttribute("href", base64href)
-    }
-    return svg
+    let loadedCount = 0
+    return new Promise(function(resolve, reject) {
+        for(let i = 0; i != images.length; i++) {
+            let image = images[i]
+            let response = await fetch(image.getAttribute("href"))
+            let blob = await response.blob()
+            let reader = new FileReader()
+            reader.onload = function() {
+                image.setAttribute("href", this.result)
+                loadedCount++
+                if(loadedCount == images.length) {
+                    resolve(images)
+                }
+            }
+            reader.readAsDataURL(blob)
+        }
+    })
 }
 
 export {
