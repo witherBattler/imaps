@@ -162,7 +162,7 @@ function getRectFromPoints(point1, point2) {
 function convertSvgUrlsToBase64(svg) {
     let images = Array.from(svg.getElementsByTagName("image"))
     let loadedCount = 0
-    return new Promise(function(resolve, reject) {
+    return new Promise(async function(resolve, reject) {
         for(let i = 0; i != images.length; i++) {
             let image = images[i]
             let response = await fetch(image.getAttribute("href"))
