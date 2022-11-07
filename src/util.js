@@ -109,18 +109,36 @@ function createArray(element1, element2) {
 async function svgToPng(svg) {
     const url = getSvgUrl(svg);
     return new Promise(function(resolve, reject) {
-        svgUrlToPng(url, (imgData) => {
+        svgUrlToType(url, "image/png", (imgData) => {
             resolve(imgData);
             URL.revokeObjectURL(url);
         });
     })
-  }
+}
+async function svgToJpg(svg) {
+    const url = getSvgUrl(svg)
+    return new Promise(function(resolve, reject) {
+        svgUrlToType(url, "image/jpeg", (imgData) => {
+            resolve(imgData);
+            URL.revokeObjectURL(url);
+        });
+    })
+}
+async function svgToWebp(svg) {
+    const url = getSvgUrl(svg)
+    return new Promise(function(resolve, reject) {
+        svgUrlToType(url, "image/webp", (imgData) => {
+            resolve(imgData);
+            URL.revokeObjectURL(url);
+        });
+    })
+}
 function getSvgUrl(svg) {
     return URL.createObjectURL(new Blob([svg], {
         type: 'image/svg+xml'
     }));
 }
-function svgUrlToPng(svgUrl, callback) {
+function svgUrlToType(svgUrl, type, callback) {
     const svgImage = document.createElement('img');
     document.body.appendChild(svgImage);
     
@@ -131,7 +149,7 @@ function svgUrlToPng(svgUrl, callback) {
         canvas.height = svgImage.clientHeight;
         const canvasCtx = canvas.getContext('2d');
         canvasCtx.drawImage(svgImage, 0, 0);
-        const imgData = canvas.toDataURL('image/png');
+        const imgData = canvas.toDataURL(type);
         callback(imgData);
         document.body.removeChild(svgImage);
     };
@@ -195,5 +213,7 @@ export {
     isMobile,
     getAnnotationComputedStyle,
     getRectFromPoints,
-    convertSvgUrlsToBase64
+    convertSvgUrlsToBase64,
+    svgToJpg,
+    svgToWebp
 }

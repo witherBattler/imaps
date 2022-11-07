@@ -17,7 +17,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64 } from "./util"
+import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp } from "./util"
 import { ColorFill, FlagFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
@@ -234,11 +234,28 @@ function Editor(props) {
   }
   async function downloadPng() {
     let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML))
-    console.log(element)
     let converted = await svgToPng(element.outerHTML)
     const a = document.createElement("a")
     const e = new MouseEvent("click")
     a.download = "map.png"
+    a.href = converted
+    a.dispatchEvent(e)
+  }
+  async function downloadJpg() {
+    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML))
+    let converted = await svgToJpg(element.outerHTML)
+    const a = document.createElement("a")
+    const e = new MouseEvent("click")
+    a.download = "map.jpg"
+    a.href = converted
+    a.dispatchEvent(e)
+  }
+  async function downloadWebp() {
+    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML))
+    let converted = await svgToWebp(element.outerHTML)
+    const a = document.createElement("a")
+    const e = new MouseEvent("click")
+    a.download = "map.webp"
     a.href = converted
     a.dispatchEvent(e)
   }
@@ -275,12 +292,12 @@ function Editor(props) {
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
-      <Toolbar downloadSvg={downloadSvg} downloadPng={downloadPng} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+      <Toolbar downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
 }
 
-function Toolbar({setCurrentTool, currentTool, downloadSvg, downloadPng}) {
+function Toolbar({setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   return <div id="toolbar">
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
@@ -297,11 +314,12 @@ function Toolbar({setCurrentTool, currentTool, downloadSvg, downloadPng}) {
     <ToolbarButton name="TEXT" icon="icons/text.svg" selected={currentTool == "text"} onClick={function() {
       setCurrentTool("text")
     }}></ToolbarButton>
-    <ToolbarButton name="DOWNLOAD" downloadSvg={downloadSvg} downloadPng={downloadPng} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
+    <ToolbarButton name="DOWNLOAD" downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
   </div>
 }
-function ToolbarButton({name, icon, selected, onClick, special, downloadSvg, downloadPng}) {
+function ToolbarButton({name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   let specialContent = <></>
+  var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   switch(special) {
     case "download":
       specialContent = <div className="special download" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
@@ -312,6 +330,12 @@ function ToolbarButton({name, icon, selected, onClick, special, downloadSvg, dow
           <div onClick={downloadPng} className="button">
             PNG
           </div>
+          <div onClick={downloadJpg} className="button">
+            JPG
+          </div>
+          { isSafari ? null : <div onClick={downloadWebp} className="button">
+            WEBP
+          </div> }
         </div>
 
         
