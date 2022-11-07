@@ -180,7 +180,7 @@ function getRectFromPoints(point1, point2) {
 function convertSvgUrlsToBase64(svg) {
     let images = Array.from(svg.getElementsByTagName("image"))
     return new Promise(async function(resolve, reject) {
-        if(images) {
+        if(images.length) {
             let loadedCount = 0
             for(let i = 0; i != images.length; i++) {
                 let image = images[i]
