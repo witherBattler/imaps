@@ -290,7 +290,7 @@ function Editor(props) {
 
 
   return(
-    <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" || currentTool == "text" ? "crosshair" : null}}>
+    <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
       <EditableMap currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
@@ -305,7 +305,7 @@ function Toolbar({setCurrentTool, currentTool, downloadSvg, downloadPng, downloa
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
     }}></ToolbarButton>
-    <ToolbarButton name="ANNOTATIONS" icon="icons/cursor-annotation.svg" selected={currentTool == "annotations"} onClick={function() {
+    {/* <ToolbarButton name="ANNOTATIONS" icon="icons/cursor-annotation.svg" selected={currentTool == "annotations"} onClick={function() {
       setCurrentTool("annotations")
     }}></ToolbarButton>
     <ToolbarButton name="RECTANGLE" icon="icons/rectangle.svg" selected={currentTool == "rectangle"} onClick={function() {
@@ -313,10 +313,7 @@ function Toolbar({setCurrentTool, currentTool, downloadSvg, downloadPng, downloa
     }}></ToolbarButton>
     <ToolbarButton name="ELLIPSE" icon="icons/ellipse.svg" selected={currentTool == "ellipse"} onClick={function() {
       setCurrentTool("ellipse")
-    }}></ToolbarButton>
-    <ToolbarButton name="TEXT" icon="icons/text.svg" selected={currentTool == "text"} onClick={function() {
-      setCurrentTool("text")
-    }}></ToolbarButton>
+    }}></ToolbarButton> */}
     <ToolbarButton name="DOWNLOAD" downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
   </div>
 }
@@ -398,7 +395,7 @@ function EditableMap(props) {
       if(event.target.id == "map-div" || event.target.id == "map-svg") {
         setSelectedTerritory(null)
       }
-      if(currentTool == "rectangle" || currentTool == "ellipse" || currentTool == "text") {
+      if(currentTool == "rectangle" || currentTool == "ellipse") {
         let mapRect = document.getElementById("map-svg").getBoundingClientRect()
         let [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
         setAnnotationFirstPoint({x: mouseX, y: mouseY})
@@ -424,7 +421,7 @@ function EditableMap(props) {
       }
     }} onMouseUp={mobile ? null : function(event) {
       selectingTerritories = false
-      if(currentTool == "rectangle" || currentTool == "ellipse" || currentTool == "text") {
+      if(currentTool == "rectangle" || currentTool == "ellipse") {
         var mapRect = document.getElementById("map-svg").getBoundingClientRect()
         var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
         var annotationRect = getRectFromPoints({x: mouseX, y: mouseY}, annotationFirstPoint)
@@ -458,7 +455,7 @@ function EditableMap(props) {
     }} onMouseMove={mobile ? null : function(event) {
       if(!previewAnnotation) return
       let mapRect, mouseX, mouseY, annotationRect
-      if(previewAnnotation && currentTool == "rectangle" || currentTool == "ellipse" || currentTool == "text") {
+      if(previewAnnotation && currentTool == "rectangle" || currentTool == "ellipse") {
         mapRect = document.getElementById("map-svg").getBoundingClientRect()
         mouseX = (event.clientX - mapRect.x) / currentZoom
         mouseY = (event.clientY - mapRect.y) / currentZoom
@@ -466,8 +463,7 @@ function EditableMap(props) {
       }
       if(currentTool == "rectangle" && previewAnnotation) {
         setPreviewAnnotation(<rect fill="#0188D299" x={annotationRect.left} y={annotationRect.top} width={annotationRect.width} height={annotationRect.height}/>)
-      }
-      if(currentTool == "ellipse" && previewAnnotation) {
+      } else if(currentTool == "ellipse" && previewAnnotation) {
         setPreviewAnnotation(<ellipse fill="#0188D299" cx={annotationRect.left + annotationRect.width / 2} cy={annotationRect.top + annotationRect.height / 2} ry={annotationRect.height / 2} rx={annotationRect.width / 2}/>)
       }
     }} onTouchEnd={!mobile ? null : function(event) {
@@ -603,6 +599,24 @@ function AnnotationRenderer({currentTool, annotations, setAnnotations}) {
             return <ellipse key={index} className="annotation" sharprendering="crispEdges" cx={annotation.x + annotation.width / 2} cy={annotation.y + annotation.height / 2} rx={annotation.width / 2} ry={annotation.height / 2} fill={style.fill} stroke={style.outlineColor} strokeWidth={style.outlineSize}/>
           case "rectangle":
             return <rect key={index} className="annotation" sharprendering="crispEdges" x={annotation.x} y={annotation.y} width={annotation.width} height={annotation.height} rx={annotation.borderRadius} ry={annotation.borderRadius} fill={style.fill} stroke={style.outlineColor} strokeWidth={style.outlineSize}/>
+          case "text":
+            return <foreignObject x={annotation.x} y={annotation.y} width={annotation.width} height={annotation.height}>
+              <div xmlns="http://www.w3.org/1999/xhtml" contentEditable onInput={function(event) {
+                let newAnnotation = {
+                  ...annotation,
+                  content: event.currentTarget.textContent
+                }
+                let newAnnotations = annotations.map((annotationMap, indexMap) => {
+                  if(indexMap == index) {
+                    return newAnnotation
+                  }
+                  return annotationMap
+                })
+                setAnnotations(newAnnotations)
+              }}>
+                {annotation.content}
+              </div>
+            </foreignObject>
         }
       })
     }
@@ -939,7 +953,7 @@ function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelec
   let fillPickerOnUpdate = null
   let sizePickerSliderValue = null
   let sizeSliderOnChange = null
-  let resetButtonStyleDisabled = false
+  let resetButtonStyleDisabled = true
   let outlineColorPickerValue = null
   let outlineColorOnUpdate = null
   let resetButtonStyleOnClick = null
@@ -947,7 +961,7 @@ function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelec
   let valueInputOnChange = null
   let secondaryDataVisualizationEditorValue = null
   let secondaryDataVisualizationEditorOnChange = null
-  let resetButtonDataDisabled = false
+  let resetButtonDataDisabled = true
   let resetButtonDataOnClick = null
 
 
@@ -961,7 +975,10 @@ function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelec
     sizePickerSliderValue = selectedTerritory[0].outlineSize || defaultStyle.outlineSize
     sizeSliderOnChange = function(event) { changeValueSelectedTerritory(0, {outlineSize: event.target.value}) }
     for(let i = 0; i != selectedTerritory.length; i++) {
-      resetButtonStyleDisabled = selectedTerritory[i].fill == null && selectedTerritory[i].outlineColor == null && selectedTerritory[i].outlineSize == null
+      if(selectedTerritory[i].fill != null || selectedTerritory[i].outlineColor != null || selectedTerritory[i].outlineSize != null) {
+        resetButtonStyleDisabled = false
+        break
+      }
     }
     resetButtonStyleOnClick = function() { changeValueSelectedTerritory(0, {fill: null, outlineColor: null, outlineSize: null})}
     valueInputValue = orEmptyString(selectedTerritory[0].value, defaultValue)
@@ -969,7 +986,10 @@ function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelec
     secondaryDataVisualizationEditorValue = selectedTerritory[0]
     secondaryDataVisualizationEditorOnChange = function(newValue) { console.log("it doing the changing"); changeValueSelectedTerritory(0, newValue) }
     for(let i = 0; i != selectedTerritory.length; i++) {
-      resetButtonDataDisabled = selectedTerritory[i].value == null && selectedTerritory[i].dataOffsetX == 0 && selectedTerritory[i].dataOffsetY == 0
+      if(selectedTerritory[i].value != null || selectedTerritory[i].dataOffsetX != 0 || selectedTerritory[i].dataOffsetY != 0) {
+        resetButtonStyleDisabled = false
+        break
+      }
     }
     resetButtonDataOnClick = function() { changeValueSelectedTerritory(0, {value: null, dataOffsetX: 0, dataOffsetY: 0}) }
   } else {
@@ -1072,7 +1092,7 @@ function TerritoryFillPickerPopup(props) {
     allowFlagFill = true
   }
   const [flagSearch, setFlagSearch] = useState("")
-  const [tabIndex, setTabIndex] = useState(typeToValue(color.type))
+  let tabIndex = typeToValue(color.type)
 
 
   let flagsSearched = FLAGS.filter(flag => flag.name.toLowerCase().includes(flagSearch.toLowerCase()) || flag.id.toLowerCase().includes(flagSearch.toLowerCase()))
@@ -1158,7 +1178,6 @@ function TerritoryFillPickerPopup(props) {
                 default:
                   throw new Error("Unknown value: ", newValue)
               }
-              setTabIndex(newValue)
             }}>
               <Tab value={0} label="Color"></Tab>
               {allowFlagFill ? <Tab value={1} label="Flag"></Tab> : null}

@@ -61,7 +61,7 @@ class TextDataVisualizer extends DataVisualizer {
         let center = {x: territory.dataOffsetX + boundingBox.x + boundingBox.width / 2, y: territory.dataOffsetY + boundingBox.y + boundingBox.height / 2}
 
         
-        return <>
+        return <g key={territory.id + ".data-visualizer"}>
             <defs>
                 {this.style.fill.getDefs(territory, "data-visualizer.fill")}
                 {this.style.outlineColor.getDefs(territory, "data-visualizer.outline-color")}
@@ -79,7 +79,7 @@ class TextDataVisualizer extends DataVisualizer {
                 fontStyle={this.style.italic ? "italic" : null}
                 style={{paintOrder: "stroke", zIndex: "10", textAnchor: "middle", dominantBaseline: "middle", pointerEvents: "none", userSelect: "none"}}
             >{data}</text>
-        </>
+        </g>
     }
     clone() {
         return new TextDataVisualizer(this.style, this.data)
@@ -164,7 +164,7 @@ class GeometryDashDataVisualizer extends DataVisualizer {
             }
             imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[imageIndex].id + ".webp"
         }
-        return <image style={{pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
+        return <image key={territory.index + ".data-visualizer"} style={{pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
     }
     clone() {
         return new GeometryDashDataVisualizer(this.min, this.max, this.reverse, this.data)
