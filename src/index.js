@@ -32,7 +32,7 @@ import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Switch from '@mui/material/Switch';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { RgbaColorPicker } from "react-colorful";
+import { RgbaColorPicker, HexAlphaColorPicker } from "react-colorful";
 import { GeometryDashDataVisualizer, DataVisualizer } from "./dataVisualization"
 import * as ReactDOMServer from 'react-dom/server';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -221,6 +221,9 @@ function Editor(props) {
   const [currentZoom, setCurrentZoom] = useState(1)
   const [currentTool, setCurrentTool] = useState("cursor")
   const [annotations, setAnnotations] = useState([])
+  const [drawnNodes, setDrawnNodes] = useState([])
+  const [penColor, setPenColor] = useState("#e00")
+  const [penSize, setPenSize] = useState(10)
 
 
   function downloadSvg() {
@@ -243,9 +246,7 @@ function Editor(props) {
   }
   async function downloadJpg() {
     let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML)
-    console.log(element)
     element = await convertSvgUrlsToBase64(element)
-    console.log("good?")
     let converted = await svgToJpg(element.outerHTML)
     const a = document.createElement("a")
     const e = new MouseEvent("click")
@@ -291,19 +292,22 @@ function Editor(props) {
 
   return(
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-      <EditableMap currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
+      <EditableMap penColor={penColor} penSize={penSize} drawnNodes={drawnNodes} setDrawnNodes={setDrawnNodes} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
-      <Toolbar downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+      <Toolbar penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
 }
 
-function Toolbar({setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function Toolbar({penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   return <div id="toolbar">
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
+    }}></ToolbarButton>
+    <ToolbarButton name="PEN" special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.png" selected={currentTool == "pen"} onClick={function() {
+      setCurrentTool("pen")
     }}></ToolbarButton>
     {/* <ToolbarButton name="ANNOTATIONS" icon="icons/cursor-annotation.svg" selected={currentTool == "annotations"} onClick={function() {
       setCurrentTool("annotations")
@@ -317,7 +321,10 @@ function Toolbar({setCurrentTool, currentTool, downloadSvg, downloadPng, downloa
     <ToolbarButton name="DOWNLOAD" downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
   </div>
 }
-function ToolbarButton({name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function ToolbarButton({penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+  const [colorPickerOpened, setColorPickerOpened] = useState(false)
+  const [sizePickerOpened, setSizePickerOpened] = useState(false)
+
   let specialContent = <></>
   var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   switch(special) {
@@ -337,10 +344,24 @@ function ToolbarButton({name, icon, selected, onClick, special, downloadSvg, dow
             WEBP
           </div> }
         </div>
-
-        
       </div>
       break;
+    case "pen":
+      specialContent = <div className="special download pen" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
+        <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
+          <div onClick={downloadSvg} className="button color-container">
+            <div style={{backgroundColor: penColor}} onClick={function(event) {
+              setColorPickerOpened(true)
+            }}/>
+            <FloatingColorPicker value={penColor} opened={colorPickerOpened} onChange={function(newValue) {
+              setPenColor(newValue)
+            }}></FloatingColorPicker>
+          </div>
+          <div onClick={downloadSvg} className="button size-container">
+            Size: {penSize}
+          </div>
+        </div>
+      </div>
   }
   return <div onClick={onClick} className="toolbar-button" style={{position: "relative"}}>
     {specialContent}
@@ -349,6 +370,15 @@ function ToolbarButton({name, icon, selected, onClick, special, downloadSvg, dow
     </div>
     <div className="bottom">
       {name}
+    </div>
+
+  </div>
+}
+
+function FloatingColorPicker({opened, onChange, value}) {
+  return <div style={{display: opened ? "block" : "none", width: "fit-content", height: "fit-content", position: "absolute", top: "0px", left: "100%", paddingLeft: "10px"}}>
+    <div style={{padding: "20px", backgroundColor: "rgb(70, 80, 119)", padding: "20px", backgroundColor: "rgb(70, 80, 119)", width: "fit-content", height: "fit-content", borderRadius: "10px", boxShadow: "0px 0px 20px #0000005"}}>
+      <HexAlphaColorPicker onChange={onChange} color={value}></HexAlphaColorPicker>
     </div>
 
   </div>
@@ -382,13 +412,17 @@ let annotationFirstPoint = {x: null, y: null}
 let currentlyDrawingAnnotation = false
 
 function EditableMap(props) {
-  const {annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
+  const {penSize, penColor, drawnNodes, setDrawnNodes, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   const [previewAnnotation, setPreviewAnnotation] = useState(null)
   const [annotationFirstPoint, setAnnotationFirstPoint] = useState({x: null, y: null})
+  const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
 
   let defs = <></>
   let mobile = isMobile()
-  
+  let shownTerritories = territories
+    .filter(territory => {
+      return !territory.hidden
+    })
 
   return (
     <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={function(event) {
@@ -407,9 +441,20 @@ function EditableMap(props) {
         case "ellipse":
           setPreviewAnnotation(<ellipse/>)
           break;
-        case "text":
-          setPreviewAnnotation(<text/>)
-          break;
+      }
+      if(currentTool == "pen") {
+        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+        var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
+
+        setCurrentlyDrawingNode(true)
+        setDrawnNodes([
+          ...drawnNodes,
+          {
+            path: `M${mouseX} ${mouseY}`,
+            color: penColor,
+            size: penSize
+          }
+        ])
       }
     }} onWheel={function(event) {
       if(event.deltaY > 0) {
@@ -420,6 +465,10 @@ function EditableMap(props) {
         setCurrentZoom(roundToTwo(unrounded))
       }
     }} onMouseUp={mobile ? null : function(event) {
+      if(currentTool == "pen") {
+        setCurrentlyDrawingNode(false)
+      }
+
       selectingTerritories = false
       if(currentTool == "rectangle" || currentTool == "ellipse") {
         var mapRect = document.getElementById("map-svg").getBoundingClientRect()
@@ -453,7 +502,24 @@ function EditableMap(props) {
         setPreviewAnnotation(null)
       }
     }} onMouseMove={mobile ? null : function(event) {
-      if(!previewAnnotation) return
+      if(currentlyDrawingNode) {
+        console.log("this getting executed!@")
+        let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+        let mouseX = (event.clientX - mapRect.x) / currentZoom
+        let mouseY = (event.clientY - mapRect.y) / currentZoom
+
+        let lastNode = drawnNodes[drawnNodes.length - 1]
+        lastNode.path += ` L${mouseX} ${mouseY}`
+        setDrawnNodes(drawnNodes.map((node, index) => {
+          if(index == drawnNodes.length - 1) {
+            console.log("CASE")
+            return lastNode
+          } else {
+            return node
+          }
+        }))
+      }
+      /* if(!previewAnnotation) return
       let mapRect, mouseX, mouseY, annotationRect
       if(previewAnnotation && currentTool == "rectangle" || currentTool == "ellipse") {
         mapRect = document.getElementById("map-svg").getBoundingClientRect()
@@ -465,7 +531,7 @@ function EditableMap(props) {
         setPreviewAnnotation(<rect fill="#0188D299" x={annotationRect.left} y={annotationRect.top} width={annotationRect.width} height={annotationRect.height}/>)
       } else if(currentTool == "ellipse" && previewAnnotation) {
         setPreviewAnnotation(<ellipse fill="#0188D299" cx={annotationRect.left + annotationRect.width / 2} cy={annotationRect.top + annotationRect.height / 2} ry={annotationRect.height / 2} rx={annotationRect.width / 2}/>)
-      }
+      } */
     }} onTouchEnd={!mobile ? null : function(event) {
       selectingTerritories = false
     }}>
@@ -485,10 +551,7 @@ function EditableMap(props) {
         }
       }} width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${currentZoom})`, transition: "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
           {
-            territories
-              .filter(territory => {
-                return !territory.hidden
-              })
+            shownTerritories
               .map((territory) => {
                 let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
                 defs = <>
@@ -551,15 +614,13 @@ function EditableMap(props) {
                       }
                     }
                   ></path>
+                  <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)"></path>
                 </g>
               }
             )
           }
           {
-            territories
-              .filter(territory => {
-                return !territory.hidden
-              })
+            shownTerritories
               .map((territory) => {
                 return (territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")
               })
@@ -569,6 +630,13 @@ function EditableMap(props) {
           {previewAnnotation}
         <defs>
           {defs}
+          <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
+            {
+              drawnNodes.map((node, index) => {
+                return <path d={node.path} fill="transparent" strokeWidth={node.size} stroke={node.color}></path>
+              })
+            }
+          </pattern>
         </defs>
       </svg>
     </div>
