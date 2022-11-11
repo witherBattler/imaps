@@ -565,3 +565,7 @@ code {
 .special {
   z-index: 2;
 }
+
+#map-div.marker {
+  cursor: pointer;
+}

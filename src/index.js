@@ -186,6 +186,9 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     pathElement.setAttribute("fill", style.fill)
     pathElement.setAttribute("stroke", style.outlineColor)
     pathElement.setAttribute("strokeWidth", style.outlineSize)
+    let pathElement2 = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    pathElement2.setAttribute("d", territory.path)
+    pathElement2.setAttribute()
     gElement.appendChild(pathElement)
     svgElement.appendChild(gElement)
   }
@@ -226,6 +229,7 @@ function Editor(props) {
   const [penCachedImage, setPenCachedImage] = useState(null)
   const [refreshValue, setRefreshValue] = useState(true)
   const [eraserSize, setEraserSize] = useState(10)
+  const [markers, setMarkers] = useState([])
 
   // i'd rather not do this. I wish react wasn't retarded and would understand it when i'm trying to update an object to a different one, but it is stupid.
   function refreshEditor() {
@@ -302,7 +306,7 @@ function Editor(props) {
 
   return(
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-      <EditableMap eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
+      <EditableMap markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
@@ -321,6 +325,9 @@ function Toolbar({eraserSize, setEraserSize, penSize, setPenSize, penColor, setP
     }}></ToolbarButton>
     <ToolbarButton name="ERASER" special="eraser" eraserSize={eraserSize} setEraserSize={setEraserSize} icon="icons/eraser.svg" selected={currentTool == "eraser"} onClick={function() {
       setCurrentTool("eraser")
+    }}></ToolbarButton>
+    <ToolbarButton name="MARKER" icon="icons/marker.svg" selected={currentTool == "marker"} onClick={function() {
+      setCurrentTool("marker")
     }}></ToolbarButton>
     {/* <ToolbarButton name="ANNOTATIONS" icon="icons/cursor-annotation.svg" selected={currentTool == "annotations"} onClick={function() {
       setCurrentTool("annotations")
@@ -443,11 +450,12 @@ let annotationFirstPoint = {x: null, y: null}
 let currentlyDrawingAnnotation = false
 
 function EditableMap(props) {
-  const {eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
-  const [previewAnnotation, setPreviewAnnotation] = useState(null)
-  const [annotationFirstPoint, setAnnotationFirstPoint] = useState({x: null, y: null})
+  const {markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
   const [lastPoint, setLastPoint] = useState(null)
+  const [currentlyMovingMarker, setCurrentlyMovingMarker] = useState(null)
+  const [movingMarkerStartingPositionMouse, setMovingMarkerStartingPositionMouse] = useState({x: null, y: null})
+  const [movingMarkerStartingPosition, setMovingMarkerStartingPosition] = useState({x: null, y: null})
 
   let defs = <></>
   let mobile = isMobile()
@@ -461,20 +469,7 @@ function EditableMap(props) {
       if(event.target.id == "map-div" || event.target.id == "map-svg") {
         setSelectedTerritory(null)
       }
-      if(currentTool == "rectangle" || currentTool == "ellipse") {
-        let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-        let [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
-        setAnnotationFirstPoint({x: mouseX, y: mouseY})
-        
-      }
-      switch(currentTool) {
-        case "rectangle":
-          setPreviewAnnotation(<rect/>)
-          break;
-        case "ellipse":
-          setPreviewAnnotation(<ellipse/>)
-          break;
-      }
+
       if(currentTool == "pen") {
         var mapRect = document.getElementById("map-svg").getBoundingClientRect()
         var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
@@ -501,6 +496,18 @@ function EditableMap(props) {
 
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
+      } else if(currentTool == "marker") {
+        console.log(currentlyMovingMarker)
+        if(!dragging) {
+          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+          let mouseX = (event.clientX - mapRect.x) / currentZoom
+          let mouseY = (event.clientY - mapRect.y) / currentZoom
+
+          setMarkers([
+            ...markers,
+            {id: generateId(), x: mouseX, y: mouseY, width: 29, height: 40}
+          ])
+        }        
       }
     }} onWheel={function(event) {
       if(event.deltaY > 0) {
@@ -511,43 +518,12 @@ function EditableMap(props) {
         setCurrentZoom(roundToTwo(unrounded))
       }
     }} onMouseUp={mobile ? null : function(event) {
-      if(currentTool == "pen") {
-        setCurrentlyDrawingNode(false)
-      } else if(currentTool == "eraser") {
-        setCurrentlyDrawingNode(false)
-      }
-
       selectingTerritories = false
-      if(currentTool == "rectangle" || currentTool == "ellipse") {
-        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
-        var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
-        var annotationRect = getRectFromPoints({x: mouseX, y: mouseY}, annotationFirstPoint)
-      }
-      if(currentTool == "rectangle") {
-        setAnnotations([...annotations, {
-          type: "rectangle",
-          x: annotationRect.left,
-          y: annotationRect.top,
-          width: annotationRect.width,
-          height: annotationRect.height,
-          borderRadius: 3,
-          fill: null,
-          outlineColor: null,
-          outlineSize: null
-        }])
-        setPreviewAnnotation(null)
-      } else if(currentTool == "ellipse") {
-        setAnnotations([...annotations, {
-          type: "ellipse",
-          x: annotationRect.left,
-          y: annotationRect.top,
-          width: annotationRect.width,
-          height: annotationRect.height,
-          fill: null,
-          outlineColor: null,
-          outlineSize: null
-        }])
-        setPreviewAnnotation(null)
+      setCurrentlyDrawingNode(false)
+
+      if(currentlyMovingMarker) {
+        dragging = false
+        setCurrentlyMovingMarker(null)
       }
     }} onMouseMove={mobile ? null : function(event) {
       if(currentlyDrawingNode) {
@@ -591,21 +567,31 @@ function EditableMap(props) {
 
           setLastPoint({x: mouseX, y: mouseY})
         }
-        
+      } else if(currentTool == "marker") {
+        if(currentlyMovingMarker) {
+          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+          let mouseX = (event.clientX - mapRect.x) / currentZoom
+          let mouseY = (event.clientY - mapRect.y) / currentZoom
+          let delta = {
+            x: mouseX - movingMarkerStartingPositionMouse.x,
+            y: mouseY - movingMarkerStartingPositionMouse.y
+          }
+          let newPosition = {
+            x: delta.x + movingMarkerStartingPosition.x,
+            y: delta.y + movingMarkerStartingPosition.y
+          }
+          setMarkers(markers.map(marker => {
+            if(marker.id == currentlyMovingMarker) {
+              return {
+                ...marker,
+                ...newPosition
+              }
+            } else {
+              return marker
+            }
+          }))
+        }
       }
-      /* if(!previewAnnotation) return
-      let mapRect, mouseX, mouseY, annotationRect
-      if(previewAnnotation && currentTool == "rectangle" || currentTool == "ellipse") {
-        mapRect = document.getElementById("map-svg").getBoundingClientRect()
-        mouseX = (event.clientX - mapRect.x) / currentZoom
-        mouseY = (event.clientY - mapRect.y) / currentZoom
-        annotationRect = getRectFromPoints({x: mouseX, y: mouseY}, annotationFirstPoint)
-      }
-      if(currentTool == "rectangle" && previewAnnotation) {
-        setPreviewAnnotation(<rect fill="#0188D299" x={annotationRect.left} y={annotationRect.top} width={annotationRect.width} height={annotationRect.height}/>)
-      } else if(currentTool == "ellipse" && previewAnnotation) {
-        setPreviewAnnotation(<ellipse fill="#0188D299" cx={annotationRect.left + annotationRect.width / 2} cy={annotationRect.top + annotationRect.height / 2} ry={annotationRect.height / 2} rx={annotationRect.width / 2}/>)
-      } */
     }} onTouchEnd={!mobile ? null : function(event) {
       selectingTerritories = false
     }}>
@@ -701,7 +687,20 @@ function EditableMap(props) {
           }
           
           <AnnotationRenderer currentTool={currentTool} annotations={annotations} setAnnotations={setAnnotations}></AnnotationRenderer>
-          {previewAnnotation}
+          {
+            markers.map((marker, index) => {
+              return <path onMouseDown={function(event) {
+                let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                let mouseX = (event.clientX - mapRect.x) / currentZoom
+                let mouseY = (event.clientY - mapRect.y) / currentZoom
+
+                dragging = true
+                setCurrentlyMovingMarker(marker.id)
+                setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
+                setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
+              }} key={marker.id} style={{transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z" fill="black"/>
+            })
+          }
         <defs>
           {defs}
           <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
