@@ -230,6 +230,12 @@ function Editor(props) {
   const [refreshValue, setRefreshValue] = useState(true)
   const [eraserSize, setEraserSize] = useState(10)
   const [markers, setMarkers] = useState([])
+  const [selectedMarker, setSelectedMarker] = useState(null)
+  const [defaultMarkerStyle, setDefaultMarkerStyle] = useState({
+    fill: new ColorFill(255, 0, 0, 1), // new ColorFill(255, 255, 255, 1),
+    outlineColor: new ColorFill(0, 0, 0, 1),
+    outlineSize: 1
+  })
 
   // i'd rather not do this. I wish react wasn't retarded and would understand it when i'm trying to update an object to a different one, but it is stupid.
   function refreshEditor() {
@@ -306,8 +312,8 @@ function Editor(props) {
 
   return(
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-      <EditableMap markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
-      <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+      <EditableMap defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
+      <Properties defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} selectedMarker={selectedMarker} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
       <Toolbar eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
@@ -448,9 +454,10 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
 let selectingTerritories = false
 let annotationFirstPoint = {x: null, y: null}
 let currentlyDrawingAnnotation = false
+let markerIndex = 0
 
 function EditableMap(props) {
-  const {markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
+  const {defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
   const [lastPoint, setLastPoint] = useState(null)
   const [currentlyMovingMarker, setCurrentlyMovingMarker] = useState(null)
@@ -497,17 +504,26 @@ function EditableMap(props) {
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
       } else if(currentTool == "marker") {
-        console.log(currentlyMovingMarker)
         if(!dragging) {
+          let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
+          for(let i = 0; i != markersElements.length; i++) {
+            if(markersElements[i].matches(":hover")) {
+              return
+            }
+          }
+
           let mapRect = document.getElementById("map-svg").getBoundingClientRect()
           let mouseX = (event.clientX - mapRect.x) / currentZoom
           let mouseY = (event.clientY - mapRect.y) / currentZoom
 
+          let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40}
+          setSelectedMarker(newMarker)
+
           setMarkers([
             ...markers,
-            {id: generateId(), x: mouseX, y: mouseY, width: 29, height: 40}
+            newMarker
           ])
-        }        
+        }
       }
     }} onWheel={function(event) {
       if(event.deltaY > 0) {
@@ -581,7 +597,7 @@ function EditableMap(props) {
             y: delta.y + movingMarkerStartingPosition.y
           }
           setMarkers(markers.map(marker => {
-            if(marker.id == currentlyMovingMarker) {
+            if(marker.index == currentlyMovingMarker) {
               return {
                 ...marker,
                 ...newPosition
@@ -689,16 +705,33 @@ function EditableMap(props) {
           <AnnotationRenderer currentTool={currentTool} annotations={annotations} setAnnotations={setAnnotations}></AnnotationRenderer>
           {
             markers.map((marker, index) => {
+              let parsedStyle = {...marker, ...defaultMarkerStyle}
+              defs = <>
+                {defs}
+                {parsedStyle.fill.getDefs(marker, "marker.fill")}
+                {parsedStyle.outlineColor.getDefs(marker, "marker.outline-color")}
+              </>
+
+              let selected = selectedMarker ? marker.index == selectedMarker.index : true
+
+              console.log(marker.index)
+
               return <path onMouseDown={function(event) {
+                if(selectedMarker && selectedMarker.index == marker.index) {
+                  setSelectedMarker(null)
+                  return
+                }
+                
                 let mapRect = document.getElementById("map-svg").getBoundingClientRect()
                 let mouseX = (event.clientX - mapRect.x) / currentZoom
                 let mouseY = (event.clientY - mapRect.y) / currentZoom
 
                 dragging = true
-                setCurrentlyMovingMarker(marker.id)
+                setCurrentlyMovingMarker(marker.index)
                 setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
                 setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
-              }} key={marker.id} style={{transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z" fill="black"/>
+                setSelectedMarker(marker)
+              }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
             })
           }
         <defs>
@@ -764,20 +797,61 @@ function AnnotationRenderer({currentTool, annotations, setAnnotations}) {
 }
 
 function Properties(props) {
-  const {defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {currentTool, setDefaultMarkerStyle, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
     <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100vh", padding: "20px", boxSizing: "border-box"}}>
       <div id="properties-panel" elevation={24} style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
         {
-          selectedTerritory
-            ? <TerritoryProperties defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
-            : <DefaultsProperties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
+          currentTool == "marker" 
+            ? selectedMarker
+              ? <MarkerProperties></MarkerProperties>
+              : <MarkerDefaultProperties defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
+            : selectedTerritory
+              ? <TerritoryProperties defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
+              : <DefaultsProperties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
         }
       </div>
     </div>
   )
 }
+
+function MarkerDefaultProperties({defaultMarkerStyle, setDefaultMarkerStyle}) {
+  return <div>
+    <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT MARKER STYLE</Typography>
+    <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
+    <TerritoryFillPicker color={defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
+      let newStyle = {
+        ...defaultMarkerStyle,
+        fill: fill
+      }
+      setDefaultMarkerStyle(newStyle)
+    }}></TerritoryFillPicker>
+    <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
+    <TerritoryFillPicker color={defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
+      let newStyle = {
+        ...defaultMarkerStyle,
+        outlineColor: fill
+      }
+      setDefaultMarkerStyle(newStyle)
+    }}></TerritoryFillPicker>
+    <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
+    <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
+      <Slider value={defaultMarkerStyle.outlineSize} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={function(event) {
+        setDefaultMarkerStyle({
+          ...defaultMarkerStyle,
+          outlineSize: event.target.value
+        })
+      }}/>
+    </div>
+  </div>
+}
+function MarkerProperties({}) {
+  return <div>
+    WHAT THE HECK!!!!!!!!
+  </div>
+}
+
 
 function DefaultsProperties(props) {
   const {defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
