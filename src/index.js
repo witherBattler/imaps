@@ -221,10 +221,16 @@ function Editor(props) {
   const [currentZoom, setCurrentZoom] = useState(1)
   const [currentTool, setCurrentTool] = useState("cursor")
   const [annotations, setAnnotations] = useState([])
-  const [drawnNodes, setDrawnNodes] = useState([])
   const [penColor, setPenColor] = useState("#e00")
   const [penSize, setPenSize] = useState(10)
+  const [penCachedImage, setPenCachedImage] = useState(null)
+  const [refreshValue, setRefreshValue] = useState(true)
+  const [eraserSize, setEraserSize] = useState(10)
 
+  // i'd rather not do this. I wish react wasn't retarded and would understand it when i'm trying to update an object to a different one, but it is stupid.
+  function refreshEditor() {
+    setRefreshValue(!refreshValue)
+  }
 
   function downloadSvg() {
     let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML)
@@ -273,6 +279,10 @@ function Editor(props) {
       }))
       svgData.close() // parseSvg pastes the svg into the dom to make node.getBBox() possible. .close() removes the svg from the document.
       setMapDimensions(svgData.dimensions)
+      let canvas = document.createElement("canvas")
+      canvas.width = svgData.dimensions.width
+      canvas.height = svgData.dimensions.height
+      setPenCachedImage(canvas)
     })
   }, [])
 
@@ -292,22 +302,25 @@ function Editor(props) {
 
   return(
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-      <EditableMap penColor={penColor} penSize={penSize} drawnNodes={drawnNodes} setDrawnNodes={setDrawnNodes} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
+      <EditableMap eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <Properties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
-      <Toolbar penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+      <Toolbar eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
 }
 
-function Toolbar({penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function Toolbar({eraserSize, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   return <div id="toolbar">
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
     }}></ToolbarButton>
-    <ToolbarButton name="PEN" special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.png" selected={currentTool == "pen"} onClick={function() {
+    <ToolbarButton name="PEN" special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.svg" selected={currentTool == "pen"} onClick={function() {
       setCurrentTool("pen")
+    }}></ToolbarButton>
+    <ToolbarButton name="ERASER" special="eraser" eraserSize={eraserSize} setEraserSize={setEraserSize} icon="icons/eraser.svg" selected={currentTool == "eraser"} onClick={function() {
+      setCurrentTool("eraser")
     }}></ToolbarButton>
     {/* <ToolbarButton name="ANNOTATIONS" icon="icons/cursor-annotation.svg" selected={currentTool == "annotations"} onClick={function() {
       setCurrentTool("annotations")
@@ -321,9 +334,8 @@ function Toolbar({penSize, setPenSize, penColor, setPenColor, setCurrentTool, cu
     <ToolbarButton name="DOWNLOAD" downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
   </div>
 }
-function ToolbarButton({penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function ToolbarButton({setEraserSize, eraserSize, penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   const [colorPickerOpened, setColorPickerOpened] = useState(false)
-  const [sizePickerOpened, setSizePickerOpened] = useState(false)
 
   let specialContent = <></>
   var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
@@ -351,7 +363,7 @@ function ToolbarButton({penColor, penSize, setPenColor, setPenSize, name, icon, 
         <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
           <div className="button color-container">
             <div style={{backgroundColor: penColor}} onClick={function(event) {
-              setColorPickerOpened(true)
+              setColorPickerOpened(!colorPickerOpened)
             }}/>
             <FloatingColorPicker value={penColor} opened={colorPickerOpened} onChange={function(newValue) {
               setPenColor(newValue)
@@ -367,6 +379,21 @@ function ToolbarButton({penColor, penSize, setPenColor, setPenSize, name, icon, 
           </div>
         </div>
       </div>
+      break
+    case "eraser":
+      specialContent = <div className="special download pen" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
+        <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
+          <div className="button size-container" style={{outline: "none"}} onClick={function(event) {
+            let element = event.currentTarget.getElementsByTagName("input")[0]
+            element.focus()
+          }}>
+            Size: <input style={{width: "30px", backgroundColor: "#3F445B", border: "none", outline: "none", color: "white", marginLeft: "5px"}} id="pen-size-span" onInput={function(event) {
+              setEraserSize(parseInt(event.target.value) || 0)
+            }} value={eraserSize}></input>
+          </div>
+        </div>
+      </div>
+      break
   }
   return <div onClick={onClick} className="toolbar-button" style={{position: "relative"}}>
     {specialContent}
@@ -382,10 +409,9 @@ function ToolbarButton({penColor, penSize, setPenColor, setPenSize, name, icon, 
 
 function FloatingColorPicker({opened, onChange, value}) {
   return <div style={{display: opened ? "block" : "none", width: "fit-content", height: "fit-content", position: "absolute", top: "0px", left: "100%", paddingLeft: "10px"}}>
-    <div style={{padding: "20px", backgroundColor: "rgb(70, 80, 119)", padding: "20px", backgroundColor: "rgb(70, 80, 119)", width: "fit-content", height: "fit-content", borderRadius: "10px", boxShadow: "0px 0px 20px #0000005"}}>
+    <div style={{padding: "20px", backgroundColor: "rgb(70, 80, 119)", padding: "20px", backgroundColor: "rgb(70, 80, 119)", width: "fit-content", height: "fit-content", borderRadius: "10px", boxShadow: "0px 0px 20px #00000b75"}}>
       <HexAlphaColorPicker onChange={onChange} color={value}></HexAlphaColorPicker>
     </div>
-
   </div>
 }
 
@@ -417,10 +443,11 @@ let annotationFirstPoint = {x: null, y: null}
 let currentlyDrawingAnnotation = false
 
 function EditableMap(props) {
-  const {penSize, penColor, drawnNodes, setDrawnNodes, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
+  const {eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   const [previewAnnotation, setPreviewAnnotation] = useState(null)
   const [annotationFirstPoint, setAnnotationFirstPoint] = useState({x: null, y: null})
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
+  const [lastPoint, setLastPoint] = useState(null)
 
   let defs = <></>
   let mobile = isMobile()
@@ -438,6 +465,7 @@ function EditableMap(props) {
         let mapRect = document.getElementById("map-svg").getBoundingClientRect()
         let [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
         setAnnotationFirstPoint({x: mouseX, y: mouseY})
+        
       }
       switch(currentTool) {
         case "rectangle":
@@ -451,15 +479,28 @@ function EditableMap(props) {
         var mapRect = document.getElementById("map-svg").getBoundingClientRect()
         var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
 
+        let context = penCachedImage.getContext("2d")
+        context.beginPath()
+        context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+        context.fillStyle = penColor
+        context.fill()
+
+        setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
-        setDrawnNodes([
-          ...drawnNodes,
-          {
-            path: `M${mouseX} ${mouseY}`,
-            color: penColor,
-            size: penSize
-          }
-        ])
+      } else if(currentTool == "eraser") {
+        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+        var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
+
+        let context = penCachedImage.getContext("2d")
+        context.save()
+        context.globalCompositeOperation = "destination-out"
+        context.beginPath()
+        context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+
+        setLastPoint({x: mouseX, y: mouseY})
+        setCurrentlyDrawingNode(true)
       }
     }} onWheel={function(event) {
       if(event.deltaY > 0) {
@@ -471,6 +512,8 @@ function EditableMap(props) {
       }
     }} onMouseUp={mobile ? null : function(event) {
       if(currentTool == "pen") {
+        setCurrentlyDrawingNode(false)
+      } else if(currentTool == "eraser") {
         setCurrentlyDrawingNode(false)
       }
 
@@ -508,21 +551,47 @@ function EditableMap(props) {
       }
     }} onMouseMove={mobile ? null : function(event) {
       if(currentlyDrawingNode) {
-        console.log("this getting executed!@")
-        let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-        let mouseX = (event.clientX - mapRect.x) / currentZoom
-        let mouseY = (event.clientY - mapRect.y) / currentZoom
+        if(currentTool == "pen") {
+          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+          let mouseX = (event.clientX - mapRect.x) / currentZoom
+          let mouseY = (event.clientY - mapRect.y) / currentZoom
+  
+          let context = penCachedImage.getContext("2d")
+          context.beginPath()
+          context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+          context.fillStyle = penColor
+          context.fill()
+          context.beginPath()
+          context.moveTo(mouseX, mouseY)
+          context.lineTo(lastPoint.x, lastPoint.y)
+          context.strokeStyle = penColor
+          context.lineWidth = penSize * 2
+          context.stroke()
 
-        let lastNode = drawnNodes[drawnNodes.length - 1]
-        lastNode.path += ` L${mouseX} ${mouseY}`
-        setDrawnNodes(drawnNodes.map((node, index) => {
-          if(index == drawnNodes.length - 1) {
-            console.log("CASE")
-            return lastNode
-          } else {
-            return node
-          }
-        }))
+          setLastPoint({x: mouseX, y: mouseY})
+        } else if(currentTool == "eraser") {
+          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+          let mouseX = (event.clientX - mapRect.x) / currentZoom
+          let mouseY = (event.clientY - mapRect.y) / currentZoom
+
+          let context = penCachedImage.getContext("2d")
+          context.save()
+          context.globalCompositeOperation = "destination-out"
+          context.beginPath()
+          context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
+          context.fillStyle = penColor
+          context.fill()
+          context.beginPath()
+          context.moveTo(mouseX, mouseY)
+          context.lineTo(lastPoint.x, lastPoint.y)
+          context.strokeStyle = penColor
+          context.lineWidth = eraserSize * 2
+          context.stroke()
+          context.restore()
+
+          setLastPoint({x: mouseX, y: mouseY})
+        }
+        
       }
       /* if(!previewAnnotation) return
       let mapRect, mouseX, mouseY, annotationRect
@@ -636,11 +705,7 @@ function EditableMap(props) {
         <defs>
           {defs}
           <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
-            {
-              drawnNodes.map((node, index) => {
-                return <path d={node.path} fill="transparent" strokeWidth={node.size} stroke={node.color}></path>
-              })
-            }
+            <image width={mapDimensions.width} height={mapDimensions.height} href={penCachedImage ? penCachedImage.toDataURL('image/png') : null}></image>
           </pattern>
         </defs>
       </svg>
