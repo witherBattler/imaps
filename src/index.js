@@ -349,7 +349,7 @@ function ToolbarButton({penColor, penSize, setPenColor, setPenSize, name, icon, 
     case "pen":
       specialContent = <div className="special download pen" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
         <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
-          <div onClick={downloadSvg} className="button color-container">
+          <div className="button color-container">
             <div style={{backgroundColor: penColor}} onClick={function(event) {
               setColorPickerOpened(true)
             }}/>
@@ -357,8 +357,13 @@ function ToolbarButton({penColor, penSize, setPenColor, setPenSize, name, icon, 
               setPenColor(newValue)
             }}></FloatingColorPicker>
           </div>
-          <div onClick={downloadSvg} className="button size-container">
-            Size: {penSize}
+          <div className="button size-container" style={{outline: "none"}} onClick={function(event) {
+            let element = event.currentTarget.getElementsByTagName("input")[0]
+            element.focus()
+          }}>
+            Size: <input style={{width: "30px", backgroundColor: "#3F445B", border: "none", outline: "none", color: "white", marginLeft: "5px"}} id="pen-size-span" onInput={function(event) {
+              setPenSize(parseInt(event.target.value) || 0)
+            }} value={penSize}></input>
           </div>
         </div>
       </div>
