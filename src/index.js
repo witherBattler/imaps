@@ -138,8 +138,30 @@ function App() {
               </div>
             </Paper>
             <Paper id="bottom">
-              <div className="content-row" id="usages-content">
-                <p className="title">Ways you can use Periphern</p>
+              <div className="content-row" id="how-does-it-work-content">
+                <p className="title">How does it work?</p>
+                <div className="badges">
+                  <div className="badge">
+                    <img src="assets/badges-how-it-works/badge-1.svg" className="image"></img>
+                    <p className="title">1. Pick a map</p>
+                    <p className="description"><span className="special-1">200+</span> maps of different continents, countries and islands, all in <span className="special-2">one</span> place.</p>
+                  </div>
+                  <div className="badge">
+                    <img src="assets/badges-how-it-works/badge-2.svg" className="image"></img>
+                    <p className="title">2. Visualize data</p>
+                    <p className="description">Change the <span className="special-2">color</span> of territories or show a <span className="special-1">flag</span> on one. Show <span className="special-2">texts</span> and <span className="special-1">emoticons</span>!</p>
+                  </div>
+                  <div className="badge">
+                    <img src="assets/badges-how-it-works/badge-3.svg" className="image"></img>
+                    <p className="title">3. Visualize more data</p>
+                    <p className="description"><span className="special-2">Draw</span> on maps and add <span className="special-1">markers</span>. Everything you'd ever need is already implemented.</p>
+                  </div>
+                  <div className="badge">
+                    <img src="assets/badges-how-it-works/badge-4.svg" className="image"></img>
+                    <p className="title">4. Export</p>
+                    <p className="description">Once you're done editing your map, you can download from one of the <span className="special-1">4 formats</span>.</p>
+                  </div>
+                </div>
               </div>
             </Paper>
           </div>
@@ -313,7 +335,7 @@ function Editor(props) {
   return(
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
       <EditableMap defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
-      <Properties defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} selectedMarker={selectedMarker} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+      <Properties markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
       <Toolbar eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
@@ -506,7 +528,6 @@ function EditableMap(props) {
       } else if(currentTool == "marker") {
         let territories = document.elementsFromPoint(event.pageX, event.pageY)
         let hoveringTerritories = false
-        console.log(territories)
         for(let i = 0; i != territories.length; i++) {
           if(territories[i].getAttribute("class") == "territory-path") {
             hoveringTerritories = true
@@ -514,7 +535,6 @@ function EditableMap(props) {
           }
         }
         if(!hoveringTerritories) {
-          console.log("setting to null!")
           setSelectedMarker(null)
         }
       }
@@ -719,10 +739,9 @@ function EditableMap(props) {
           }
           
           <AnnotationRenderer currentTool={currentTool} annotations={annotations} setAnnotations={setAnnotations}></AnnotationRenderer>
-          { console.log(selectedMarker) } 
           {
             markers.map((marker, index) => {
-              let parsedStyle = {...marker, ...defaultMarkerStyle}
+              let parsedStyle = {...defaultMarkerStyle, ...marker}
               defs = <>
                 {defs}
                 {parsedStyle.fill.getDefs(marker, "marker.fill")}
@@ -734,7 +753,6 @@ function EditableMap(props) {
 
               return <path onMouseDown={function(event) {
                 if(selectedMarker && selectedMarker.index == marker.index) {
-                  console.log("setting to null")
                   setSelectedMarker(null)
                   return
                 }
@@ -815,7 +833,7 @@ function AnnotationRenderer({currentTool, annotations, setAnnotations}) {
 }
 
 function Properties(props) {
-  const {currentTool, setDefaultMarkerStyle, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
     <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100vh", padding: "20px", boxSizing: "border-box"}}>
@@ -823,7 +841,16 @@ function Properties(props) {
         {
           currentTool == "marker" 
             ? selectedMarker
-              ? <MarkerProperties></MarkerProperties>
+              ? <MarkerProperties defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
+                setSelectedMarker(newValue)
+                setMarkers(markers.map(marker => {
+                  if(marker.index == selectedMarker.index) {
+                    return newValue
+                  } else {
+                    return marker
+                  }
+                }))
+              }}></MarkerProperties>
               : <MarkerDefaultProperties defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
             : selectedTerritory
               ? <TerritoryProperties defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
@@ -838,7 +865,7 @@ function MarkerDefaultProperties({defaultMarkerStyle, setDefaultMarkerStyle}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker color={defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker color={defaultMarkerStyle.fill} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         fill: fill
@@ -846,7 +873,7 @@ function MarkerDefaultProperties({defaultMarkerStyle, setDefaultMarkerStyle}) {
       setDefaultMarkerStyle(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker color={defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         outlineColor: fill
@@ -864,9 +891,34 @@ function MarkerDefaultProperties({defaultMarkerStyle, setDefaultMarkerStyle}) {
     </div>
   </div>
 }
-function MarkerProperties({}) {
+function MarkerProperties({defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
   return <div>
-    WHAT THE HECK!!!!!!!!
+    <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT MARKER STYLE</Typography>
+    <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
+    <TerritoryFillPicker color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
+      let newStyle = {
+        ...selectedMarker,
+        fill: fill
+      }
+      setSelectedMarker(newStyle)
+    }}></TerritoryFillPicker>
+    <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
+    <TerritoryFillPicker color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
+      let newStyle = {
+        ...selectedMarker,
+        outlineColor: fill
+      }
+      setSelectedMarker(newStyle)
+    }}></TerritoryFillPicker>
+    <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
+    <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
+      <Slider value={selectedMarker.outlineSize || defaultMarkerStyle.outlineSize} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={function(event) {
+        setSelectedMarker({
+          ...selectedMarker,
+          outlineSize: event.target.value
+        })
+      }}/>
+    </div>
   </div>
 }
 
@@ -1287,7 +1339,7 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 
 
 function TerritoryFillPicker(props) {
-  const {allowFlagFill, color, style, updateStyle, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
+  const {allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
@@ -1549,6 +1601,8 @@ function PositionSelect({x, y, onChange}) {
     <Typography>x: {x} y: {y}</Typography>
   </div>
 }
+
+
 
 // suppressing stupid react "warnings".
 

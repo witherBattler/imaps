@@ -2130,6 +2130,8 @@ const GEOMETRY_DASH_ICONS = [
     }
 ]
 
+console.log(MAP_NAMES.length)
+
 module.exports = {
     MAP_NAMES,
     FLAGS,

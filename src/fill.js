@@ -78,7 +78,7 @@ class FlagFill extends Fill {
     getDefs(territory, mode) {
         return <>
             <pattern id={`${territory.index}.${mode}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
-                <image preserveAspectRatio="xMidYMid slice" href={"https://periphern.impixel.tech/flags/" + this.id + ".svg"} width="1" height="1"></image>
+                <image preserveAspectRatio="none" href={"https://periphern.impixel.tech/flags/" + this.id + ".svg"} width="1" height="1"></image>
             </pattern>
         </>
     }
@@ -90,6 +90,7 @@ class FlagFill extends Fill {
         return new FlagFill(this.id, this.data) 
     }
 }
+
 
 export {
     ColorFill,

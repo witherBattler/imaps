@@ -28,7 +28,7 @@ code {
   -o-border-radius: 0px;
 }
 #bottom {
-  background-color: #F1F3FF;
+  background-color: #E6E8F9;
   height: 1000px;
 }
 #navbar {
@@ -230,69 +230,62 @@ code {
   margin-inline: auto 0;
 }
 
-@media only screen and (max-width: 1600px) and (min-width: 1300px) {
-  .content-row {
-    width: 1300px;
-  }
-  #intro-left-big {
-    font-size: 70px;
-  }
-  #intro-left-subtitle {
-    font-size: 20px;
-  }
-  #intro-button-start {
-    width: 220px;
-    height: 50px;
-  }
-  #intro-button-start > span {
-    font-size: 22px;
-  }
-  #navbar {
-    height: 80px;
-  }
-  #static {
-    margin-top: 80px;
-  }
-  #intro-button-about-us {
-    font-size: 22px;
-  }
+
+
+
+#menu-icon {
+  display: none;
 }
-@media only screen and (max-height: 1230px) {
-  #intro {
-    height: 800px
-  }
+
+
+#how-does-it-work-content > .title {
+  text-align: center;
+  margin-top: 0px;
+  font-family: rubik;
+  color: rgb(36, 36, 49);
+  font-size: 50px;
+  font-weight: 500;
 }
-@media only screen and (max-height: 1000px) {
-  #intro {
-    height: 650px;
-  }
+#how-does-it-work-content > .badges {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
 }
-@media only screen and (max-width: 1420px) and (min-width: 1300px) {
-  .content-row {
-    width: 1200px;
-  }
-  #intro-left-big {
-    font-size: 60px;
-  }
-  #intro-left-subtitle {
-    font-size: 18px;
-  }
-  #intro-button-start {
-    width: 200px;
-    height: 45px;
-  }
-  #intro-button-start > span {
-    font-size: 20px;
-  }
-  #intro-button-about-us {
-    font-size: 20px;
-  }
-  #navbar {
-    height: 80px;
-  }
-  #static {
-    margin-top: 80px;
-  }
+#how-does-it-work-content > .badges > .badge {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#how-does-it-work-content > .badges > .badge > .image {
+  width: 90%;
+  margin-bottom: 10px;
+}
+#how-does-it-work-content > .badges > .badge > .title {
+  font-weight: 500;
+  width: 100%;
+  text-align: center;
+  font-family: rubik;
+  color: black;
+  margin-bottom: 0px;
+  font-size: 23px;
+}
+#how-does-it-work-content > .badges > .badge > .description {
+  font-family: rubik;
+  color: #3E424F;
+  width: 100%;
+  text-align: center;
+  margin-top: 5px;
+  font-size: 20px;
+}
+#how-does-it-work-content > .badges > .badge > .description > .special-1 {
+  color: #12CA79;
+}
+#how-does-it-work-content > .badges > .badge > .description > .special-2 {
+  color: #00A1FF;
+}
+#properties-panel, #zoom-panel, #right-bar {
+  color: white;
 }
 @media only screen and (max-width: 1300px) {
   #intro-left-big {
@@ -317,10 +310,12 @@ code {
   #static {
     margin-top: 80px;
   }
-}
-
-#menu-icon {
-  display: none;
+  #how-does-it-work-content > .badges > .badge > .title {
+    font-size: 19px;
+  }
+  #how-does-it-work-content > .badges > .badge > .description {
+    font-size: 16px;
+  }
 }
 
 @media only screen and (max-width: 1150px) {
@@ -375,32 +370,94 @@ code {
   }
 }
 
+@media only screen and (max-width: 1600px) and (min-width: 1300px) {
+  .content-row {
+    width: 1300px;
+  }
+  #intro-left-big {
+    font-size: 70px;
+  }
+  #intro-left-subtitle {
+    font-size: 20px;
+  }
+  #intro-button-start {
+    width: 220px;
+    height: 50px;
+  }
+  #intro-button-start > span {
+    font-size: 22px;
+  }
+  #navbar {
+    height: 80px;
+  }
+  #static {
+    margin-top: 80px;
+  }
+  #intro-button-about-us {
+    font-size: 22px;
+  }
+  #how-does-it-work-content > .badges > .badge > .title {
+    font-size: 21px;
+  }
+  #how-does-it-work-content > .badges > .badge > .description {
+    font-size: 18px;
+  }
+}
+@media only screen and (max-height: 1230px) {
+  #intro {
+    height: 800px
+  }
+}
+@media only screen and (max-height: 1000px) {
+  #intro {
+    height: 650px;
+  }
+}
+@media only screen and (max-width: 1420px) and (min-width: 1300px) {
+  .content-row {
+    width: 1200px;
+  }
+  #intro-left-big {
+    font-size: 60px;
+  }
+  #intro-left-subtitle {
+    font-size: 18px;
+  }
+  #intro-button-start {
+    width: 200px;
+    height: 45px;
+  }
+  #intro-button-start > span {
+    font-size: 20px;
+  }
+  #intro-button-about-us {
+    font-size: 20px;
+  }
+  #navbar {
+    height: 80px;
+  }
+  #static {
+    margin-top: 80px;
+  }
+  #how-does-it-work-content > .badges > .badge > .title {
+    font-size: 21px;
+  }
+  #how-does-it-work-content > .badges > .badge > .description {
+    font-size: 17px;
+  }
+}
+
 #bottom {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-#usages-content {
+#how-does-it-work-content {
   display: flex;
   flex-direction: column;
   margin-top: 100px;
 }
 
-#usages-content > .title {
-  text-align: center;
-  margin-top: 0px;
-  font-family: rubik;
-  color: rgb(36, 36, 49);
-  font-size: 50px;
-  font-weight: 500;
-}
-#usages-content > .main {
-  display: flex;
-  justify-content: space-between;
-}
-#properties-panel, #zoom-panel, #right-bar {
-  color: white;
-}
 .territory-fill-picker {
   color: black
 }
