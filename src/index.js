@@ -184,7 +184,7 @@ function App() {
   )
 }
 
-function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML) {
+function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle) {
   let svgElement = document.createElement("svg")
   svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg")
   svgElement.setAttribute("width", mapDimensions.width)
@@ -212,8 +212,10 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     pathElement.setAttribute("strokeWidth", style.outlineSize)
     let pathElement2 = document.createElementNS("http://www.w3.org/2000/svg", "path")
     pathElement2.setAttribute("d", territory.path)
-    pathElement2.setAttribute()
+    pathElement2.setAttribute("fill", "url(#drawn-pattern)")
+    pathElement.setAttribute("strokeWidth", "0")
     gElement.appendChild(pathElement)
+    gElement.appendChild(pathElement2)
     svgElement.appendChild(gElement)
   }
   for(let i = 0; i != territories.length; i++) {
@@ -228,9 +230,41 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
       ).firstElementChild
     )
   }
-  
+
+  // drawn pattern
+  let patternElement = document.createElementNS("http://www.w3.org/2000/svg", "pattern")
+  patternElement.setAttribute("patternUnits", "userSpaceOnUse")
+  patternElement.setAttribute("id", "drawn-pattern")
+  patternElement.setAttribute("width", mapDimensions.width)
+  patternElement.setAttribute("height", mapDimensions.height)
+  let patternImage = document.createElementNS("http://www.w3.org/2000/svg", "image")
+  patternImage.setAttribute("width", mapDimensions.width)
+  patternImage.setAttribute("height", mapDimensions.height)
+  patternImage.setAttribute("href", penCachedImage ? penCachedImage.toDataURL('image/png') : null)
+  patternElement.appendChild(patternImage)
+  defsElement.appendChild(patternElement)
+
+  for(let i = 0; i != markers.length; i++) {
+    let marker = markers[i]
+    let parsedStyle = {fill: marker.fill || defaultMarkerStyle.fill, outlineColor: marker.outlineColor || defaultMarkerStyle.outlineColor, outlineSize: marker.outlineSize || defaultMarkerStyle.outlineSize}
+    defsElement.innerHTML += ReactDOMServer.renderToStaticMarkup(parsedStyle.fill.getDefs(marker, "marker.fill"))
+    defsElement.innerHTML += ReactDOMServer.renderToStaticMarkup(parsedStyle.outlineColor.getDefs(marker, "marker.outline-color"))
+
+    let markerPath = document.createElementNS("http://www.w3.org/2000/svg", "path")
+    markerPath.setAttribute("class", "marker-annotation")
+    markerPath.setAttribute("fill", parsedStyle.fill.getBackground(marker, "marker.fill"))
+    markerPath.setAttribute("stroke", parsedStyle.outlineColor.getBackground(marker, "marker.outline-color"))
+    markerPath.setAttribute("stroke-width", parsedStyle.outlineSize)
+    markerPath.setAttribute("d", "M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z")
+    markerPath.style.transform = `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`
+
+    svgElement.appendChild(markerPath)
+  }
+
   return svgElement
 }
+
+
 
 function Editor(props) {
   const chosenMap = props.chosenMap
@@ -270,7 +304,7 @@ function Editor(props) {
   }
 
   function downloadSvg() {
-    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML)
+    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
     let base64 = btoa(unescape(encodeURIComponent(element.outerHTML)))
     const a = document.createElement("a")
     const e = new MouseEvent("click")
@@ -279,7 +313,7 @@ function Editor(props) {
     a.dispatchEvent(e)
   }
   async function downloadPng() {
-    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML))
+    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle))
     let converted = await svgToPng(element.outerHTML)
     const a = document.createElement("a")
     const e = new MouseEvent("click")
@@ -288,7 +322,7 @@ function Editor(props) {
     a.dispatchEvent(e)
   }
   async function downloadJpg() {
-    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML)
+    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
     element = await convertSvgUrlsToBase64(element)
     let converted = await svgToJpg(element.outerHTML)
     const a = document.createElement("a")
@@ -298,7 +332,7 @@ function Editor(props) {
     a.dispatchEvent(e)
   }
   async function downloadWebp() {
-    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML))
+    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle))
     let converted = await svgToWebp(element.outerHTML)
     const a = document.createElement("a")
     const e = new MouseEvent("click")
@@ -752,36 +786,36 @@ function EditableMap(props) {
           
         {boosting ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null }
         {
-            markers.map((marker, index) => {
-              let parsedStyle = {...defaultMarkerStyle, ...marker}
-              defs = <>
-                {defs}
-                {parsedStyle.fill.getDefs(marker, "marker.fill")}
-                {parsedStyle.outlineColor.getDefs(marker, "marker.outline-color")}
-              </>
+          markers.map((marker, index) => {
+            let parsedStyle = {fill: marker.fill || defaultMarkerStyle.fill, outlineColor: marker.outlineColor || defaultMarkerStyle.outlineColor, outlineSize: marker.outlineSize || defaultMarkerStyle.outlineSize}
+            defs = <>
+              {defs}
+              {parsedStyle.fill.getDefs(marker, "marker.fill")}
+              {parsedStyle.outlineColor.getDefs(marker, "marker.outline-color")}
+            </>
 
-              let selected = selectedMarker ? marker.index == selectedMarker.index : true
+            let selected = selectedMarker ? marker.index == selectedMarker.index : true
+            
+
+            return <path onMouseDown={function(event) {
+              if(selectedMarker && selectedMarker.index == marker.index) {
+                setSelectedMarker(null)
+                return
+              }
               
+              let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+              let mouseX = (event.clientX - mapRect.x) / currentZoom
+              let mouseY = (event.clientY - mapRect.y) / currentZoom
 
-              return <path onMouseDown={function(event) {
-                if(selectedMarker && selectedMarker.index == marker.index) {
-                  setSelectedMarker(null)
-                  return
-                }
-                
-                let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                let mouseX = (event.clientX - mapRect.x) / currentZoom
-                let mouseY = (event.clientY - mapRect.y) / currentZoom
-
-                dragging = true
-                console.log(setSelectedMarker)
-                setSelectedMarker(marker)
-                setCurrentlyMovingMarker(marker.index)
-                setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
-                setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
-              }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
-            })
-          }
+              dragging = true
+              console.log(setSelectedMarker)
+              setSelectedMarker(marker)
+              setCurrentlyMovingMarker(marker.index)
+              setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
+              setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
+            }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
+          })
+        }
         <defs>
           {defs}
           <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
@@ -904,8 +938,9 @@ function MarkerDefaultProperties({defaultMarkerStyle, setDefaultMarkerStyle}) {
   </div>
 }
 function MarkerProperties({defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
+  console.log(selectedMarker)
   return <div>
-    <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT MARKER STYLE</Typography>
+    <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
     <TerritoryFillPicker color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
@@ -931,6 +966,17 @@ function MarkerProperties({defaultMarkerStyle, selectedMarker, setSelectedMarker
         })
       }}/>
     </div>
+    {}
+    <Button style={{marginTop: "5px"}} variant="contained" disabled={selectedMarker.fill == null && selectedMarker.outlineColor == null && selectedMarker.outlineSize == null} onClick={function() {
+      let reset = {
+        ...selectedMarker,
+        fill: null,
+        outlineColor: null,
+        outlineSize: null
+      }
+      console.log(reset, selectedMarker)
+      setSelectedMarker(reset)
+    }}>Reset</Button>
   </div>
 }
 

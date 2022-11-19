@@ -177,6 +177,15 @@ function getRectFromPoints(point1, point2) {
     return {left, right, top, bottom, width, height}
 }
 
+function stringIsBase64(string) {
+    try {
+        window.atob(string)
+        return true
+    } catch(e) {
+        return false
+    }
+}
+
 function convertSvgUrlsToBase64(svg) {
     let images = Array.from(svg.getElementsByTagName("image"))
     return new Promise(async function(resolve, reject) {
@@ -184,6 +193,9 @@ function convertSvgUrlsToBase64(svg) {
             let loadedCount = 0
             for(let i = 0; i != images.length; i++) {
                 let image = images[i]
+                if(stringIsBase64(image.getAttribute("href"))) {
+                    continue
+                }
                 let response = await fetch(image.getAttribute("href"))
                 let blob = await response.blob()
                 let reader = new FileReader()
