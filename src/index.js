@@ -37,7 +37,15 @@ import { GeometryDashDataVisualizer, DataVisualizer } from "./dataVisualization"
 import * as ReactDOMServer from 'react-dom/server';
 import MenuIcon from '@mui/icons-material/Menu';
 import 'typeface-roboto'
-
+import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import Visibility from "@mui/icons-material/Visibility"
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Slide from '@mui/material/Slide';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -380,7 +388,7 @@ function Editor(props) {
       <EditableMap mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <Properties markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
-      <RightBar></RightBar>
+      <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
       <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
@@ -732,7 +740,7 @@ function EditableMap(props) {
                             let mouseX = (event.clientX - mapRect.x) / currentZoom
                             let mouseY = (event.clientY - mapRect.y) / currentZoom
                   
-                            let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40}
+                            let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
                             setSelectedMarker(newMarker)
                   
                             setMarkers([
@@ -786,35 +794,39 @@ function EditableMap(props) {
           
         {boosting ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null }
         {
-          markers.map((marker, index) => {
-            let parsedStyle = {fill: marker.fill || defaultMarkerStyle.fill, outlineColor: marker.outlineColor || defaultMarkerStyle.outlineColor, outlineSize: marker.outlineSize || defaultMarkerStyle.outlineSize}
-            defs = <>
-              {defs}
-              {parsedStyle.fill.getDefs(marker, "marker.fill")}
-              {parsedStyle.outlineColor.getDefs(marker, "marker.outline-color")}
-            </>
+          markers
+            .filter((marker) => {
+              return !marker.hidden
+            })
+            .map((marker, index) => {
+              let parsedStyle = {fill: marker.fill || defaultMarkerStyle.fill, outlineColor: marker.outlineColor || defaultMarkerStyle.outlineColor, outlineSize: marker.outlineSize || defaultMarkerStyle.outlineSize}
+              defs = <>
+                {defs}
+                {parsedStyle.fill.getDefs(marker, "marker.fill")}
+                {parsedStyle.outlineColor.getDefs(marker, "marker.outline-color")}
+              </>
 
-            let selected = selectedMarker ? marker.index == selectedMarker.index : true
-            
-
-            return <path onMouseDown={function(event) {
-              if(selectedMarker && selectedMarker.index == marker.index) {
-                setSelectedMarker(null)
-                return
-              }
+              let selected = selectedMarker ? marker.index == selectedMarker.index : true
               
-              let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-              let mouseX = (event.clientX - mapRect.x) / currentZoom
-              let mouseY = (event.clientY - mapRect.y) / currentZoom
 
-              dragging = true
-              console.log(setSelectedMarker)
-              setSelectedMarker(marker)
-              setCurrentlyMovingMarker(marker.index)
-              setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
-              setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
-            }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
-          })
+              return <path onMouseDown={function(event) {
+                if(selectedMarker && selectedMarker.index == marker.index) {
+                  setSelectedMarker(null)
+                  return
+                }
+                
+                let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                let mouseX = (event.clientX - mapRect.x) / currentZoom
+                let mouseY = (event.clientY - mapRect.y) / currentZoom
+
+                dragging = true
+                console.log(setSelectedMarker)
+                setSelectedMarker(marker)
+                setCurrentlyMovingMarker(marker.index)
+                setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
+                setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
+              }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
+            })
         }
         <defs>
           {defs}
@@ -1023,17 +1035,206 @@ function DefaultsProperties(props) {
   )
 }
 
-function RightBar(props) {
-  const {} = props
+function RightBar({territories, setTerritories, selectedTerritory, setSelectedTerritory, selectedMarker, setSelectedMarker, markers, setMarkers}) {
+  const [deleteTerritoryAlertOpened, setDeleteTerritoryAlertOpened] = useState(false)
+  const [deleteTerritoryTarget, setDeleteTerritoryTarget] = useState(null)
+  const [deleteMarkerAlertOpened, setDeleteMarkerAlertOpened] = useState(false)
+  const [deleteMarkerTarget, setDeleteMarkerTarget] = useState(null)
 
   return (
-    <div id="right-bar-container" style={{position: "absolute", top: "0px", right: "0px", height: "100vh", padding: "20px", boxSizing: "border-box"}}>
-      <div id="right-bar" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
-        
+    <>
+      <div id="right-bar-container" style={{position: "absolute", top: "0px", right: "0px", height: "100vh", padding: "20px", boxSizing: "border-box"}}>
+        <div id="right-bar" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", boxSizing: "border-box"}}>
+          <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>TERRITORIES</Typography>
+          {
+            territories.map(territory => {
+              let selected = false
+              if(selectedTerritory) {
+                if(Array.isArray(selectedTerritory)) {
+                  for(let i = 0; i != selectedTerritory.length; i++) {
+                    if(selectedTerritory[i].index == territory.index) {
+                      selected = true
+                    }
+                  }
+                } else {
+                  selected = territory.index == selectedTerritory.index
+                }
+              }
+              return <div onMouseDown={function(event) {
+                if(event.currentTarget.getElementsByClassName("buttons")[0].matches(":hover")) {
+                  return
+                }
+                if(selectedTerritory && selectedTerritory.index == territory.index) {
+                  setSelectedTerritory(null)
+                } else {
+                  setSelectedTerritory(territory)
+                }
+              }} key={"territory" + territory.index} className={`territory-div${selected ? " selected" : ""}`}>
+                <span>{territory.name}</span>
+                <div className="buttons">
+                  <IconButton className="button" size="small" onClick={function(event) {
+                    setDeleteTerritoryAlertOpened(true)
+                    setDeleteTerritoryTarget(territory)
+                  }}>
+                    <DeleteIcon fontSize="small"></DeleteIcon>
+                  </IconButton>
+                  <IconButton className="button" size="small" onClick={function(event) {
+                    let newTerritory = {
+                      ...territory,
+                      hidden: !territory.hidden
+                    }
+                    setTerritories(territories.map(territory => {
+                      if(territory.index == newTerritory.index) {
+                        return newTerritory
+                      }
+                      return territory
+                    }))
+                  }}>
+                    {
+                      territory.hidden
+                        ? <VisibilityOffIcon fontSize="small"></VisibilityOffIcon>
+                        : <Visibility fontSize="small"></Visibility>
+                    }
+                  </IconButton>
+                </div>
+              </div>
+            })
+          }
+          <Typography style={{marginTop: "10px", fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>MARKERS</Typography>
+          {
+            markers.length > 0
+            ? markers.map(marker => {
+              let selected = selectedMarker && selectedMarker.index == marker.index
+
+              return <div onMouseDown={function(event) {
+                if(event.currentTarget.getElementsByClassName("buttons")[0].matches(":hover")) {
+                  return
+                }
+                if(selected) {
+                  setSelectedMarker(null)
+                } else {
+                  setSelectedMarker(marker)
+                }
+              }} key={"marker" + marker.index} className={`territory-div${selected ? " selected" : ""}`}>
+                <span>Marker {marker.index}</span>
+                <div className="buttons">
+                  <IconButton className="button" size="small" onClick={function(event) {
+                    setDeleteMarkerAlertOpened(true)
+                    setDeleteMarkerTarget(marker)
+                  }}>
+                    <DeleteIcon fontSize="small"></DeleteIcon>
+                  </IconButton>
+                  <IconButton className="button" size="small" onClick={function(event) {
+                    let newMarker = {
+                      ...marker,
+                      hidden: !marker.hidden
+                    }
+                    setMarkers(markers.map(marker => {
+                      if(marker.index == newMarker.index) {
+                        return newMarker
+                      }
+                      return marker
+                    }))
+                  }}>
+                    {
+                      marker.hidden
+                        ? <VisibilityOffIcon fontSize="small"></VisibilityOffIcon>
+                        : <Visibility fontSize="small"></Visibility>
+                    }
+                  </IconButton>
+                </div>
+              </div>
+            })
+            : <div style={{opacity: "0.8", fontFamily: "rubik", display: "flex", textAlign: "center", justifyContent: "center", alignItems: "center", width: "100%", height: "60px", marginTop: "5px"}}>
+              You do not have any markers yet.
+            </div>
+
+          }
+        </div>
       </div>
-    </div>
+      
+      <ThemeProvider theme={lightTheme}>
+        <Dialog
+          open={deleteTerritoryAlertOpened}
+          TransitionComponent={SlideUpTransition}
+          keepMounted
+          onClose={function() {
+            setDeleteTerritoryAlertOpened(false)
+          }}
+          aria-describedby="delete-territory-alert"
+          PaperProps={{
+            style: {
+              backgroundColor: "#F2F4FE"
+            }
+          }}
+        >
+          <DialogTitle>Delete {deleteTerritoryTarget?.name || "?"}?</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="delete-territory-alert" style={{color: "rgba(0, 0, 0, 0.8)"}}>
+              Are you sure you want to delete {deleteTerritoryTarget?.name || "?"}? This action is irreversible. You will never be able to add this territory back to your map, unless you start a new one.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={function() {
+              setDeleteTerritoryAlertOpened(false)
+            }}>Back</Button>
+            <Button onClick={function() {
+              setDeleteTerritoryAlertOpened(false)
+              setTerritories(territories.filter(territory => {
+                if(territory.index == deleteTerritoryTarget.index) {
+                  return false
+                }
+                return true
+              }))
+            }}>Confirm</Button>
+          </DialogActions>
+        </Dialog>
+      </ThemeProvider>
+
+      <ThemeProvider theme={lightTheme}>
+        <Dialog
+          open={deleteMarkerAlertOpened}
+          TransitionComponent={SlideUpTransition}
+          keepMounted
+          onClose={function() {
+            setDeleteMarkerAlertOpened(false)
+          }}
+          aria-describedby="delete-marker-alert"
+          PaperProps={{
+            style: {
+              backgroundColor: "#F2F4FE"
+            }
+          }}
+        >
+          <DialogTitle>Delete marker {deleteMarkerTarget?.index || "?"}?</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="delete-territory-alert" style={{color: "rgba(0, 0, 0, 0.8)"}}>
+              Are you sure you want to delete marker {deleteMarkerTarget?.index || "?"}? This action is irreversible. Reconsider hiding the marker if you only want it hidden for now.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={function() {
+              setDeleteMarkerAlertOpened(false)
+            }}>Back</Button>
+            <Button onClick={function() {
+              setDeleteMarkerAlertOpened(false)
+              setMarkers(markers.filter(marker => {
+                if(marker.index == deleteMarkerTarget.index) {
+                  return false
+                }
+                return true
+              }))
+            }}>Confirm</Button>
+          </DialogActions>
+        </Dialog>
+      </ThemeProvider>
+    </>
   )
 }
+
+let SlideUpTransition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />
+})
 
 function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
   switch(dataVisualizerGetter.type) {
