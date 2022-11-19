@@ -750,8 +750,8 @@ function EditableMap(props) {
               })
           }
           
-          <AnnotationRenderer currentTool={currentTool} annotations={annotations} setAnnotations={setAnnotations}></AnnotationRenderer>
-          {
+        {boosting ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null }
+        {
             markers.map((marker, index) => {
               let parsedStyle = {...defaultMarkerStyle, ...marker}
               defs = <>
@@ -782,7 +782,6 @@ function EditableMap(props) {
               }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
             })
           }
-        {boosting ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null }
         <defs>
           {defs}
           <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
