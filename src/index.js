@@ -38,6 +38,8 @@ import * as ReactDOMServer from 'react-dom/server';
 import MenuIcon from '@mui/icons-material/Menu';
 import 'typeface-roboto'
 
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const darkTheme = createTheme({
   palette: {
@@ -258,6 +260,9 @@ function Editor(props) {
     outlineColor: new ColorFill(0, 0, 0, 1),
     outlineSize: 1
   })
+  const [boosting, setBoosting] = useState(false)
+  const [mapSvgPath, setMapSvgPath] = useState("")
+  
 
   // i'd rather not do this. I wish react wasn't retarded and would understand it when i'm trying to update an object to a different one, but it is stupid.
   function refreshEditor() {
@@ -306,9 +311,12 @@ function Editor(props) {
     ajax(getMapImageUrl(chosenMap.id), "GET").then(data => {
       let svgData = parseSvg(data)
       setTerritoriesHTML(svgData.mapNodes)
+      let fullPath = ""
       setTerritories(svgData.mapNodes.map((node, index) => {
+        fullPath += "M 0,0 " + node.getAttribute("d")
         return {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title"), fill: null, outlineColor: null, outlineSize: null, hidden: false}
       }))
+      setMapSvgPath(fullPath)
       svgData.close() // parseSvg pastes the svg into the dom to make node.getBBox() possible. .close() removes the svg from the document.
       setMapDimensions(svgData.dimensions)
       let canvas = document.createElement("canvas")
@@ -325,7 +333,7 @@ function Editor(props) {
 
   let defaultMapCSSStyle = {
     cursor: "pointer",
-    transition: "opacity 0.3s"
+    transition: boosting ? "" : "opacity 0.3s"
   }
   if(currentTool != "cursor") {
     defaultMapCSSStyle.cursor = null
@@ -334,16 +342,17 @@ function Editor(props) {
 
   return(
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-      <EditableMap defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
+      {console.log("we did rerender in editor!!!!!!!!!!!")}
+      <EditableMap mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <Properties markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       <RightBar></RightBar>
-      <Toolbar eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+      <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
 }
 
-function Toolbar({eraserSize, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   return <div id="toolbar">
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
@@ -367,6 +376,9 @@ function Toolbar({eraserSize, setEraserSize, penSize, setPenSize, penColor, setP
       setCurrentTool("ellipse")
     }}></ToolbarButton> */}
     <ToolbarButton name="DOWNLOAD" downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
+    <ToolbarButton name="BOOST" icon={boosting ? "icons/boost-active.svg" : "icons/boost-inactive.svg"} selected={false} onClick={function() {
+      setBoosting(!boosting)
+    }}></ToolbarButton>
   </div>
 }
 function ToolbarButton({setEraserSize, eraserSize, penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
@@ -479,7 +491,7 @@ let currentlyDrawingAnnotation = false
 let markerIndex = 0
 
 function EditableMap(props) {
-  const {defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
+  const {mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
   const [lastPoint, setLastPoint] = useState(null)
   const [currentlyMovingMarker, setCurrentlyMovingMarker] = useState(null)
@@ -638,7 +650,7 @@ function EditableMap(props) {
           }
           setSelectedTerritory(createArray(selectedTerritory, territory))
         }
-      }} width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${currentZoom})`, transition: "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
+      }} width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${currentZoom})`, transition: boosting ? "" : "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
           {
             shownTerritories
               .map((territory) => {
@@ -726,7 +738,7 @@ function EditableMap(props) {
                       }
                     }
                   ></path>
-                  <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)"></path>
+                  {boosting ? null : <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)"></path> }
                 </g>
               }
             )
@@ -770,6 +782,7 @@ function EditableMap(props) {
               }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
             })
           }
+        {boosting ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null }
         <defs>
           {defs}
           <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
