@@ -12,7 +12,7 @@ code {
 }
 
 .content-row {
-  width: 1400px;
+  width: 1200px;
   height: 100%;
   max-width: calc(100% - 100px);
 }
@@ -29,7 +29,7 @@ code {
 }
 #bottom {
   background-color: #E6E8F9;
-  height: 1000px;
+  padding-bottom: 120px;
 }
 #navbar {
   position: fixed;
@@ -71,13 +71,14 @@ code {
 #intro-content {
   display: flex;
   align-items: center;
+  position: relative;
 }
 #intro-left {
   width: 50%;
   z-index: 2;
 }
 #intro-left-big {
-  font-size: 80px;
+  font-size: 69px;
   font-family: rubik;
   font-weight: 500;
   margin-bottom: 0px;
@@ -149,7 +150,8 @@ code {
 #static {
   max-height: 100vh;
   overflow: auto;
-  margin-top: 100px;
+  height: 100%;
+  margin-top: 0px;
 }
 
 .overlay {
@@ -243,7 +245,7 @@ code {
   margin-top: 0px;
   font-family: rubik;
   color: rgb(36, 36, 49);
-  font-size: 50px;
+  font-size: 43px;
   font-weight: 500;
 }
 #how-does-it-work-content > .badges {
@@ -268,7 +270,7 @@ code {
   font-family: rubik;
   color: black;
   margin-bottom: 0px;
-  font-size: 23px;
+  font-size: 22px;
 }
 #how-does-it-work-content > .badges > .badge > .description {
   font-family: rubik;
@@ -315,6 +317,7 @@ code {
   }
   #how-does-it-work-content > .badges > .badge > .description {
     font-size: 16px;
+    margin-bottom: 0px;
   }
 }
 
@@ -456,6 +459,7 @@ code {
   display: flex;
   flex-direction: column;
   margin-top: 100px;
+  margin-bottom: 100px;
 }
 
 .territory-fill-picker {
@@ -688,4 +692,53 @@ code {
 }
 #right-bar > .territory-div:hover {
   background-color: rgb(0, 0, 0, 0.1);
+}
+#bottom > .second {
+  background-color: #EEF0FF;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+#bottom > #maps-second > .content-row {
+  height: 500px;
+  margin-top: 100px;
+  margin-bottom: 100px;
+  display: flex;
+}
+#bottom > #maps-second > .content-row > .left {
+  width: 50%;
+  padding-right: 10px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+#bottom > #maps-second > .content-row > .right {
+  width: 50%;
+  padding-left: 10px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+#maps-second-description {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  margin: 0 auto;
+}
+#maps-second-description > .title {
+  font-family: rubik;
+  color: rgb(36, 36, 49);
+  font-weight: 500;
+  font-size: 50px;
+  margin: 0px;
+  margin-bottom: 10px;
+}
+#maps-second-description > .description {
+  font-family: rubik;
+  color: #3E424F;
+  font-weight: 400;
+  margin: 0px;
+  font-size: 25px;
 }

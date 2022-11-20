@@ -173,6 +173,24 @@ function App() {
                   </div>
                 </div>
               </div>
+              <div className="second" id="maps-second">
+                <div className="content-row">
+                  <div className="left">
+                    <video onLoadedData={function(event) {
+                      event.currentTarget.playbackRate = 0.7
+                    }} style={{clipPath: "polygon(0px 0px, 0px 99%, 100% 99%, 100% 0px, 0px 0px)"}} width="100%" autoPlay={true} muted={true} loop={true}>
+                      <source src="assets/maps.mp4" type="video/mp4"></source>
+                    </video>
+                  </div>
+                  <div className="right" id="maps-second-description">
+                    <p className="title">Library of maps</p>
+                    <p className="description">Periphern provides a huge set of 211 maps, making it effortless for you to find a good one. Don't worry! You can change the style of every single one of them (outline, color), so you do not need to find a certain template of a certain type of map in order to start.</p>
+                  </div>
+                </div>
+              </div>
+
+              
+
             </Paper>
           </div>
           {toShowSecondary}
@@ -271,7 +289,6 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
 
   return svgElement
 }
-
 
 
 function Editor(props) {
@@ -393,6 +410,8 @@ function Editor(props) {
     </div>
   )
 }
+
+
 
 function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   return <div id="toolbar">
@@ -528,9 +547,8 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
 }
 
 let selectingTerritories = false
-let annotationFirstPoint = {x: null, y: null}
-let currentlyDrawingAnnotation = false
 let markerIndex = 0
+let drawnOnMap = true
 
 function EditableMap(props) {
   const {mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
@@ -565,6 +583,8 @@ function EditableMap(props) {
 
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
+        drawnOnMap = true
+        console.log("okay 1")
       } else if(currentTool == "eraser") {
         var mapRect = document.getElementById("map-svg").getBoundingClientRect()
         var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
@@ -679,18 +699,64 @@ function EditableMap(props) {
       selectingTerritories = false
     }}>
       <svg id="map-svg" onTouchMove={!mobile ? null : function(event) {
-        if(!selectingTerritories) return
-        let clientX = event.touches[0].clientX;
-        let clientY = event.touches[0].clientY;
-        let element = document.elementFromPoint(clientX, clientY)
-        if(element.dataset.index) {
-          let territory = territories[element.dataset.index]
-          if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
-            return
-          } else if(selectedTerritory.index == territory.index) {
-            return
+        if(currentlyDrawingNode) {
+          let clientX = event.touches[0].clientX;
+          let clientY = event.touches[0].clientY;
+          if(currentTool == "pen") {
+            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+            let mouseX = (clientX - mapRect.x) / currentZoom
+            let mouseY = (clientY - mapRect.y) / currentZoom
+    
+            let context = penCachedImage.getContext("2d")
+            context.beginPath()
+            context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+            context.fillStyle = penColor
+            context.fill()
+            context.beginPath()
+            context.moveTo(mouseX, mouseY)
+            context.lineTo(lastPoint.x, lastPoint.y)
+            context.strokeStyle = penColor
+            context.lineWidth = penSize * 2
+            context.stroke()
+  
+            setLastPoint({x: mouseX, y: mouseY})
+          } else if(currentTool == "eraser") {
+            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+            let mouseX = (clientX - mapRect.x) / currentZoom
+            let mouseY = (clientY - mapRect.y) / currentZoom
+  
+            let context = penCachedImage.getContext("2d")
+            context.save()
+            context.globalCompositeOperation = "destination-out"
+            context.beginPath()
+            context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
+            context.fillStyle = penColor
+            context.fill()
+            context.beginPath()
+            context.moveTo(mouseX, mouseY)
+            context.lineTo(lastPoint.x, lastPoint.y)
+            context.strokeStyle = penColor
+            context.lineWidth = eraserSize * 2
+            context.stroke()
+            context.restore()
+  
+            setLastPoint({x: mouseX, y: mouseY})
           }
-          setSelectedTerritory(createArray(selectedTerritory, territory))
+        }
+        
+        if(selectingTerritories && currentTool == "cursor") {
+          let clientX = event.touches[0].clientX;
+          let clientY = event.touches[0].clientY;
+          let element = document.elementFromPoint(clientX, clientY)
+          if(element.dataset.index) {
+            let territory = territories[element.dataset.index]
+            if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
+              return
+            } else if(selectedTerritory.index == territory.index) {
+              return
+            }
+            setSelectedTerritory(createArray(selectedTerritory, territory))
+          }
         }
       }} width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${currentZoom})`, transition: boosting ? "" : "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
           {
@@ -753,13 +819,29 @@ function EditableMap(props) {
                     }
                     onTouchStart={!mobile ? null :
                       function(event) {
-                        if(currentTool != "cursor") return
-                        if(selectedTerritory && (territory.index == selectedTerritory.index)) {
-                          setSelectedTerritory(null)
-                        } else {
-                          setSelectedTerritory(territory)
+                        if(currentTool == "cursor") {
+                          if(selectedTerritory && (territory.index == selectedTerritory.index)) {
+                            setSelectedTerritory(null)
+                          } else {
+                            setSelectedTerritory(territory)
+                          }
+                          selectingTerritories = true
+                        } else if(currentTool == "pen") {
+                          var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                          let clientX = event.touches[0].clientX;
+                          let clientY = event.touches[0].clientY;
+                          var [mouseX, mouseY] = [(clientX - mapRect.x) / currentZoom, (clientY - mapRect.y) / currentZoom]
+                  
+                          let context = penCachedImage.getContext("2d")
+                          context.beginPath()
+                          context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+                          context.fillStyle = penColor
+                          context.fill()
+                  
+                          setLastPoint({x: mouseX, y: mouseY})
+                          setCurrentlyDrawingNode(true)
+                          drawnOnMap = true
                         }
-                        selectingTerritories = true
                       }
                     }
                     onTouchEnd={!mobile ? null :
@@ -780,7 +862,7 @@ function EditableMap(props) {
                       }
                     }
                   ></path>
-                  {boosting ? null : <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)"></path> }
+                  {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)"></path> : null}
                 </g>
               }
             )
@@ -792,7 +874,7 @@ function EditableMap(props) {
               })
           }
           
-        {boosting ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null }
+        {boosting ? drawnOnMap ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null : null}
         {
           markers
             .filter((marker) => {
@@ -820,7 +902,6 @@ function EditableMap(props) {
                 let mouseY = (event.clientY - mapRect.y) / currentZoom
 
                 dragging = true
-                console.log(setSelectedMarker)
                 setSelectedMarker(marker)
                 setCurrentlyMovingMarker(marker.index)
                 setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
@@ -830,9 +911,13 @@ function EditableMap(props) {
         }
         <defs>
           {defs}
-          <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
-            <image width={mapDimensions.width} height={mapDimensions.height} href={penCachedImage ? penCachedImage.toDataURL('image/png') : null}></image>
-          </pattern>
+          {
+            drawnOnMap
+              ? <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
+                <image width={mapDimensions.width} height={mapDimensions.height} href={penCachedImage ? penCachedImage.toDataURL('image/png') : null}></image>
+              </pattern>
+            : null
+          }
         </defs>
       </svg>
     </div>
@@ -894,7 +979,7 @@ function Properties(props) {
   const {currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
-    <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100vh", padding: "20px", boxSizing: "border-box"}}>
+    <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100%", padding: "20px", boxSizing: "border-box"}}>
       <div id="properties-panel" elevation={24} style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
         {
           currentTool == "marker" 
@@ -1043,7 +1128,7 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
 
   return (
     <>
-      <div id="right-bar-container" style={{position: "absolute", top: "0px", right: "0px", height: "100vh", padding: "20px", boxSizing: "border-box"}}>
+      <div id="right-bar-container" style={{position: "absolute", top: "0px", right: "0px", height: "100%", padding: "20px", boxSizing: "border-box"}}>
         <div id="right-bar" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", boxSizing: "border-box"}}>
           <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>TERRITORIES</Typography>
           {
@@ -1076,7 +1161,7 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
                     setDeleteTerritoryAlertOpened(true)
                     setDeleteTerritoryTarget(territory)
                   }}>
-                    <DeleteIcon fontSize="small"></DeleteIcon>
+                    <DeleteIcon fontSize="small" style={{opacity: 0.8}}></DeleteIcon>
                   </IconButton>
                   <IconButton className="button" size="small" onClick={function(event) {
                     let newTerritory = {
@@ -1092,8 +1177,8 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
                   }}>
                     {
                       territory.hidden
-                        ? <VisibilityOffIcon fontSize="small"></VisibilityOffIcon>
-                        : <Visibility fontSize="small"></Visibility>
+                        ? <VisibilityOffIcon fontSize="small" style={{opacity: 0.8}}></VisibilityOffIcon>
+                        : <Visibility fontSize="small" style={{opacity: 0.8}}></Visibility>
                     }
                   </IconButton>
                 </div>
@@ -1122,7 +1207,7 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
                     setDeleteMarkerAlertOpened(true)
                     setDeleteMarkerTarget(marker)
                   }}>
-                    <DeleteIcon fontSize="small"></DeleteIcon>
+                    <DeleteIcon fontSize="small" style={{opacity: 0.8}}></DeleteIcon>
                   </IconButton>
                   <IconButton className="button" size="small" onClick={function(event) {
                     let newMarker = {
@@ -1138,8 +1223,8 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
                   }}>
                     {
                       marker.hidden
-                        ? <VisibilityOffIcon fontSize="small"></VisibilityOffIcon>
-                        : <Visibility fontSize="small"></Visibility>
+                        ? <VisibilityOffIcon fontSize="small" style={{opacity: 0.8}}></VisibilityOffIcon>
+                        : <Visibility fontSize="small" style={{opacity: 0.8}}></Visibility>
                     }
                   </IconButton>
                 </div>
@@ -1696,7 +1781,7 @@ function TerritoryFillPickerPopup(props) {
 
   return (
     <>
-      <div className="bg" id={backgroundId} style={{zIndex: "10", position: "fixed", top: "0px", left: "0px", width: "100vw", height: "100vh", backgroundColor: "rgba(0, 0, 0, 0.7)", display: opened ? "flex" : "none", alignItems: "center", justifyContent: "center"}} onClick={function(event) {
+      <div className="bg" id={backgroundId} style={{zIndex: "10", position: "fixed", top: "0px", left: "0px", width: "100%", height: "100%", backgroundColor: "rgba(0, 0, 0, 0.7)", display: opened ? "flex" : "none", alignItems: "center", justifyContent: "center"}} onClick={function(event) {
         if(event.target.className == "bg") {
           setOpened(false)
 
