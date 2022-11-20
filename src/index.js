@@ -772,7 +772,7 @@ function EditableMap(props) {
             setSelectedTerritory(createArray(selectedTerritory, territory))
           }
         }
-      }} width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${parsedScale})`, transition: boosting ? "" : "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
+      }} width={mapDimensions.width} height={mapDimensions.height} style={{minWidth: mapDimensions.width + "px", minHeight: mapDimensions.height + "px", transform: `translate(-50%,-50%) scale(${parsedScale})`, transition: boosting ? "" : "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
           {
             shownTerritories
               .map((territory) => {

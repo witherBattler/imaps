@@ -785,9 +785,22 @@ code {
   #map-svg {
     max-width: 100vw;
   }
+  #zoom-panel {
+    top: 20px;
+    right: 20px;
+  }
+  .toolbar-button > .special {
+    width: 100% !important;
+  }
+  .toolbar-button > .special > .panel > .button.size-container {
+    font-size: 12px;
+  }
 }
 @media only screen and (max-width: 570px) {
   #toolbar > .toolbar-button > .bottom {
     font-size: 10px;
   }
+}
+#pen-size-span {
+  font-family: rubik;
 }
