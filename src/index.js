@@ -46,7 +46,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
-
+import VirtualScroll from "virtual-scroll"
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const darkTheme = createTheme({
@@ -321,12 +321,14 @@ function Editor(props) {
   })
   const [boosting, setBoosting] = useState(false)
   const [mapSvgPath, setMapSvgPath] = useState("")
-  
+  const mobileBottomDiv = useRef()
 
   // i'd rather not do this. I wish react wasn't retarded and would understand it when i'm trying to update an object to a different one, but it is stupid.
   function refreshEditor() {
     setRefreshValue(!refreshValue)
   }
+
+
 
   function downloadSvg() {
     let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
@@ -383,12 +385,17 @@ function Editor(props) {
       canvas.height = svgData.dimensions.height
       setPenCachedImage(canvas)
     })
+    const scroller = new VirtualScroll()
+    let fullScroll = 50
+    scroller.on((newValue) => {
+      if(isMobile() && !document.getElementById("right-bar").matches(":active")) {
+        fullScroll -= newValue.deltaY / 2
+        fullScroll = Math.min(Math.max(fullScroll, 50), 1160)
+        document.documentElement.style.setProperty("--mobile-ui-slide", fullScroll + "px")
+      }
+      
+    })
   }, [])
-
-  
-
-  
-  
 
   let defaultMapCSSStyle = {
     cursor: "pointer",
@@ -399,14 +406,17 @@ function Editor(props) {
   }
 
 
+
   return(
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
       {console.log("we did rerender in editor!!!!!!!!!!!")}
       <EditableMap mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
-      <Properties markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+      <div ref={mobileBottomDiv}>
+        <Properties markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+        <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
+        <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+      </div>
       <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
-      <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
-      <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
     </div>
   )
 }
@@ -525,8 +535,8 @@ function FloatingColorPicker({opened, onChange, value}) {
 
 function ZoomWidget({currentZoom, setCurrentZoom}) {
   return <>
-    <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "180px", height: "50px", borderRadius: "10px", position: "absolute", top: "20px"}}>
-      <Typography style={{fontSize: "18px", width: "80px", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>{(currentZoom * 100).toFixed()}%</Typography>
+    <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "210px", height: "50px", borderRadius: "10px", position: "absolute", top: "20px"}}>
+      <Typography style={{fontSize: "18px", width: "100px", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>{(currentZoom * 100).toFixed()}%</Typography>
       <Divider orientation="vertical"/>
       <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexGrow: "1"}}>
         <IconButton disabled={currentZoom == 3} style={{aspectRatio: "1/1", height: "40px"}} onClick={function() {
@@ -565,8 +575,12 @@ function EditableMap(props) {
       return !territory.hidden
     })
 
+  let parsedScale = currentZoom
+
   return (
-    <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={function(event) {
+    <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onGestureChange={function(event) {
+      event.preventDefault()
+    }} onMouseDown={function(event) {
       if(event.target.id == "map-div" || event.target.id == "map-svg") {
         setSelectedTerritory(null)
       }
@@ -758,7 +772,7 @@ function EditableMap(props) {
             setSelectedTerritory(createArray(selectedTerritory, territory))
           }
         }
-      }} width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${currentZoom})`, transition: boosting ? "" : "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
+      }} width={mapDimensions.width} height={mapDimensions.height} style={{transform: `translate(-50%,-50%) scale(${parsedScale})`, transition: boosting ? "" : "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
           {
             shownTerritories
               .map((territory) => {

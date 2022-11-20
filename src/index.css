@@ -1,3 +1,7 @@
+:root {
+  --mobile-ui-slide: 50px
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -148,7 +152,7 @@ code {
   flex-grow: 1;
 }
 #static {
-  max-height: 100vh;
+  max-height: 100%;
   overflow: auto;
   height: 100%;
   margin-top: 0px;
@@ -181,6 +185,7 @@ code {
   -ms-border-radius: 10px;
   -o-border-radius: 10px;
   z-index: 5;
+  max-width: calc(100% - 35px);
 }
 .popup-header {
   font-family: rubik;
@@ -221,7 +226,7 @@ code {
 }
 #map-choice-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 20px;
 }
 #map-choice-scrollbars-container {
@@ -543,7 +548,7 @@ code {
   right: 350px;
 }
 
-@media only screen and (max-width: 1220px) {
+@media only screen and (max-width: 1325px) {
   #properties-container, #right-bar-container {
     width: 300px;
   }
@@ -554,7 +559,7 @@ code {
     transform: translateX(-50%) scale(0.7);
   }
 }
-@media only screen and (max-width: 1055px) {
+@media only screen and (max-width: 1145px) {
   #toolbar {
     transform: translateX(-50%) scale(0.6);
   }
@@ -741,4 +746,48 @@ code {
   font-weight: 400;
   margin: 0px;
   font-size: 25px;
+}
+
+
+@media only screen and (max-width: 1070px) {
+  #toolbar {
+    width: calc(100% - 40px);
+    transform: scale(1);
+    left: 20px;
+    height: 70px;
+    bottom: calc(var(--mobile-ui-slide) + 20px)
+  }
+  #toolbar > .toolbar-button {
+    justify-content: space-between;
+    padding: 6px;
+    width: 100px;
+  }
+  #toolbar > .toolbar-button > .top {
+    height: 37px;
+    width: 100%;
+    padding: 5px;
+  }
+  #toolbar > .toolbar-button > .bottom {
+    font-size: 14px;
+  }
+  #properties-container {
+    width: calc(100%);
+    left: 0px;
+    height: 600px !important;
+    top: calc(100% - var(--mobile-ui-slide) - 20px) !important;
+  }
+  #right-bar-container {
+    width: calc(100%);
+    left: 0px;
+    height: 600px !important;
+    top: calc(100% - var(--mobile-ui-slide) + 560px) !important;
+  }
+  #map-svg {
+    max-width: 100vw;
+  }
+}
+@media only screen and (max-width: 570px) {
+  #toolbar > .toolbar-button > .bottom {
+    font-size: 10px;
+  }
 }

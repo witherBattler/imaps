@@ -31,6 +31,7 @@
     "svg-to-png": "^4.0.0",
     "typeface-roboto": "^1.1.13",
     "use-zoom-pan": "^1.0.2",
+    "virtual-scroll": "^2.2.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
