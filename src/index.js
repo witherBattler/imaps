@@ -173,7 +173,7 @@ function App() {
                   </div>
                 </div>
               </div>
-              <div className="second" id="maps-second">
+              <div className="second feature" id="maps-second">
                 <div className="content-row">
                   <div className="left">
                     <video onLoadedData={function(event) {
@@ -182,9 +182,24 @@ function App() {
                       <source src="assets/maps.mp4" type="video/mp4"></source>
                     </video>
                   </div>
-                  <div className="right" id="maps-second-description">
+                  <div className="right feature-description">
                     <p className="title">Library of maps</p>
                     <p className="description">Periphern provides a huge set of 211 maps, making it effortless for you to find a good one. Don't worry! You can change the style of every single one of them (outline, color), so you do not need to find a certain template of a certain type of map in order to start.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="feature" id="tools-second">
+                <div className="content-row">
+                  <div className="left">
+                    <video onLoadedData={function(event) {
+                      event.currentTarget.playbackRate = 0.7
+                    }} style={{height: "fit-content", clipPath: "polygon(0px 0px, 0px 99.5%, 100% 99.5%, 100% 0px, 0px 0px)"}} width="100%" autoPlay={true} muted={true} loop={true}>
+                      <source src="assets/tools.mp4" type="video/mp4"></source>
+                    </video>
+                  </div>
+                  <div className="right feature-description">
+                    <p className="title">Large set of tools</p>
+                    <p className="description">Periphern is very versatile. All tools you'd ever need are included, and if you don't want to use one, no problem: map making with Periphern stays simple, even though the possibilities are endless. You will never need to go to an external platform to use a feature, since our app most likely has it.</p>
                   </div>
                 </div>
               </div>

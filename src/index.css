@@ -226,7 +226,7 @@ code {
 }
 #map-choice-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 #map-choice-scrollbars-container {
@@ -698,26 +698,29 @@ code {
 #right-bar > .territory-div:hover {
   background-color: rgb(0, 0, 0, 0.1);
 }
-#bottom > .second {
-  background-color: #EEF0FF;
+#bottom > .feature {
   width: 100%;
   display: flex;
   justify-content: center;
 }
-#bottom > #maps-second > .content-row {
+#bottom > .feature.second {
+  background-color: #EEF0FF;
+}
+#bottom > .feature > .content-row {
   height: 500px;
   margin-top: 100px;
   margin-bottom: 100px;
   display: flex;
 }
-#bottom > #maps-second > .content-row > .left {
+#bottom > .feature > .content-row > .left {
   width: 50%;
   padding-right: 10px;
   box-sizing: border-box;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
-#bottom > #maps-second > .content-row > .right {
+#bottom > .feature > .content-row > .right {
   width: 50%;
   padding-left: 10px;
   box-sizing: border-box;
@@ -725,14 +728,14 @@ code {
   justify-content: center;
 }
 
-#maps-second-description {
+.feature-description {
   display: flex;
   flex-direction: column;
   height: 100%;
   justify-content: center;
   margin: 0 auto;
 }
-#maps-second-description > .title {
+.feature-description > .title {
   font-family: rubik;
   color: rgb(36, 36, 49);
   font-weight: 500;
@@ -740,7 +743,7 @@ code {
   margin: 0px;
   margin-bottom: 10px;
 }
-#maps-second-description > .description {
+.feature-description > .description {
   font-family: rubik;
   color: #3E424F;
   font-weight: 400;
@@ -799,6 +802,30 @@ code {
 @media only screen and (max-width: 570px) {
   #toolbar > .toolbar-button > .bottom {
     font-size: 10px;
+  }
+  #map-choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media only screen and (max-width: 700px) {
+  #how-does-it-work-content > .badges {
+    flex-direction: column;
+  }
+  #how-does-it-work-content > .badges > .badge {
+    width: 100%;
+    margin-bottom: 30px;
+  }
+  #how-does-it-work-content > .badges > .badge > .image {
+    width: 210px;
+    margin-bottom: 10px;
+  }
+  #how-does-it-work-content > .badges > .badge > .title {
+    font-size: 24px;
+    margin-top: 2px;
+  }
+  #how-does-it-work-content > .badges > .badge > .description {
+    font-size: 20px;
+    width: 270px;
   }
 }
 #pen-size-span {
