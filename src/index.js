@@ -396,8 +396,9 @@ function Editor(props) {
       svgData.close() // parseSvg pastes the svg into the dom to make node.getBBox() possible. .close() removes the svg from the document.
       setMapDimensions(svgData.dimensions)
       let canvas = document.createElement("canvas")
-      canvas.width = svgData.dimensions.width
-      canvas.height = svgData.dimensions.height
+      canvas.setAttribute("width", svgData.dimensions.width)
+      canvas.setAttribute("height", svgData.dimensions.height)
+      console.log(svgData.dimensions)
       setPenCachedImage(canvas)
     })
     const scroller = new VirtualScroll()
@@ -943,6 +944,7 @@ function EditableMap(props) {
           {
             drawnOnMap
               ? <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
+                {console.log(penCachedImage)}
                 <image width={mapDimensions.width} height={mapDimensions.height} href={penCachedImage ? penCachedImage.toDataURL('image/png') : null}></image>
               </pattern>
             : null
