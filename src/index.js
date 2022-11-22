@@ -573,7 +573,7 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
 
 let selectingTerritories = false
 let markerIndex = 0
-let drawnOnMap = true
+let drawnOnMap = false
 
 function EditableMap(props) {
   const {mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
