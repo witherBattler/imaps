@@ -462,7 +462,6 @@ function Editor(props) {
 
   return(
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-      {console.log("we did rerender in editor!!!!!!!!!!!")}
       <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <div ref={mobileBottomDiv}>
         <Properties markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
@@ -481,7 +480,7 @@ function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, set
     <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
       setCurrentTool("cursor")
     }}></ToolbarButton>
-    <ToolbarButton name="MOVE" selected={currentTool == "move"} onClick={function() {
+    <ToolbarButton name="MOVE" icon="icons/hand.svg" selected={currentTool == "move"} onClick={function() {
       setCurrentTool("move")
     }}></ToolbarButton>
     <ToolbarButton name="PEN" special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.svg" selected={currentTool == "pen"} onClick={function() {
@@ -656,7 +655,6 @@ function EditableMap(props) {
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
         drawnOnMap = true
-        console.log("okay 1")
       } else if(currentTool == "eraser") {
         var mapRect = document.getElementById("map-svg").getBoundingClientRect()
         var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
@@ -690,7 +688,6 @@ function EditableMap(props) {
           y: event.clientY - moved.y
         })
       }
-      console.log(currentTool)
     }} onWheel={function(event) {
       if(event.deltaY > 0) {
         let unrounded = Math.max(currentZoom + ((0 - currentZoom) / 5) || 0.1, 0.25)
@@ -777,6 +774,7 @@ function EditableMap(props) {
         }
       }
       if(currentlyMoving) {
+        console.log("its happening")
         let delta = {
           x: event.clientX - movingStartPosition.x,
           y: event.clientY - movingStartPosition.y
@@ -803,6 +801,7 @@ function EditableMap(props) {
       }
     }} onTouchEnd={!mobile ? null : function(event) {
       selectingTerritories = false
+      setCurrentlyMoving(false)
     }}>
       <svg id="map-svg" onTouchMove={!mobile ? null : function(event) {
         if(currentlyDrawingNode) {
