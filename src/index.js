@@ -302,7 +302,38 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     svgElement.appendChild(markerPath)
   }
 
-  return svgElement
+  if(defaultDataVisualizer && defaultDataVisualizer.type == "text") {
+    return new Promise(async (resolve, reject) => {
+      let reader = new window.FileReader()
+      if(defaultDataVisualizer.style.fontFamily.toLowerCase() == "rubik") {
+        let url = `./fonts/rubik/${Math.max(defaultDataVisualizer.style.fontWeight, 300)}${defaultDataVisualizer.style.italic ? "-italic" : ""}.ttf`
+        let response = await fetch(url)
+        let blob = await response.blob()
+        reader.readAsDataURL(blob)
+      } else if(defaultDataVisualizer.style.fontFamily.toLowerCase() == "oblivian") {
+        let url = `./fonts/oblivian/${defaultDataVisualizer.style.italic ? "italic" : "normal"}/${defaultDataVisualizer.style.fontWeight}.otf`
+        let response = await fetch(url)
+        let blob = await response.blob()
+        reader.readAsDataURL(blob)
+      }
+      reader.onload = function() {
+        let cssElement = document.createElement("style")
+        cssElement.innerHTML = `@font-face {
+          font-family: '${defaultDataVisualizer.style.fontFamily.toLowerCase()}';
+          font-weight: ${defaultDataVisualizer.style.fontWeight};
+          font-style: ${defaultDataVisualizer.style.italic ? "italic" : "normal"};
+          src: url(${this.result});
+        }`
+        defsElement.appendChild(cssElement)
+        resolve(svgElement)
+      }
+    })
+    
+  } else {
+    return new Promise((resolve, reject) => {
+      resolve(svgElement)
+    })
+  }
 }
 
 
@@ -345,8 +376,8 @@ function Editor(props) {
 
 
 
-  function downloadSvg() {
-    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
+  async function downloadSvg() {
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
     let base64 = btoa(unescape(encodeURIComponent(element.outerHTML)))
     const a = document.createElement("a")
     const e = new MouseEvent("click")
@@ -355,7 +386,8 @@ function Editor(props) {
     a.dispatchEvent(e)
   }
   async function downloadPng() {
-    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle))
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
+    element = await convertSvgUrlsToBase64(element)
     let converted = await svgToPng(element.outerHTML)
     const a = document.createElement("a")
     const e = new MouseEvent("click")
@@ -374,7 +406,8 @@ function Editor(props) {
     a.dispatchEvent(e)
   }
   async function downloadWebp() {
-    let element = await convertSvgUrlsToBase64(mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle))
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
+    element = await convertSvgUrlsToBase64(element)
     let converted = await svgToWebp(element.outerHTML)
     const a = document.createElement("a")
     const e = new MouseEvent("click")

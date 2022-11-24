@@ -212,7 +212,7 @@ function convertSvgUrlsToBase64(svg) {
             resolve(svg)
         }
         
-    })
+    })  
 }
 
 export {

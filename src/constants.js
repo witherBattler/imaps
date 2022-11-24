@@ -20,6 +20,11 @@ const MAP_NAMES = [
         "id": "NorthAmerica"
     },
     {
+        "name": "South America",
+        "url": "https://wikipedia.com/",
+        id: "SouthAmerica"
+    },
+    {
         "name": "United States",
         "url": "https://simplemaps.com/static/demos/resources/svg-library/svgs/us.svg",
         "id": "UnitedStates"
