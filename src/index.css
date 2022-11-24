@@ -896,5 +896,5 @@ code {
   cursor: pointer;
 }
 #properties-panel {
-  overflow: auto;
+  overflow: auto !important;
 }
