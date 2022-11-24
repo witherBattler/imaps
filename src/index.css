@@ -663,6 +663,22 @@ code {
   -ms-border-radius: 100px;
   -o-border-radius: 100px;
 }
+#properties-panel::-webkit-scrollbar {
+  width: 10px;
+  border: 10px transparent solid;
+}
+#properties-panel::-webkit-scrollbar * {
+  background: transparent; 
+}
+#properties-panel::-webkit-scrollbar-thumb {
+  background:rgba(0,0,0,0.1) !important;
+  width: 3px;
+  border-radius: 100px;
+  -webkit-border-radius: 100px;
+  -moz-border-radius: 100px;
+  -ms-border-radius: 100px;
+  -o-border-radius: 100px;
+}
 
 #right-bar > .territory-div {
   width: 100%;
@@ -878,4 +894,7 @@ code {
 
 .special > .panel > .button {
   cursor: pointer;
+}
+#properties-panel {
+  overflow: auto;
 }
