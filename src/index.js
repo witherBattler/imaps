@@ -436,14 +436,17 @@ function Editor(props) {
       setPenCachedImage(canvas)
     })
     const scroller = new VirtualScroll()
-    let fullScroll = 50
+    let fullScroll = 150
     scroller.on((newValue) => {
-      if(isMobile() && !document.getElementById("right-bar").matches(":active")) {
+      if(document.getElementById("right-bar").contains(newValue.originalEvent.target)) {
+        return
+      }
+      if(isMobile() && (document.getElementById("right-bar-container").contains(newValue.originalEvent.target) || document.getElementById("properties-container").contains(newValue.originalEvent.target))) {
+        console.log("ok it's doing the thing")
         fullScroll -= newValue.deltaY / 2
-        fullScroll = Math.min(Math.max(fullScroll, 50), 1160)
+        fullScroll = Math.min(Math.max(fullScroll, 150), 1160)
         document.documentElement.style.setProperty("--mobile-ui-slide", fullScroll + "px")
       }
-      
     })
   }, [])
 
@@ -777,6 +780,23 @@ function EditableMap(props) {
         let delta = {
           x: event.clientX - movingStartPosition.x,
           y: event.clientY - movingStartPosition.y
+        }
+        
+        setMoved(delta)
+      }
+    }} onTouchStart={!mobile ? null : function(event) {
+      if(currentTool == "move") {
+        setCurrentlyMoving(true)
+        setMovingStartPosition({
+          x: event.touches[0].clientX - moved.x,
+          y: event.touches[0].clientY - moved.y
+        })
+      }
+    }} onTouchMove={!mobile ? null : function(event) {
+      if(currentlyMoving) {
+        let delta = {
+          x: event.touches[0].clientX - movingStartPosition.x,
+          y: event.touches[0].clientY - movingStartPosition.y
         }
         
         setMoved(delta)
