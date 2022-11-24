@@ -476,39 +476,75 @@ function Editor(props) {
 
 
 function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
-  return <div id="toolbar">
-    <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
-      setCurrentTool("cursor")
-    }}></ToolbarButton>
-    <ToolbarButton name="MOVE" icon="icons/hand.svg" selected={currentTool == "move"} onClick={function() {
-      setCurrentTool("move")
-    }}></ToolbarButton>
-    <ToolbarButton name="PEN" special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.svg" selected={currentTool == "pen"} onClick={function() {
-      setCurrentTool("pen")
-    }}></ToolbarButton>
-    <ToolbarButton name="ERASER" special="eraser" eraserSize={eraserSize} setEraserSize={setEraserSize} icon="icons/eraser.svg" selected={currentTool == "eraser"} onClick={function() {
-      setCurrentTool("eraser")
-    }}></ToolbarButton>
-    <ToolbarButton name="MARKER" icon="icons/marker.svg" selected={currentTool == "marker"} onClick={function() {
-      setCurrentTool("marker")
-    }}></ToolbarButton>
-    {/* <ToolbarButton name="ANNOTATIONS" icon="icons/cursor-annotation.svg" selected={currentTool == "annotations"} onClick={function() {
-      setCurrentTool("annotations")
-    }}></ToolbarButton>
-    <ToolbarButton name="RECTANGLE" icon="icons/rectangle.svg" selected={currentTool == "rectangle"} onClick={function() {
-      setCurrentTool("rectangle")
-    }}></ToolbarButton>
-    <ToolbarButton name="ELLIPSE" icon="icons/ellipse.svg" selected={currentTool == "ellipse"} onClick={function() {
-      setCurrentTool("ellipse")
-    }}></ToolbarButton> */}
-    <ToolbarButton name="DOWNLOAD" downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
-    <ToolbarButton name="BOOST" icon={boosting ? "icons/boost-active.svg" : "icons/boost-inactive.svg"} selected={false} onClick={function() {
-      setBoosting(!boosting)
-    }}></ToolbarButton>
-  </div>
+  const [special, setSpecial] = useState(null)
+  const [specialLocation, setSpecialLocation] = useState(0)
+  const toolbarRef = useRef()
+  const [reload, setReload] = useState(true)
+  
+
+  let toolbarRect = toolbarRef?.current?.getBoundingClientRect()
+
+  let trueSetSpecial = function(button, element) {
+    
+    let buttonRect = button.getBoundingClientRect()
+    let newSpecialLocation = buttonRect.left - toolbarRect.left
+    if(newSpecialLocation == specialLocation) {
+      setSpecial(null)
+      setSpecialLocation(-1)
+    } else {
+      setSpecial(element)
+      setSpecialLocation(buttonRect.left - toolbarRect.left)
+    }
+    
+  }
+
+  return <>
+    <div id="toolbar" ref={toolbarRef}>
+      <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
+        setCurrentTool("cursor")
+        setSpecial(null)
+      }}></ToolbarButton>
+      <ToolbarButton name="MOVE" icon="icons/hand.svg" selected={currentTool == "move"} onClick={function() {
+        setCurrentTool("move")
+        setSpecial(null)
+      }}></ToolbarButton>
+      <ToolbarButton name="PEN" setSpecial={trueSetSpecial} special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.svg" selected={currentTool == "pen"} onClick={function() {
+        setCurrentTool("pen")
+      }}></ToolbarButton>
+      <ToolbarButton name="ERASER" setSpecial={trueSetSpecial} special="eraser" eraserSize={eraserSize} setEraserSize={setEraserSize} icon="icons/eraser.svg" selected={currentTool == "eraser"} onClick={function() {
+        setCurrentTool("eraser")
+      }}></ToolbarButton>
+      <ToolbarButton name="MARKER" icon="icons/marker.svg" selected={currentTool == "marker"} onClick={function() {
+        setCurrentTool("marker")
+        setSpecial(null)
+      }}></ToolbarButton>
+      {/* <ToolbarButton name="ANNOTATIONS" icon="icons/cursor-annotation.svg" selected={currentTool == "annotations"} onClick={function() {
+        setCurrentTool("annotations")
+      }}></ToolbarButton>
+      <ToolbarButton name="RECTANGLE" icon="icons/rectangle.svg" selected={currentTool == "rectangle"} onClick={function() {
+        setCurrentTool("rectangle")
+      }}></ToolbarButton>
+      <ToolbarButton name="ELLIPSE" icon="icons/ellipse.svg" selected={currentTool == "ellipse"} onClick={function() {
+        setCurrentTool("ellipse")
+      }}></ToolbarButton> */}
+      <ToolbarButton name="DOWNLOAD" setSpecial={trueSetSpecial} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} special="download" icon="icons/download.svg" selected={false}></ToolbarButton>
+      <ToolbarButton name="BOOST" icon={boosting ? "icons/boost-active.svg" : "icons/boost-inactive.svg"} selected={false} onClick={function() {
+        setBoosting(!boosting)
+        setSpecial(null)
+      }}></ToolbarButton>
+    </div>
+    {
+      special 
+        ? <div style={{transform: `translate(${specialLocation}px) scale(${window.innerWidth < 1430 ? window.innerWidth < 1240 ? window.innerWidth < 1070 ? 0.8 : 0.6 : 0.7 : 0.8})`, position: "absolute", left: `calc(50% - ${toolbarRect.width / 2}px)`, top: toolbarRect.top}}>
+            { special }
+          </div>
+        : null
+    }
+  </>
 }
-function ToolbarButton({setEraserSize, eraserSize, penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function ToolbarButton({setSpecial, setEraserSize, eraserSize, penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   const [colorPickerOpened, setColorPickerOpened] = useState(false)
+  const buttonRef = useRef()
 
   let specialContent = <></>
   var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
@@ -568,8 +604,10 @@ function ToolbarButton({setEraserSize, eraserSize, penColor, penSize, setPenColo
       </div>
       break
   }
-  return <div onClick={onClick} className="toolbar-button" style={{position: "relative"}}>
-    {specialContent}
+  return <div ref={buttonRef} onClick={function() {
+    onClick && onClick()
+    setSpecial(buttonRef.current, specialContent)
+  }} className="toolbar-button" style={{position: "relative"}}>
     <div className={selected ? "top selected" : "top"}>
       <img src={icon}></img>
     </div>

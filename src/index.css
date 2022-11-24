@@ -511,7 +511,7 @@ code {
 }
 .toolbar-button:hover > .special {
   pointer-events: all;
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 .toolbar-button:hover > .top {
@@ -553,7 +553,7 @@ code {
   right: 350px;
 }
 
-@media only screen and (max-width: 1325px) {
+@media only screen and (max-width: 1430px) {
   #properties-container, #right-bar-container {
     width: 300px;
   }
@@ -564,7 +564,7 @@ code {
     transform: translateX(-50%) scale(0.7);
   }
 }
-@media only screen and (max-width: 1145px) {
+@media only screen and (max-width: 1240px) {
   #toolbar {
     transform: translateX(-50%) scale(0.6);
   }
@@ -857,7 +857,6 @@ code {
 }
 #toolbar {
   overflow-x: auto;
-  overflow-y: hidden;
 }
 #toolbar::-webkit-scrollbar {
   height: 5px;
@@ -877,3 +876,6 @@ code {
   height: 6px;
 }
 
+.special > .panel > .button {
+  cursor: pointer;
+}
