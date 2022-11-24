@@ -625,6 +625,8 @@ function EditableMap(props) {
   const [currentlyMoving, setCurrentlyMoving] = useState(false)
   const [movingStartPosition, setMovingStartPosition] = useState(null)
 
+  console.log(mapDimensions)
+
   let defs = <></>
   let mobile = isMobile()
   let shownTerritories = territories

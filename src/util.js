@@ -28,8 +28,8 @@ function parseSvg(svgString) {
     return {
         mapNodes,
         dimensions: {
-            width: svgElement.getAttribute("width"),
-            height: svgElement.getAttribute("height")
+            width: parseInt(svgElement.getAttribute("width")),
+            height: parseInt(svgElement.getAttribute("height"))
         },
         close: function() {
             svgElement.remove()
