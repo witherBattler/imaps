@@ -764,6 +764,7 @@ code {
     justify-content: space-between;
     padding: 6px;
     width: 100px;
+    min-width: 70px;
   }
   #toolbar > .toolbar-button > .top {
     height: 37px;
@@ -830,4 +831,25 @@ code {
 }
 #pen-size-span {
   font-family: rubik;
+}
+#toolbar {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+#toolbar::-webkit-scrollbar {
+  height: 5px;
+  border: 10px transparent solid;
+}
+#toolbar::-webkit-scrollbar * {
+  background: transparent; 
+}
+#toolbar::-webkit-scrollbar-thumb {
+  background:rgba(0,0,0,0.1) !important;
+  width: 3px;
+  border-radius: 100px;
+  -webkit-border-radius: 100px;
+  -moz-border-radius: 100px;
+  -ms-border-radius: 100px;
+  -o-border-radius: 100px;
+  height: 6px;
 }
