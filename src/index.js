@@ -480,7 +480,9 @@ function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, set
   const [specialLocation, setSpecialLocation] = useState(0)
   const toolbarRef = useRef()
   const [reload, setReload] = useState(true)
-  
+  const [colorPickerOpened, setColorPickerOpened] = useState(false)
+
+  console.log(colorPickerOpened)
 
   let toolbarRect = toolbarRef?.current?.getBoundingClientRect()
 
@@ -508,7 +510,7 @@ function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, set
         setCurrentTool("move")
         setSpecial(null)
       }}></ToolbarButton>
-      <ToolbarButton name="PEN" setSpecial={trueSetSpecial} special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.svg" selected={currentTool == "pen"} onClick={function() {
+      <ToolbarButton name="PEN" colorPickerOpened={colorPickerOpened} setColorPickerOpened={setColorPickerOpened} setSpecial={trueSetSpecial} special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.svg" selected={currentTool == "pen"} onClick={function() {
         setCurrentTool("pen")
       }}></ToolbarButton>
       <ToolbarButton name="ERASER" setSpecial={trueSetSpecial} special="eraser" eraserSize={eraserSize} setEraserSize={setEraserSize} icon="icons/eraser.svg" selected={currentTool == "eraser"} onClick={function() {
@@ -542,71 +544,78 @@ function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, set
     }
   </>
 }
-function ToolbarButton({setSpecial, setEraserSize, eraserSize, penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
-  const [colorPickerOpened, setColorPickerOpened] = useState(false)
+function ToolbarButton({setSpecial, colorPickerOpened, setColorPickerOpened, setEraserSize, eraserSize, penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   const buttonRef = useRef()
 
-  let specialContent = <></>
   var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  switch(special) {
-    case "download":
-      specialContent = <div className="special download" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
-        <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
-          <div onClick={downloadSvg} className="button">
-            SVG
-          </div>
-          <div onClick={downloadPng} className="button">
-            PNG
-          </div>
-          <div onClick={downloadJpg} className="button">
-            JPG
-          </div>
-          { isSafari ? null : <div onClick={downloadWebp} className="button">
-            WEBP
-          </div> }
-        </div>
-      </div>
-      break;
-    case "pen":
-      specialContent = <div className="special download pen" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
-        <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
-          <div className="button color-container">
-            <div style={{backgroundColor: penColor}} onClick={function(event) {
-              setColorPickerOpened(!colorPickerOpened)
-            }}/>
-            <FloatingColorPicker value={penColor} opened={colorPickerOpened} onChange={function(newValue) {
-              setPenColor(newValue)
-            }}></FloatingColorPicker>
-          </div>
-          <div className="button size-container" style={{outline: "none"}} onClick={function(event) {
-            let element = event.currentTarget.getElementsByTagName("input")[0]
-            element.focus()
-          }}>
-            Size: <input style={{width: "30px", backgroundColor: "#3F445B", border: "none", outline: "none", color: "white", marginLeft: "5px"}} id="pen-size-span" onInput={function(event) {
-              setPenSize(parseInt(event.target.value) || 0)
-            }} value={penSize}></input>
+  function getSpecialContent() {
+    switch(special) {
+      case "download":
+        return <div className="special download" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
+          <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
+            <div onClick={downloadSvg} className="button">
+              SVG
+            </div>
+            <div onClick={downloadPng} className="button">
+              PNG
+            </div>
+            <div onClick={downloadJpg} className="button">
+              JPG
+            </div>
+            { isSafari ? null : <div onClick={downloadWebp} className="button">
+              WEBP
+            </div> }
           </div>
         </div>
-      </div>
-      break
-    case "eraser":
-      specialContent = <div className="special download pen" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
-        <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
-          <div className="button size-container" style={{outline: "none"}} onClick={function(event) {
-            let element = event.currentTarget.getElementsByTagName("input")[0]
-            element.focus()
-          }}>
-            Size: <input style={{width: "30px", backgroundColor: "#3F445B", border: "none", outline: "none", color: "white", marginLeft: "5px"}} id="pen-size-span" onInput={function(event) {
-              setEraserSize(parseInt(event.target.value) || 0)
-            }} value={eraserSize}></input>
+      case "pen":
+        return <div className="special download pen" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
+          <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
+            <div className="button color-container">
+              <div style={{backgroundColor: penColor}} onClick={function(event) {
+                setColorPickerOpened(!colorPickerOpened)
+                colorPickerOpened = !colorPickerOpened
+                setSpecial(buttonRef.current, getSpecialContent())
+              }}/>
+              <FloatingColorPicker value={penColor} opened={colorPickerOpened} onChange={function(newValue) {
+                setPenColor(newValue)
+                penColor = newValue
+                setSpecial(buttonRef.current, getSpecialContent())
+              }}></FloatingColorPicker>
+            </div>
+            <div className="button size-container" style={{outline: "none"}} onClick={function(event) {
+              let element = event.currentTarget.getElementsByTagName("input")[0]
+              element.focus()
+            }}>
+              Size: <input style={{width: "30px", backgroundColor: "#3F445B", border: "none", outline: "none", color: "white", marginLeft: "5px"}} id="pen-size-span" onInput={function(event) {
+                setPenSize(parseInt(event.target.value) || 0)
+                penSize = parseInt(event.target.value) || 0
+                setSpecial(buttonRef.current, getSpecialContent())
+              }} value={penSize}></input>
+            </div>
           </div>
         </div>
-      </div>
-      break
+      case "eraser":
+        return <div className="special download pen" style={{paddingBottom: "15px", width: "130px", position: "absolute", bottom: "100%", left: "0px"}}>
+          <div className="panel" style={{backgroundColor: "rgb(70, 80, 119)", borderRadius: "10px", width: "100%"}}>
+            <div className="button size-container" style={{outline: "none"}} onClick={function(event) {
+              let element = event.currentTarget.getElementsByTagName("input")[0]
+              element.focus()
+            }}>
+              Size: <input style={{width: "30px", backgroundColor: "#3F445B", border: "none", outline: "none", color: "white", marginLeft: "5px"}} id="pen-size-span" onInput={function(event) {
+                setEraserSize(parseInt(event.target.value) || 0)
+                eraserSize = parseInt(event.target.value) || 0
+                setSpecial(buttonRef.current, getSpecialContent())
+              }} value={eraserSize}></input>
+            </div>
+          </div>
+        </div>
+    }
   }
+
+
   return <div ref={buttonRef} onClick={function() {
     onClick && onClick()
-    setSpecial(buttonRef.current, specialContent)
+    setSpecial(buttonRef.current, getSpecialContent())
   }} className="toolbar-button" style={{position: "relative"}}>
     <div className={selected ? "top selected" : "top"}>
       <img src={icon}></img>
@@ -675,9 +684,7 @@ function EditableMap(props) {
   let parsedScale = currentZoom
 
   return (
-    <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onGestureChange={function(event) {
-      event.preventDefault()
-    }} onMouseDown={function(event) {
+    <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={function(event) {
       if(event.target.id == "map-div" || event.target.id == "map-svg") {
         setSelectedTerritory(null)
       }
