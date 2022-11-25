@@ -441,6 +441,9 @@ function Editor(props) {
       if(document.getElementById("right-bar").contains(newValue.originalEvent.target)) {
         return
       }
+      if(document.getElementById("properties-panel").contains(newValue.originalEvent.target)) {
+        return
+      }
       if(isMobile() && (document.getElementById("right-bar-container").contains(newValue.originalEvent.target) || document.getElementById("properties-container").contains(newValue.originalEvent.target))) {
         console.log("ok it's doing the thing")
         fullScroll -= newValue.deltaY / 2
