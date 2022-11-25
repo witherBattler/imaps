@@ -369,6 +369,7 @@ function Editor(props) {
   const [mapSvgPath, setMapSvgPath] = useState("")
   const mobileBottomDiv = useRef()
   const [moved, setMoved] = useState({x: 0, y: 0})
+  const [recentColors, setRecentColors] = useState([])
 
   // i'd rather not do this. I wish react wasn't retarded and would understand it when i'm trying to update an object to a different one, but it is stupid.
   function refreshEditor() {
@@ -467,7 +468,7 @@ function Editor(props) {
     <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
       <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
       <div ref={mobileBottomDiv}>
-        <Properties markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+        <Properties recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
         <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
         <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
       </div>
@@ -1132,7 +1133,7 @@ function AnnotationRenderer({currentTool, annotations, setAnnotations}) {
 }
 
 function Properties(props) {
-  const {currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
     <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100%", padding: "20px", boxSizing: "border-box"}}>
@@ -1150,21 +1151,21 @@ function Properties(props) {
                   }
                 }))
               }}></MarkerProperties>
-              : <MarkerDefaultProperties defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
+              : <MarkerDefaultProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
             : selectedTerritory
-              ? <TerritoryProperties defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
-              : <DefaultsProperties defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
+              ? <TerritoryProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
+              : <DefaultsProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
         }
       </div>
     </div>
   )
 }
 
-function MarkerDefaultProperties({defaultMarkerStyle, setDefaultMarkerStyle}) {
+function MarkerDefaultProperties({recentColors, setRecentColors, defaultMarkerStyle, setDefaultMarkerStyle}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker color={defaultMarkerStyle.fill} onUpdate={function(fill) {
+    <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.fill} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         fill: fill
@@ -1172,7 +1173,7 @@ function MarkerDefaultProperties({defaultMarkerStyle, setDefaultMarkerStyle}) {
       setDefaultMarkerStyle(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
+    <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         outlineColor: fill
@@ -1190,12 +1191,11 @@ function MarkerDefaultProperties({defaultMarkerStyle, setDefaultMarkerStyle}) {
     </div>
   </div>
 }
-function MarkerProperties({defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
-  console.log(selectedMarker)
+function MarkerProperties({recentColors, setRecentColors, defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
         ...selectedMarker,
         fill: fill
@@ -1203,7 +1203,7 @@ function MarkerProperties({defaultMarkerStyle, selectedMarker, setSelectedMarker
       setSelectedMarker(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
         ...selectedMarker,
         outlineColor: fill
@@ -1235,14 +1235,14 @@ function MarkerProperties({defaultMarkerStyle, selectedMarker, setSelectedMarker
 
 
 function DefaultsProperties(props) {
-  const {defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
   
 
   return (
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
+      <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           fill: fill
@@ -1250,7 +1250,7 @@ function DefaultsProperties(props) {
         setDefaultStyle(newStyle)
       }}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
+      <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           outlineColor: fill
@@ -1271,7 +1271,7 @@ function DefaultsProperties(props) {
         setDefaultValue(event.target.value)
       }}></TextField>
       <DataVisualizerSelect dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizerSelect>
-      <DataVisualizationEditor dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizationEditor>
+      <DataVisualizationEditor recentColors={recentColors} setRecentColors={setRecentColors} dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizationEditor>
     </div>
   )
 }
@@ -1477,7 +1477,7 @@ let SlideUpTransition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />
 })
 
-function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
+function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerGetter, dataVisualizerSetter}) {
   switch(dataVisualizerGetter.type) {
     case "geometryDash":
       return <div>
@@ -1515,7 +1515,7 @@ function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
       var id = generateId()
       return <>
         <Typography style={{fontSize: "20px", lineHeight: "120%"}}>Fill</Typography>
-        <TerritoryFillPicker allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
+        <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
           let newDataVisualizer = {
             ...dataVisualizerGetter,
             style: {
@@ -1527,7 +1527,7 @@ function DataVisualizationEditor({dataVisualizerGetter, dataVisualizerSetter}) {
           dataVisualizerSetter(dataVisualizerGetter.clone())
         }}></TerritoryFillPicker>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-        <TerritoryFillPicker allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
+        <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
           let newDataVisualizer = {
             ...dataVisualizerGetter,
             style: {
@@ -1698,7 +1698,7 @@ function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, on
   }
 }
 
-function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
+function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
   // we want support for multiple selected territories as well as one only.
   function changeValueSelectedTerritory(type, object2) {
     if(type == 0) {
@@ -1795,9 +1795,9 @@ function TerritoryProperties({defaultDataVisualizer, selectedTerritory, setSelec
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED TERRITORY STYLE: {territoryIdentifier}</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
+      <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
+      <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
       <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
         <Slider value={sizePickerSliderValue} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={sizeSliderOnChange}/>
@@ -1839,7 +1839,7 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 
 
 function TerritoryFillPicker(props) {
-  const {recentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
+  const {recentColors, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
@@ -1856,7 +1856,7 @@ function TerritoryFillPicker(props) {
     }}>
       <div style={{flexGrow: "1", padding: "6.5px", paddingRight: "0px", boxSizing: "border-box"}}>
         <div style={{background: color.getBackgroundCSS(), width: "100%", height: "100%", borderRadius: "3px"}}>
-          <TerritoryFillPickerPopup recentColors={recentColors} allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
+          <TerritoryFillPickerPopup recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
         </div>
       </div>
       
@@ -1868,7 +1868,7 @@ function TerritoryFillPicker(props) {
 }
 
 function TerritoryFillPickerPopup(props) {
-  let {recentColors, color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
+  let {recentColors, setRecentColors, color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
   if(allowFlagFill !== false) {
     allowFlagFill = true
   }
@@ -1882,7 +1882,7 @@ function TerritoryFillPickerPopup(props) {
   let content
   switch(color.type) {
     case "color":
-      content = <div style={{flexGrow: "1", padding: "20px", boxSizing: "border-box"}}>
+      content = <div style={{flexGrow: "1", display: "flex", padding: "20px", boxSizing: "border-box"}}>
         <RgbaColorPicker color={color} onChange={function(newValue) {
           color = color.clone()
           color.r = newValue.r
@@ -1892,6 +1892,25 @@ function TerritoryFillPickerPopup(props) {
           color.setUpdate(color)
           onUpdate(color)
         }}></RgbaColorPicker>
+        <div style={{display: "flex", marginLeft: "20px", flexGrow: "1", flexDirection: "column"}}>
+          <p style={{color: "black", fontWeight: "500", fontFamily: "rubik", margin: "0px", marginBottom: "5px"}}>RECENT COLORS</p>
+          <div>
+            {
+              recentColors.map(recentColor => {
+                let sameColor = color.r == recentColor.r && color.g == recentColor.g && color.b == recentColor.b && color.a == recentColor.a
+                return <div style={{outline: sameColor ? "2px black solid" : "none", marginBottom: "10px", display: "inline-flex", marginRight: "10px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: `rgba(${recentColor.r}, ${recentColor.g}, ${recentColor.b}, ${recentColor.a})`}} onClick={function() {
+                  color = color.clone()
+                  color.r = recentColor.r
+                  color.g = recentColor.g
+                  color.b = recentColor.b
+                  color.a = recentColor.a
+                  color.setUpdate(color)
+                  onUpdate(color)
+                }}></div>
+              })
+            }
+          </div>
+        </div>
       </div>
       break;
     case "flag":
@@ -1940,7 +1959,15 @@ function TerritoryFillPickerPopup(props) {
       <div className="bg" id={backgroundId} style={{zIndex: "10", position: "fixed", top: "0px", left: "0px", width: "100%", height: "100%", backgroundColor: "rgba(0, 0, 0, 0.7)", display: opened ? "flex" : "none", alignItems: "center", justifyContent: "center"}} onClick={function(event) {
         if(event.target.className == "bg") {
           setOpened(false)
-
+          if(color.type == "color") {
+            for(let i = 0; i != recentColors.length; i++) {
+              let recentColor = recentColors[i]
+              if(recentColor.r == color.r && recentColor.g == color.g && recentColor.b == color.b) {
+                return
+              }
+            }
+            setRecentColors([...recentColors, {r: color.r, g: color.g, b: color.b, a: color.a}])
+          }
         }
       }}>
         <div className="territory-fill-picker popup-content" style={{borderTopLeftRadius: "10px", borderTopRightRadius: "10px", width: "800px", height: "400px", display: "flex", flexDirection: "column"}}>
