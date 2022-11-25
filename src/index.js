@@ -1141,7 +1141,7 @@ function Properties(props) {
         {
           currentTool == "marker" 
             ? selectedMarker
-              ? <MarkerProperties defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
+              ? <MarkerProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
                 setSelectedMarker(newValue)
                 setMarkers(markers.map(marker => {
                   if(marker.index == selectedMarker.index) {
