@@ -365,7 +365,7 @@ function Editor(props) {
     outlineColor: new ColorFill(0, 0, 0, 1),
     outlineSize: 1
   })
-  const [boosting, setBoosting] = useState(false)
+  const [boosting, setBoosting] = useState(isMobile())
   const [mapSvgPath, setMapSvgPath] = useState("")
   const mobileBottomDiv = useRef()
   const [moved, setMoved] = useState({x: 0, y: 0})
