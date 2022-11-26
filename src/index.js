@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './default.css';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import { MAP_NAMES, FLAGS } from "./constants"
+import { MAP_NAMES, FLAGS, COUNTRY_CODES } from "./constants"
 import Card from "@mui/material/Card"
 import Box from "@mui/material/Box"
 import Grid from '@mui/material/Grid';
@@ -425,7 +425,11 @@ function Editor(props) {
       let fullPath = ""
       setTerritories(svgData.mapNodes.map((node, index) => {
         fullPath += "M 0,0 " + node.getAttribute("d")
-        return {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title"), fill: null, outlineColor: null, outlineSize: null, hidden: false}
+        let object = {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title"), fill: null, outlineColor: null, outlineSize: null, hidden: false}
+        if(chosenMap.countryCodes) {
+          object.name = COUNTRY_CODES[object.id.toUpperCase()]
+        }
+        return object
       }))
       setMapSvgPath(fullPath)
       svgData.close() // parseSvg pastes the svg into the dom to make node.getBBox() possible. .close() removes the svg from the document.
