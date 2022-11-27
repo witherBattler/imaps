@@ -430,6 +430,9 @@ function Editor(props) {
         let object = {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title"), fill: null, outlineColor: null, outlineSize: null, hidden: false}
         if(chosenMap.countryCodes) {
           object.name = COUNTRY_CODES[object.id.toUpperCase()]
+          if(!COUNTRY_CODES[object.id.toUpperCase()]) {
+            console.log(object.id)
+          }
         }
         return object
       }))
