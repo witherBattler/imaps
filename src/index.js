@@ -236,6 +236,8 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
 
   let domParser = new DOMParser()
 
+  console.log(defaultStyle)
+
   for(let i = 0; i != territories.length; i++) {
     let territory = territories[i]
     if(territory.hidden) {

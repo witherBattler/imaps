@@ -49,7 +49,7 @@ function getAnnotationComputedStyle(annotation, defaultStyle) {
     return getComputedStyleFromAnnotationObject({
         fill: annotation.fill || defaultStyle.fill,
         outlineColor: annotation.outlineColor || defaultStyle.outlineColor,
-        outlineSize: annotation.outlineSiz || defaultStyle.outlineSize
+        outlineSize: annotation.outlineSize || defaultStyle.outlineSize
     }, annotation)
 }
 
