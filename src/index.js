@@ -427,7 +427,7 @@ function Editor(props) {
       let fullPath = ""
       setTerritories(svgData.mapNodes.map((node, index) => {
         fullPath += "M 0,0 " + node.getAttribute("d")
-        let object = {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title"), fill: null, outlineColor: null, outlineSize: null, hidden: false}
+        let object = {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title") || node.id, fill: null, outlineColor: null, outlineSize: null, hidden: false}
         if(chosenMap.countryCodes) {
           object.name = COUNTRY_CODES[object.id.toUpperCase()]
           if(!COUNTRY_CODES[object.id.toUpperCase()]) {

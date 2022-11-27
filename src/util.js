@@ -22,7 +22,7 @@ function ajax(url, method, data) {
 function parseSvg(svgString) {
     let parser = new DOMParser()
     let documentSvg = parser.parseFromString(svgString, "text/xml")
-    let mapNodes = Array.from(documentSvg.children[0].children).filter(element => element.tagName == "path")
+    let mapNodes = Array.from(documentSvg.getElementsByTagName("path")) // Array.from(documentSvg.children[0].children).filter(element => element.tagName == "path")
     let svgElement = documentSvg.children[0]
     document.body.appendChild(svgElement)
     return {

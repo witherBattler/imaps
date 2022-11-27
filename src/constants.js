@@ -16,6 +16,11 @@ const MAP_NAMES = [
         "countryCodes": true
     },
     {
+        "name": "Asia",
+        "url": "https://mapchart.net/",
+        "id": "Asia",
+    },
+    {
         "name": "Africa",
         "url": "https://simplemaps.com/static/demos/resources//svg-library/svgs/africa.svg",
         "id": "Africa"
