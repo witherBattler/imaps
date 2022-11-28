@@ -338,6 +338,15 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
   }
 }
 
+let onKeyDownEventListeners = []
+window.addEventListener("keydown", function(event) {  
+  onKeyDownEventListeners.forEach(func => {
+    func(event)
+  })
+})
+function onKeyDown(func) {
+  onKeyDownEventListeners.push(func)
+}
 
 function Editor(props) {
   const chosenMap = props.chosenMap
@@ -372,6 +381,8 @@ function Editor(props) {
   const mobileBottomDiv = useRef()
   const [moved, setMoved] = useState({x: 0, y: 0})
   const [recentColors, setRecentColors] = useState([])
+  const [deleteTerritoryAlertOpened, setDeleteTerritoryAlertOpened] = useState(false)
+  const [deleteTerritoryTarget, setDeleteTerritoryTarget] = useState(null)
 
   // i'd rather not do this. I wish react wasn't retarded and would understand it when i'm trying to update an object to a different one, but it is stupid.
   function refreshEditor() {
@@ -463,6 +474,12 @@ function Editor(props) {
     })
   }, [])
 
+  onKeyDown(function(event) {
+    if(!event.repeat && event.key == "Delete") {
+      setDeleteTerritoryAlertOpened(true)
+    }
+  })
+
   let defaultMapCSSStyle = {
     cursor: "pointer",
     transition: boosting ? "" : "opacity 0.3s"
@@ -474,15 +491,68 @@ function Editor(props) {
 
 
   return(
-    <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-      <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
-      <div ref={mobileBottomDiv}>
-        <Properties recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
-        <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
-        <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+    <>
+      <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
+        <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
+        <div ref={mobileBottomDiv}>
+          <Properties recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+          <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
+          <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+        </div>
+        <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       </div>
-      <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
-    </div>
+      
+      {
+        deleteTerritoryAlertOpened
+          ? <ThemeProvider theme={lightTheme}>
+          <Dialog
+            open={deleteTerritoryAlertOpened}
+            TransitionComponent={SlideUpTransition}
+            keepMounted
+            onClose={function() {
+              setDeleteTerritoryAlertOpened(false)
+            }}
+            aria-describedby="delete-territory-alert"
+            PaperProps={{
+              style: {
+                backgroundColor: "#F2F4FE"
+              }
+            }}
+          >
+            <DialogTitle>Delete {Array.isArray(selectedTerritory) ? selectedTerritory.length + " territories" : selectedTerritory.name}?</DialogTitle>
+            <DialogContent>
+              <DialogContentText id="delete-territory-alert" style={{color: "rgba(0, 0, 0, 0.8)"}}>
+                Are you sure you want to delete {Array.isArray(selectedTerritory) ? selectedTerritory.length + " territories" : selectedTerritory.name}?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={function() {
+                setDeleteTerritoryAlertOpened(false)
+              }}>Back</Button>
+              <Button onClick={function() {
+                setDeleteTerritoryAlertOpened(false)
+                setTerritories(territories.filter(territory => {
+                  if(Array.isArray(selectedTerritory)) {
+                    if(selectedTerritory.some(territory2 => territory2.index == territory.index)) {
+                      return false
+                    }
+                  } else {
+                    if(territory.index == selectedTerritory.index) {
+                      return false
+                    }
+                  }
+                  
+                  return true
+                }))
+              }}>Confirm</Button>
+            </DialogActions>
+          </Dialog>
+        </ThemeProvider>
+        : null
+      }
+    </>
+    
+    
   )
 }
 
@@ -494,8 +564,6 @@ function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, set
   const toolbarRef = useRef()
   const [reload, setReload] = useState(true)
   const [colorPickerOpened, setColorPickerOpened] = useState(false)
-
-  console.log(colorPickerOpened)
 
   let toolbarRect = toolbarRef?.current?.getBoundingClientRect()
 
