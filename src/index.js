@@ -453,7 +453,6 @@ function Editor(props) {
       let canvas = document.createElement("canvas")
       canvas.setAttribute("width", svgData.dimensions.width)
       canvas.setAttribute("height", svgData.dimensions.height)
-      console.log(svgData.dimensions)
       setPenCachedImage(canvas)
     })
     const scroller = new VirtualScroll()
@@ -466,7 +465,6 @@ function Editor(props) {
         return
       }
       if(isMobile() && (document.getElementById("right-bar-container").contains(newValue.originalEvent.target) || document.getElementById("properties-container").contains(newValue.originalEvent.target))) {
-        console.log("ok it's doing the thing")
         fullScroll -= newValue.deltaY / 2
         fullScroll = Math.min(Math.max(fullScroll, 150), 1160)
         document.documentElement.style.setProperty("--mobile-ui-slide", fullScroll + "px")
@@ -1576,16 +1574,30 @@ function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerG
             dataVisualizerSetter(dataVisualizerGetter.clone())
           }}></TextField>
         </div>
-        <FormControlLabel control={
-          <Switch checked={dataVisualizerGetter.reverse} onChange={function (event) {
-            let newDataVisualizer = {
-              ...dataVisualizerGetter,
-              reverse: !dataVisualizerGetter.reverse
-            }
-            dataVisualizerGetter.setUpdate(newDataVisualizer)
-            dataVisualizerSetter(dataVisualizerGetter.clone())
-          }}/>
-        } label="Reverse"/>
+        <div style={{flexDirection: "column", display: "flex"}}>
+          <FormControlLabel style={{marginTop: "5px"}} control={
+            <Switch checked={dataVisualizerGetter.reverse} onChange={function (event) {
+              let newDataVisualizer = {
+                ...dataVisualizerGetter,
+                reverse: !dataVisualizerGetter.reverse
+              }
+              dataVisualizerGetter.setUpdate(newDataVisualizer)
+              dataVisualizerSetter(dataVisualizerGetter.clone())
+            }}/>
+          } label="Reverse"/>
+          <FormControlLabel style={{marginTop: "0px"}} control={
+            <Switch checked={dataVisualizerGetter.hideOnParseError} onChange={function (event) {
+              let newDataVisualizer = {
+                ...dataVisualizerGetter,
+                hideOnParseError: !dataVisualizerGetter.hideOnParseError
+              }
+              dataVisualizerGetter.setUpdate(newDataVisualizer)
+              dataVisualizerSetter(dataVisualizerGetter.clone())
+            }}/>
+          } label="Hide on error"/>
+        </div>
+
+        
       </div>
     
     case "text":

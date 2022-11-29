@@ -16,13 +16,15 @@ class DataVisualizer {
                     fontFamily: "rubik",
                     fontWeight: "400",
                     italic: false,
-                }
+                },
             },
             geometryDash: {
                 min: 0,
                 max: 10,
-                reverse: false
-            }
+                reverse: false,
+                hideOnParseError: true
+            },
+            scale: 1
         }
     }
     render() {
@@ -35,7 +37,7 @@ class DataVisualizer {
             case 1:
                 return new TextDataVisualizer(this.data.text.style, this.data)
             case 2:
-                return new GeometryDashDataVisualizer(this.data.geometryDash.min, this.data.geometryDash.max, this.data.geometryDash.reverse, this.data)
+                return new GeometryDashDataVisualizer(this.data.geometryDash.min, this.data.geometryDash.max, this.data.geometryDash.reverse, this.data.geometryDash.hideOnParseError, this.data)
         }
     }
     getTypeIndex() {
@@ -60,7 +62,6 @@ class TextDataVisualizer extends DataVisualizer {
     render(boundingBox, data, territory, id) {
         let center = {x: territory.dataOffsetX + boundingBox.x + boundingBox.width / 2, y: territory.dataOffsetY + boundingBox.y + boundingBox.height / 2}
 
-        
         return <g key={territory.id + ".data-visualizer"}>
             <defs>
                 {this.style.fill.getDefs(territory, "data-visualizer.fill")}
@@ -77,7 +78,7 @@ class TextDataVisualizer extends DataVisualizer {
                 fontFamily={this.style.fontFamily}
                 fontWeight={this.style.fontWeight}
                 fontStyle={this.style.italic ? "italic" : null}
-                style={{paintOrder: "stroke", zIndex: "10", textAnchor: "middle", dominantBaseline: "middle", pointerEvents: "none", userSelect: "none"}}
+                style={{transform: `scale(${this.data.scale})`, paintOrder: "stroke", zIndex: "10", textAnchor: "middle", dominantBaseline: "middle", pointerEvents: "none", userSelect: "none"}}
             >{data}</text>
         </g>
     }
@@ -140,19 +141,23 @@ const GEOMETRY_DASH_ICON_WIDTH = 50
 const GEOMETRY_DASH_ICON_HEIGHT = 40
 
 class GeometryDashDataVisualizer extends DataVisualizer {
-    constructor(min, max, reverse, data) {
+    constructor(min, max, reverse, hideOnParseError, data) {
         super()
         this.data = data || this.data
         this.min = orEmptyString(min, 0)
         this.max = orEmptyString(max, 0)
         this.reverse = reverse || false
         this.type = "geometryDash"
+        this.hideOnParseError = hideOnParseError
     }
     render(boundingBox, data, territory, id) {
         let center = {x: boundingBox.x + boundingBox.width / 2, y: boundingBox.y + boundingBox.height / 2}
         let imagePosition = {x: center.x - GEOMETRY_DASH_ICON_WIDTH / 2, y: center.y - GEOMETRY_DASH_ICON_HEIGHT / 2}
         let imageUrl
         if(!data || isNaN(parseInt(data))) {
+            if(this.hideOnParseError) {
+                return
+            }
             imageUrl = "https://periphern.impixel.tech/geometryDash/Unrated.webp"
         } else {
             data = parseInt(data)
@@ -164,15 +169,16 @@ class GeometryDashDataVisualizer extends DataVisualizer {
             }
             imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[imageIndex].id + ".webp"
         }
-        return <image key={territory.index + ".data-visualizer"} style={{pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
+        return <image key={territory.index + ".data-visualizer"} style={{transform: `scale(${this.data.scale})`, pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
     }
     clone() {
-        return new GeometryDashDataVisualizer(this.min, this.max, this.reverse, this.data)
+        return new GeometryDashDataVisualizer(this.min, this.max, this.reverse, this.hideOnParseError, this.data)
     }
     setUpdate(newObject) {
         this.min = newObject.min
         this.max = newObject.max
         this.reverse = newObject.reverse
+        this.hideOnParseError = newObject.hideOnParseError
         this.data.geometryDash = {
             min: newObject.min,
             max: newObject.max,
