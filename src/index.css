@@ -549,15 +549,17 @@ code {
 #properties-container, #right-bar-container {
   width: 350px;
 }
-#zoom-panel {
+#zoom-panel-positioner {
   right: 350px;
+  top: 20px;
+  position: absolute;
 }
 
 @media only screen and (max-width: 1430px) {
   #properties-container, #right-bar-container {
     width: 300px;
   }
-  #zoom-panel {
+  #zoom-panel-positioner {
     right: 300px;
   }
   #toolbar {
@@ -810,7 +812,7 @@ code {
   #map-svg {
     max-width: 100vw;
   }
-  #zoom-panel {
+  #zoom-panel-positioner {
     top: 20px;
     right: 20px;
   }
@@ -897,4 +899,8 @@ code {
 }
 #properties-panel {
   overflow: auto !important;
+}
+
+#trash-icon {
+  width: 
 }

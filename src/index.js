@@ -380,14 +380,7 @@ function Editor(props) {
   const [moved, setMoved] = useState({x: 0, y: 0})
   const [recentColors, setRecentColors] = useState([])
   const [deleteTerritoryAlertOpened, setDeleteTerritoryAlertOpened] = useState(false)
-  const [deleteTerritoryTarget, setDeleteTerritoryTarget] = useState(null)
-
-  // i'd rather not do this. I wish react wasn't retarded and would understand it when i'm trying to update an object to a different one, but it is stupid.
-  function refreshEditor() {
-    setRefreshValue(!refreshValue)
-  }
-
-
+  const [uniteTerritoriesAlertOpened, setUniteTerritoriesAlertOpened] = useState(false)
 
   async function downloadSvg() {
     let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
@@ -492,7 +485,7 @@ function Editor(props) {
           <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
           <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
         </div>
-        <ZoomWidget currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
+        <ZoomWidget setUniteTerritoriesAlertOpened={setUniteTerritoriesAlertOpened} setDeleteTerritoryAlertOpened={setDeleteTerritoryAlertOpened} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} territories={territories} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       </div>
       
       {
@@ -515,7 +508,7 @@ function Editor(props) {
             <DialogTitle>Delete {Array.isArray(selectedTerritory) ? selectedTerritory.length + " territories" : selectedTerritory.name}?</DialogTitle>
             <DialogContent>
               <DialogContentText id="delete-territory-alert" style={{color: "rgba(0, 0, 0, 0.8)"}}>
-                Are you sure you want to delete {Array.isArray(selectedTerritory) ? selectedTerritory.length + " territories" : selectedTerritory.name}?
+                Are you sure you want to delete {Array.isArray(selectedTerritory) ? selectedTerritory.length + " territories" : selectedTerritory.name}? This action is irreversible.
               </DialogContentText>
             </DialogContent>
             <DialogActions>
@@ -537,6 +530,78 @@ function Editor(props) {
                   
                   return true
                 }))
+              }}>Confirm</Button>
+            </DialogActions>
+          </Dialog>
+        </ThemeProvider>
+        : null
+      }
+      {
+        uniteTerritoriesAlertOpened
+          ? <ThemeProvider theme={lightTheme}>
+          <Dialog
+            open={uniteTerritoriesAlertOpened}
+            TransitionComponent={SlideUpTransition}
+            keepMounted
+            onClose={function() {
+              setUniteTerritoriesAlertOpened(false)
+            }}
+            aria-describedby="unite-territory-alert"
+            PaperProps={{
+              style: {
+                backgroundColor: "#F2F4FE"
+              }
+            }}
+          >
+            <DialogTitle>Delete {Array.isArray(selectedTerritory) ? selectedTerritory.length + " territories" : selectedTerritory.name}?</DialogTitle>
+            <DialogContent>
+              <DialogContentText id="unite-territory-alert" style={{color: "rgba(0, 0, 0, 0.8)"}}>
+                Are you sure you want to unite {selectedTerritory.length} territories? This action is irreversible.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={function() {
+                setUniteTerritoriesAlertOpened(false)
+              }}>Back</Button>
+              <Button onClick={function() {
+                setUniteTerritoriesAlertOpened(false)
+                
+                let newPath = ""
+                for(let i = 0; i != selectedTerritory.length; i++) {
+                  newPath += "M 0,0 " + selectedTerritory[i].path
+                }
+                let object = {
+                  index: generateId(),
+                  dataVisualizerScale: selectedTerritory[0].dataVisualizerScale || 1,
+                  dataOffsetX: 0,
+                  dataOffsetY: 0,
+                  dataVisualizer: selectedTerritory[0].dataVisualizer || null,
+                  value: selectedTerritory[0].value || null,
+                  path: newPath,
+                  boundingBox: null,
+                  id: "Unified Territory",
+                  name: "Unified Territory",
+                  fill: selectedTerritory[0].fill || null,
+                  outlineColor: selectedTerritory[0].outlineColor || null,
+                  outlineSize: selectedTerritory[0].outlineSize || null,
+                  hidden: false
+                }
+                let newTerritories = territories.filter(territory => {
+                  if(Array.isArray(selectedTerritory)) {
+                    if(selectedTerritory.some(territory2 => territory2.index == territory.index)) {
+                      return false
+                    }
+                  } else {
+                    if(territory.index == selectedTerritory.index) {
+                      return false
+                    }
+                  }
+                  
+                  return true
+                })
+                newTerritories.push(object)
+                
+                setTerritories(newTerritories)
               }}>Confirm</Button>
             </DialogActions>
           </Dialog>
@@ -709,9 +774,19 @@ function FloatingColorPicker({opened, onChange, value}) {
   </div>
 }
 
-function ZoomWidget({currentZoom, setCurrentZoom}) {
-  return <>
-    <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "210px", height: "50px", borderRadius: "10px", position: "absolute", top: "20px"}}>
+function ZoomWidget({setDeleteTerritoryAlertOpened, setUniteTerritoriesAlertOpened, selectedTerritory, setSelectedTerritory, setTerritories, territories, currentZoom, setCurrentZoom}) {
+  return <div id="zoom-panel-positioner" style={{display: "flex"}}>
+    <div id="unite-icon" style={{display: selectedTerritory && Array.isArray(selectedTerritory) ? "flex" : "none", alignItems: "center", justifyContent: "center", cursor: "pointer", borderRadius: "10px", marginRight: "10px", backgroundColor: "#465077", width: "50px", height: "50px"}} onClick={function() {
+      setUniteTerritoriesAlertOpened(true)
+    }}>
+      <img src="icons/unite.svg" style={{maxWidth: "60%", maxHeight: "60%"}}></img>
+    </div>
+    <div id="trash-icon" style={{display: selectedTerritory ? "flex" : "none", alignItems: "center", justifyContent: "center", cursor: "pointer", borderRadius: "10px", marginRight: "10px", backgroundColor: "#465077", width: "50px", height: "50px"}} onClick={function() {
+      setDeleteTerritoryAlertOpened(true)
+    }}>
+      <img src="icons/bin.svg" style={{maxWidth: "60%", maxHeight: "60%"}}></img>
+    </div>
+    <div id="zoom-panel" style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", display: "flex", width: "210px", height: "50px", borderRadius: "10px"}}>
       <Typography style={{fontSize: "18px", width: "100px", height: "100%", display: "flex", alignItems: "center", justifyContent: "center"}}>{(currentZoom * 100).toFixed()}%</Typography>
       <Divider orientation="vertical"/>
       <div style={{display: "flex", alignItems: "center", justifyContent: "center", flexGrow: "1"}}>
@@ -729,7 +804,7 @@ function ZoomWidget({currentZoom, setCurrentZoom}) {
         </IconButton>
       </div>
     </div>
-  </>
+  </div>
 }
 
 let selectingTerritories = false
@@ -745,8 +820,6 @@ function EditableMap(props) {
   const [movingMarkerStartingPosition, setMovingMarkerStartingPosition] = useState({x: null, y: null})
   const [currentlyMoving, setCurrentlyMoving] = useState(false)
   const [movingStartPosition, setMovingStartPosition] = useState(null)
-
-  console.log(mapDimensions)
 
   let defs = <></>
   let mobile = isMobile()
@@ -1115,7 +1188,6 @@ function EditableMap(props) {
               </>
 
               let selected = selectedMarker ? marker.index == selectedMarker.index : true
-              
 
               return <path onMouseDown={function(event) {
                 if(selectedMarker && selectedMarker.index == marker.index) {
@@ -1140,7 +1212,6 @@ function EditableMap(props) {
           {
             drawnOnMap
               ? <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
-                {console.log(penCachedImage)}
                 <image width={mapDimensions.width} height={mapDimensions.height} href={penCachedImage ? penCachedImage.toDataURL('image/png') : null}></image>
               </pattern>
             : null
