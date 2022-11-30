@@ -236,8 +236,6 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
 
   let domParser = new DOMParser()
 
-  console.log(defaultStyle)
-
   for(let i = 0; i != territories.length; i++) {
     let territory = territories[i]
     if(territory.hidden) {
@@ -438,12 +436,9 @@ function Editor(props) {
       let fullPath = ""
       setTerritories(svgData.mapNodes.map((node, index) => {
         fullPath += "M 0,0 " + node.getAttribute("d")
-        let object = {index, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title") || node.id, fill: null, outlineColor: null, outlineSize: null, hidden: false}
+        let object = {index, dataVisualizerScale: 1, dataOffsetX: 0, dataOffsetY: 0, dataVisualizer: null, value: null, path: node.getAttribute("d"), boundingBox: node.getBBox(), id: node.id || node.dataset.id, name: node.getAttribute("name") || node.dataset.name || node.getAttribute("title") || node.id, fill: null, outlineColor: null, outlineSize: null, hidden: false}
         if(chosenMap.countryCodes) {
           object.name = COUNTRY_CODES[object.id.toUpperCase()]
-          if(!COUNTRY_CODES[object.id.toUpperCase()]) {
-            console.log(object.id)
-          }
         }
         return object
       }))
@@ -1574,8 +1569,17 @@ function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerG
             dataVisualizerSetter(dataVisualizerGetter.clone())
           }}></TextField>
         </div>
+        <Typography style={{fontSize: "20px", lineHeight: "120%", marginTop: "5px"}}>Scale</Typography>
+        <div style={{display: "flex", justifyContent: "center"}}>
+          <Slider value={dataVisualizerGetter.data.scale} style={{width: "270px"}} step={0.15} marks min={0.25} max={4} valueLabelDisplay="auto" onChange={function(event) {
+            let newDataVisualizer = dataVisualizerGetter.clone()
+            newDataVisualizer.data.scale = event.target.value
+            dataVisualizerSetter(newDataVisualizer)
+          }}/>
+        </div>
+        
         <div style={{flexDirection: "column", display: "flex"}}>
-          <FormControlLabel style={{marginTop: "5px"}} control={
+          <FormControlLabel style={{marginTop: "-5px"}} control={
             <Switch checked={dataVisualizerGetter.reverse} onChange={function (event) {
               let newDataVisualizer = {
                 ...dataVisualizerGetter,
@@ -1585,7 +1589,7 @@ function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerG
               dataVisualizerSetter(dataVisualizerGetter.clone())
             }}/>
           } label="Reverse"/>
-          <FormControlLabel style={{marginTop: "0px"}} control={
+          <FormControlLabel style={{marginTop: "-10px"}} control={
             <Switch checked={dataVisualizerGetter.hideOnParseError} onChange={function (event) {
               let newDataVisualizer = {
                 ...dataVisualizerGetter,
@@ -1772,6 +1776,13 @@ function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, on
   switch(dataVisualizer.type) {
     case "geometryDash":
       return <div style={{display: "flex", flexDirection: "column"}}>
+        <Typography style={{fontSize: "20px", lineHeight: "120%", marginTop: "5px"}}>Scale</Typography>
+        <div style={{display: "flex", justifyContent: "center"}}>
+          <Slider value={selectedTerritory.dataVisualizerScale} style={{width: "270px"}} step={0.15} marks min={0.25} max={4} valueLabelDisplay="auto" onChange={function(event) {
+            onChange({dataVisualizerScale: event.target.value})
+          }}/>
+        </div>
+        
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Displace</Typography>
         <PositionSelect x={selectedTerritory.dataOffsetX} y={selectedTerritory.dataOffsetY} onChange={function(x, y) {
           onChange({dataOffsetX: x, dataOffsetY: y})
@@ -1779,6 +1790,12 @@ function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, on
       </div>
     case "text":
       return <div style={{display: "flex", flexDirection: "column"}}>
+        <Typography style={{fontSize: "20px", lineHeight: "120%", marginTop: "5px"}}>Scale</Typography>
+        <div>
+          <Slider value={selectedTerritory.dataVisualizerScale} style={{width: "270px"}} step={0.15} marks min={0.25} max={4} valueLabelDisplay="auto" onChange={function(event) {
+            onChange({dataVisualizerScale: event.target.value})
+          }}/>
+        </div>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Displace</Typography>
         <PositionSelect x={selectedTerritory.dataOffsetX} y={selectedTerritory.dataOffsetY} onChange={function(x, y) {
           onChange({dataOffsetX: x, dataOffsetY: y})

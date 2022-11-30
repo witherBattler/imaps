@@ -156,7 +156,7 @@ class GeometryDashDataVisualizer extends DataVisualizer {
         let imageUrl
         if(!data || isNaN(parseInt(data))) {
             if(this.hideOnParseError) {
-                return
+                return null
             }
             imageUrl = "https://periphern.impixel.tech/geometryDash/Unrated.webp"
         } else {
@@ -169,7 +169,7 @@ class GeometryDashDataVisualizer extends DataVisualizer {
             }
             imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[imageIndex].id + ".webp"
         }
-        return <image key={territory.index + ".data-visualizer"} style={{transform: `scale(${this.data.scale})`, pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
+        return <image key={territory.index + ".data-visualizer"} style={{transform: `scale(${this.data.scale * territory.dataVisualizerScale})`, transformOrigin: "center", transformBox: "fill-box", pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
     }
     clone() {
         return new GeometryDashDataVisualizer(this.min, this.max, this.reverse, this.hideOnParseError, this.data)
