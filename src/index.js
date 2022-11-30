@@ -1790,12 +1790,6 @@ function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, on
       </div>
     case "text":
       return <div style={{display: "flex", flexDirection: "column"}}>
-        <Typography style={{fontSize: "20px", lineHeight: "120%", marginTop: "5px"}}>Scale</Typography>
-        <div>
-          <Slider value={selectedTerritory.dataVisualizerScale} style={{width: "270px"}} step={0.15} marks min={0.25} max={4} valueLabelDisplay="auto" onChange={function(event) {
-            onChange({dataVisualizerScale: event.target.value})
-          }}/>
-        </div>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Displace</Typography>
         <PositionSelect x={selectedTerritory.dataOffsetX} y={selectedTerritory.dataOffsetY} onChange={function(x, y) {
           onChange({dataOffsetX: x, dataOffsetY: y})
