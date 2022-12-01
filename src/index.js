@@ -47,6 +47,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
 import VirtualScroll from "virtual-scroll"
+import EditIcon from '@mui/icons-material/Edit';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 const darkTheme = createTheme({
@@ -1470,8 +1471,53 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
                   setSelectedTerritory(territory)
                 }
               }} key={"territory" + territory.index} className={`territory-div${selected ? " selected" : ""}`}>
-                <span>{territory.name}</span>
+                <span className="territory-name" onBlur={function(event) {
+                  event.currentTarget.setAttribute("contenteditable", "false")
+                  event.currentTarget.classList.remove("editing")
+
+                  let newTerritory = {
+                    ...territory,
+                    name: event.currentTarget.textContent
+                  }
+                  setTerritories(territories.map(territory => {
+                    if(territory.index == newTerritory.index) {
+                      return newTerritory
+                    } else {
+                      return territory
+                    }
+                  }))
+                }} onKeyDown={function(event) {
+                  if(event.key == "Enter") {
+                    event.currentTarget.setAttribute("contenteditable", "false")
+                    event.currentTarget.classList.remove("editing")
+
+                    let newTerritory = {
+                      ...territory,
+                      name: event.currentTarget.textContent
+                    }
+                    setTerritories(territories.map(territory => {
+                      if(territory.index == newTerritory.index) {
+                        return newTerritory
+                      } else {
+                        return territory
+                      }
+                    }))
+                  }
+                }}>{territory.name}</span>
                 <div className="buttons">
+                  <IconButton className="button" size="small" onClick={function(event) {
+                    let territoryNameElement = event.currentTarget.parentElement.parentElement.children[0]
+                    if(territoryNameElement.classList.contains(territory))
+                      return
+
+                    territoryNameElement.classList.add("editing")
+                    territoryNameElement.setAttribute("contenteditable", "true")
+                    territoryNameElement.focus()
+                    document.execCommand('selectAll', false, null);
+                    document.getSelection().collapseToEnd();
+                  }}>
+                    <EditIcon fontSize="small" style={{opacity: 0.8}}></EditIcon>
+                  </IconButton>
                   <IconButton className="button" size="small" onClick={function(event) {
                     setDeleteTerritoryAlertOpened(true)
                     setDeleteTerritoryTarget(territory)

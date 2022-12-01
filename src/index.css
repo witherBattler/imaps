@@ -904,3 +904,10 @@ code {
 #trash-icon {
   width: 
 }
+
+
+.territory-name.editing {
+  outline: none;
+  border: none;
+  
+}
