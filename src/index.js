@@ -346,9 +346,10 @@ function onKeyDown(func) {
   onKeyDownEventListeners.push(func)
 }
 
-function Editor(props) {
-  const chosenMap = props.chosenMap
-  const [defaultStyle, setDefaultStyle] = useState({
+function Editor({chosenMap, data}) {
+  data = data || {} 
+  chosenMap = data.chosenMap || chosenMap
+  const [defaultStyle, setDefaultStyle] = useState(data.defaultStyle || {
     fill: new ColorFill(255, 255, 255, 1), // new ColorFill(255, 255, 255, 1),
     outlineColor: new ColorFill(0, 0, 0, 1),
     outlineSize: 1
@@ -381,6 +382,23 @@ function Editor(props) {
   const [recentColors, setRecentColors] = useState([])
   const [deleteTerritoryAlertOpened, setDeleteTerritoryAlertOpened] = useState(false)
   const [uniteTerritoriesAlertOpened, setUniteTerritoriesAlertOpened] = useState(false)
+
+  function getMapData() {
+    return {
+      chosenMap,
+      defaultStyle,
+      defaultDataVisualizer,
+      territoriesHTML,
+      territories,
+      mapDimensions,
+      defaultValue,
+      annotations,
+      markers,
+      defaultMarkerStyle,
+      mapSvgPath,
+      recentColors,
+    }
+  }
 
   async function downloadSvg() {
     let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
@@ -600,7 +618,7 @@ function Editor(props) {
                   return true
                 })
                 newTerritories.push(object)
-                
+
                 setTerritories(newTerritories)
               }}>Confirm</Button>
             </DialogActions>

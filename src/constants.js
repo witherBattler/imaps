@@ -16,6 +16,11 @@ const MAP_NAMES = [
         "countryCodes": true
     },
     {
+        "name": "German Empire",
+        "url": null,
+        "id": "GermanEmpire"
+    },
+    {
         "name": "Asia",
         "url": "https://mapchart.net/",
         "id": "Asia",
