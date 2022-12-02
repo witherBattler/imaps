@@ -226,7 +226,7 @@ function App() {
   )
 }
 
-function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle) {
+function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects) {
   let svgElement = document.createElement("svg")
   svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg")
   svgElement.setAttribute("width", mapDimensions.width)
@@ -255,6 +255,9 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     let pathElement2 = document.createElementNS("http://www.w3.org/2000/svg", "path")
     pathElement2.setAttribute("d", territory.path)
     pathElement2.setAttribute("fill", "url(#drawn-pattern)")
+    if(effects.innerShadow.enabled) {
+      pathElement2.setAttribute("filter", "url(#inner-shadow)")
+    }
     pathElement.setAttribute("strokeWidth", "0")
     gElement.appendChild(pathElement)
     gElement.appendChild(pathElement2)
@@ -301,6 +304,20 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     markerPath.style.transform = `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`
 
     svgElement.appendChild(markerPath)
+  }
+
+  if(effects.innerShadow.enabled) {
+    let filterElement = document.createElementNS("http://www.w3.org/2000/svg", "filter")
+    filterElement.innerHTML = `<feOffset dx="0" dy="0"/>                                                         
+    <feGaussianBlur stdDeviation={${10 * effects.innerShadow.scale}}  result="offset-blur"/>                           
+    <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/> 
+    <feFlood floodColor="black" floodOpacity="1" result="color"/>                     
+    <feComposite operator="in" in="color" in2="inverse" result="shadow"/>               
+    <feComponentTransfer in="shadow" result="shadow">                                   
+        <feFuncA type="linear" slope=".75"/>
+    </feComponentTransfer>
+    <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite>`
+    defsElement.appendChild(filterElement)
   }
 
   if(defaultDataVisualizer && defaultDataVisualizer.type == "text") {
@@ -383,6 +400,12 @@ function Editor({chosenMap, data}) {
   const [recentColors, setRecentColors] = useState([])
   const [deleteTerritoryAlertOpened, setDeleteTerritoryAlertOpened] = useState(false)
   const [uniteTerritoriesAlertOpened, setUniteTerritoriesAlertOpened] = useState(false)
+  const [effects, setEffects] = useState({
+    innerShadow: {
+      enabled: false,
+      scale: 1
+    }
+  })
 
   function getMapData() {
     return {
@@ -402,7 +425,7 @@ function Editor({chosenMap, data}) {
   }
 
   async function downloadSvg() {
-    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
     let base64 = btoa(unescape(encodeURIComponent(element.outerHTML)))
     const a = document.createElement("a")
     const e = new MouseEvent("click")
@@ -411,7 +434,7 @@ function Editor({chosenMap, data}) {
     a.dispatchEvent(e)
   }
   async function downloadPng() {
-    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
     element = await convertSvgUrlsToBase64(element)
     let converted = await svgToPng(element.outerHTML)
     const a = document.createElement("a")
@@ -421,7 +444,7 @@ function Editor({chosenMap, data}) {
     a.dispatchEvent(e)
   }
   async function downloadJpg() {
-    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
+    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
     element = await convertSvgUrlsToBase64(element)
     let converted = await svgToJpg(element.outerHTML)
     const a = document.createElement("a")
@@ -431,7 +454,7 @@ function Editor({chosenMap, data}) {
     a.dispatchEvent(e)
   }
   async function downloadWebp() {
-    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle)
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
     element = await convertSvgUrlsToBase64(element)
     let converted = await svgToWebp(element.outerHTML)
     const a = document.createElement("a")
@@ -498,9 +521,9 @@ function Editor({chosenMap, data}) {
   return(
     <>
       <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-        <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations}></EditableMap>
+        <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects}></EditableMap>
         <div ref={mobileBottomDiv}>
-          <Properties recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+          <Properties effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
           <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
           <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
         </div>
@@ -831,7 +854,7 @@ let markerIndex = 0
 let drawnOnMap = false
 
 function EditableMap(props) {
-  const {moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
+  const {effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
   const [lastPoint, setLastPoint] = useState(null)
   const [currentlyMovingMarker, setCurrentlyMovingMarker] = useState(null)
@@ -1179,6 +1202,7 @@ function EditableMap(props) {
                         }
                       }
                     }
+                    filter={effects.innerShadow.enabled ? "url(#inner-shadow)" : null}
                   ></path>
                   {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)"></path> : null}
                 </g>
@@ -1233,6 +1257,21 @@ function EditableMap(props) {
               ? <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
                 <image width={mapDimensions.width} height={mapDimensions.height} href={penCachedImage ? penCachedImage.toDataURL('image/png') : null}></image>
               </pattern>
+            : null
+          }
+          {
+            effects.innerShadow.enabled
+              ? <filter id="inner-shadow">
+                <feOffset dx="0" dy="0"/>                                                         
+                <feGaussianBlur stdDeviation={10 * effects.innerShadow.scale}  result="offset-blur"/>                           
+                <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/> 
+                <feFlood floodColor="black" floodOpacity="1" result="color"/>                     
+                <feComposite operator="in" in="color" in2="inverse" result="shadow"/>               
+                <feComponentTransfer in="shadow" result="shadow">                                   
+                    <feFuncA type="linear" slope=".75"/>
+                </feComponentTransfer>
+                <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite>
+              </filter>
             : null
           }
         </defs>
@@ -1293,7 +1332,7 @@ function AnnotationRenderer({currentTool, annotations, setAnnotations}) {
 }
 
 function Properties(props) {
-  const {recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {effects, setEffects, recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
     <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100%", padding: "20px", boxSizing: "border-box"}}>
@@ -1314,7 +1353,7 @@ function Properties(props) {
               : <MarkerDefaultProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
             : selectedTerritory
               ? <TerritoryProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
-              : <DefaultsProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
+              : <DefaultsProperties effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
         }
       </div>
     </div>
@@ -1395,12 +1434,12 @@ function MarkerProperties({recentColors, setRecentColors, defaultMarkerStyle, se
 
 
 function DefaultsProperties(props) {
-  const {recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {effects, setEffects, recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
   
 
   return (
     <div>
-      <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT STYLE</Typography>
+      <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT TERRITORY STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
       <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
@@ -1409,6 +1448,13 @@ function DefaultsProperties(props) {
         }
         setDefaultStyle(newStyle)
       }}></TerritoryFillPicker>
+      <Typography style={{marginTop: "25px", fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT DATA VISUALIZATION</Typography>
+      <TextField variant="filled" label="Value" size="small" sx={{marginTop: "5px", width: "100%"}} value={defaultValue} onChange={function(event) {
+        setDefaultValue(event.target.value)
+      }}></TextField>
+      <DataVisualizerSelect dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizerSelect>
+      <DataVisualizationEditor recentColors={recentColors} setRecentColors={setRecentColors} dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizationEditor>
+      <Typography style={{marginTop: "25px", fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>MAP STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
       <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
@@ -1426,12 +1472,19 @@ function DefaultsProperties(props) {
           })
         }}/>
       </div>
-      <Typography style={{marginTop: "25px", fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT DATA VISUALIZATION</Typography>
-      <TextField variant="filled" label="Value" size="small" sx={{marginTop: "5px", width: "100%"}} value={defaultValue} onChange={function(event) {
-        setDefaultValue(event.target.value)
-      }}></TextField>
-      <DataVisualizerSelect dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizerSelect>
-      <DataVisualizationEditor recentColors={recentColors} setRecentColors={setRecentColors} dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizationEditor>
+      <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Effects</Typography>
+      <p style={{color: "white", opacity: "0.6", fontFamily: "rubik", margin: "0px", marginBottom: "5px", fontSize: "15px"}}>Warning: effects will only be shown when you download or in the preview.</p>
+      <FormControlLabel style={{marginTop: "-5px"}} control={
+        <Switch checked={effects.innerShadow.enabled} onChange={function (event) {
+          setEffects({
+            ...effects,
+            innerShadow: {
+              ...effects.innerShadow,
+              enabled: !effects.innerShadow.enabled
+            }
+          })
+        }}/>
+      } label="Inner Shadow"/>
     </div>
   )
 }
