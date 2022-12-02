@@ -256,6 +256,7 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     pathElement2.setAttribute("d", territory.path)
     pathElement2.setAttribute("fill", "url(#drawn-pattern)")
     if(effects.innerShadow.enabled) {
+      pathElement.setAttribute("filter", "url(#inner-shadow)")
       pathElement2.setAttribute("filter", "url(#inner-shadow)")
     }
     pathElement.setAttribute("strokeWidth", "0")
@@ -268,12 +269,15 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     if(territory.hidden) {
       continue
     }
-    svgElement.appendChild(
-      domParser.parseFromString(
-        ReactDOMServer.renderToStaticMarkup((territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")),
-        'application/xml'
-      ).firstElementChild
-    )
+    if(defaultDataVisualizer && territory.value) {
+      svgElement.appendChild(
+        domParser.parseFromString(
+          ReactDOMServer.renderToStaticMarkup((territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")),
+          'application/xml'
+        ).firstElementChild
+      )
+    }
+    
   }
 
   // drawn pattern
@@ -308,8 +312,9 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
 
   if(effects.innerShadow.enabled) {
     let filterElement = document.createElementNS("http://www.w3.org/2000/svg", "filter")
+    filterElement.setAttribute("id", "inner-shadow")
     filterElement.innerHTML = `<feOffset dx="0" dy="0"/>                                                         
-    <feGaussianBlur stdDeviation={${10 * effects.innerShadow.scale}}  result="offset-blur"/>                           
+    <feGaussianBlur stdDeviation="${10 * effects.innerShadow.scale}" result="offset-blur"/>                           
     <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/> 
     <feFlood floodColor="black" floodOpacity="1" result="color"/>                     
     <feComposite operator="in" in="color" in2="inverse" result="shadow"/>               
@@ -1202,7 +1207,7 @@ function EditableMap(props) {
                         }
                       }
                     }
-                    filter={effects.innerShadow.enabled ? "url(#inner-shadow)" : null}
+                    filter={/* effects.innerShadow.enabled ? "url(#inner-shadow)" :  */null}
                   ></path>
                   {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)"></path> : null}
                 </g>
@@ -1259,7 +1264,7 @@ function EditableMap(props) {
               </pattern>
             : null
           }
-          {
+          {/* {
             effects.innerShadow.enabled
               ? <filter id="inner-shadow">
                 <feOffset dx="0" dy="0"/>                                                         
@@ -1273,7 +1278,7 @@ function EditableMap(props) {
                 <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite>
               </filter>
             : null
-          }
+          } */}
         </defs>
       </svg>
     </div>
@@ -1473,7 +1478,7 @@ function DefaultsProperties(props) {
         }}/>
       </div>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Effects</Typography>
-      <p style={{color: "white", opacity: "0.6", fontFamily: "rubik", margin: "0px", marginBottom: "5px", fontSize: "15px"}}>Warning: effects will only be shown when you download or in the preview.</p>
+      <p style={{color: "white", opacity: "0.6", fontFamily: "rubik", margin: "0px", marginBottom: "5px", fontSize: "15px"}}>Warning: effects will only be shown when you download.</p>
       <FormControlLabel style={{marginTop: "-5px"}} control={
         <Switch checked={effects.innerShadow.enabled} onChange={function (event) {
           setEffects({
