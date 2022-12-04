@@ -61,7 +61,10 @@ code {
 }
 #navbar-buttons {
   display: flex;
-
+  align-items: center;
+}
+#login-button {
+  margin-left: 60px;
 }
 #navbar-buttons > a {
   margin-left: 60px;

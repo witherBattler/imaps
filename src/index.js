@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './default.css';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import { MAP_NAMES, FLAGS, COUNTRY_CODES } from "./constants"
+import { MAP_NAMES, FLAGS, COUNTRY_CODES, lightTheme, darkTheme, serverLocation } from "./constants"
 import Card from "@mui/material/Card"
 import Box from "@mui/material/Box"
 import Grid from '@mui/material/Grid';
@@ -16,7 +16,7 @@ import TextField from '@mui/material/TextField';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp } from "./util"
 import { ColorFill, FlagFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
@@ -48,30 +48,13 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Slide from '@mui/material/Slide';
 import VirtualScroll from "virtual-scroll"
 import EditIcon from '@mui/icons-material/Edit';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./routes/Login.js"
+import SignUp from "./routes/SignUp.js"
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#00A1FF'
-    }
-  },
-  typography: {
-    fontFamily: "rubik"
-  },
-});
-const lightTheme = createTheme({
-  palette: {
-    mode: "light",
-    primary: {
-      main: '#00A1FF'
-    }
-  },
-  typography: {
-    fontFamily: "rubik"
-  },
-})
+
 
 
 function App() {
@@ -92,6 +75,7 @@ function App() {
         }
       })
     }
+
   }, [])
 
   let toShow
@@ -122,6 +106,16 @@ function App() {
                 <a>Premium</a>
                 <a>Create</a>
                 <a>Login</a>
+                {/* <GoogleLogin
+                  clientId="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com"
+                  buttonText="Login with Google"
+                  onSuccess={function(result) {
+                    console.log(result)
+                  }}
+                  onError={function(error) {
+                    alert(JSON.stringify(error))
+                  }}
+                ></GoogleLogin> */}
               </div>
               <IconButton id="menu-icon" style={{width: "60px", height: "60px"}}>
                 <MenuIcon></MenuIcon>
@@ -174,6 +168,7 @@ function App() {
                   </div>
                 </div>
               </div>
+              
               <div className="second feature" id="maps-second">
                 <div className="content-row">
                   <div className="left">
@@ -2415,7 +2410,6 @@ function PositionSelect({x, y, onChange}) {
         let x = event.clientX - box.x - centerX
         let y = event.clientY - box.y - centerY
         onChange(x, y)
-        console.log("dragging~!!!!!!!")
       }
     }}></canvas>
     <Typography>x: {x} y: {y}</Typography>
@@ -2435,9 +2429,70 @@ console.error = function filterWarnings(msg) {
     backup.apply(console, arguments);
   }
 }; */
+
+function NotFound() {
+  return <h1>Not found.</h1>
+}
+
+function getQueryVariable(variable) {
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+    if(pair[0] == variable){return pair[1];}
+  }
+  return(false);
+}
+
+let DiscordOauthComponentLogin = function() {
+  let sessionId = post("/login", {
+    method: "discord",
+    code: getQueryVariable("code")
+  }).then(function() {
+    localStorage.setItem("sessionId", sessionId)
+  })
+  
+  return null
+}
+let DiscordOauthComponentSignUp = function() {
+  let sessionId = post("/sign-up", {
+    method: "discord",
+    code: getQueryVariable("code")
+  }).then(function() {
+    localStorage.setItem("sessionId", sessionId)
+  })
+
+  return null
+}
 root.render(
-  <App></App>
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={
+        <GoogleOAuthProvider clientId="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com">
+          <App></App>  
+        </GoogleOAuthProvider>
+      }></Route>
+      <Route path="login" element={<Login/>}></Route>
+      <Route path="sign-up" element={<SignUp/>}></Route>
+      <Route path="discord-oauth-login" element={<DiscordOauthComponentLogin/>}></Route>
+      <Route path="discord-oauth-signup" element={<DiscordOauthComponentSignUp/>}></Route>
+      <Route path="*" element={<NotFound/>}></Route>
+    </Routes>
+  </BrowserRouter>
+  
 );
+
+export async function post(route, body) {
+  let s = await fetch(serverLocation + route, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  })
+  
+  return s.text()
+}
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y3BTPK4R9R"></script>
-  <script src="//servedby.studads.com/ads/ads.php?t=MTY5Mjc7MTA4MjA7c3F1YXJlLnNxdWFyZV9ib3g=&index=1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-Y3BTPK4R9R');
-  </script>
   <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y3BTPK4R9R"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-Y3BTPK4R9R');
+    </script>
     <style>
       html {
         overflow: hidden;
@@ -55,7 +55,22 @@
   </head>
   <body style="margin: 0px; overflow: hidden; width: 100vw; height: 100vh;">
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="g_id_onload"
+    data-client_id="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com"
+    data-login_uri="https://your.domain/your_login_endpoint"
+    data-auto_prompt="false">
+ </div>
+ <div className="g_id_signin"
+    data-type="standard"
+    data-size="large"
+    data-theme="outline"
+    data-text="sign_in_with"
+    data-shape="rectangular"
+    data-logo_alignment="left">
+ </div>
     <div id="root" style="width: 100%; height: 100%;"></div>
+    
+    
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

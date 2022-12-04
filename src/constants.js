@@ -1,4 +1,6 @@
-const MAP_NAMES = [
+import { createTheme } from '@mui/material/styles';
+
+export const MAP_NAMES = [
     {
         "name": "World",
         "url": "https://simplemaps.com/static/demos/resources/svg-library/svgs/world.svg",
@@ -1077,7 +1079,7 @@ const MAP_NAMES = [
     }
 ]
 
-const FLAGS = [
+export const FLAGS = [
     {
         "id": "ad",
         "name": "Andorra"
@@ -2100,7 +2102,7 @@ const FLAGS = [
     }
 ]
 
-const GEOMETRY_DASH_ICONS = [
+export const GEOMETRY_DASH_ICONS = [
     {
         id: "Auto",
         index: 0
@@ -2151,7 +2153,7 @@ const GEOMETRY_DASH_ICONS = [
     }
 ]
 
-var COUNTRY_CODES = {
+export const COUNTRY_CODES = {
     AF: 'Afghanistan',
     AX: 'Aland Islands',
     AL: 'Albania',
@@ -2399,9 +2401,29 @@ var COUNTRY_CODES = {
     ZW: 'Zimbabwe'
 }
 
-module.exports = {
-    MAP_NAMES,
-    FLAGS,
-    GEOMETRY_DASH_ICONS,
-    COUNTRY_CODES
-}
+export const darkTheme = createTheme({
+    palette: {
+      mode: 'dark',
+      primary: {
+        main: '#00A1FF'
+      }
+    },
+    typography: {
+      fontFamily: "rubik"
+    },
+  });
+export const lightTheme = createTheme({
+    palette: {
+      mode: "light",
+      primary: {
+        main: '#00A1FF'
+      }
+    },
+    typography: {
+      fontFamily: "rubik"
+    },
+  })
+
+export const serverLocation = process.env.NODE_ENV == "production" ? "???" : "http://localhost:8080"
+export const discordOauth2UrlLogin = process.env.NODE_ENV == "production" ? "https://discord.com/api/oauth2/authorize?client_id=1048754435381280909&redirect_uri=https%3A%2F%2Fperiphern.impixel.tech%2Fdiscord-oauth-login&response_type=code&scope=identify" : "https://discord.com/api/oauth2/authorize?client_id=1048754435381280909&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fdiscord-oauth-login&response_type=code&scope=identify"
+export const discordOauth2UrlSignUp = process.env.NODE_ENV == "production" ? "https://discord.com/api/oauth2/authorize?client_id=1048754435381280909&redirect_uri=https%3A%2F%2Fperiphern.impixel.tech%2Fdiscord-oauth-signup&response_type=code&scope=identify" : "https://discord.com/api/oauth2/authorize?client_id=1048754435381280909&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fdiscord-oauth-signup&response_type=code&scope=identify"
