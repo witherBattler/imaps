@@ -2099,6 +2099,71 @@ export const FLAGS = [
     {
         "id": "zw",
         "name": "Zimbabwe"
+    },
+    {
+        "id": "imperial_japan",
+        "name": "Imperial Japan",
+        "type": "png"
+    },
+    {
+        "id": "polish_lithuanian_commonwealth",
+        "name": "Polish Lithuanian Commonwealth",
+        "type": "png"
+    },
+    {
+        "id": "qing_dynasty",
+        "name": "Qing Dynasty",
+        "type": "png"
+    },
+    {
+        "id": "east_germany",
+        "name": "East Germany",
+        "type": "png"
+    },
+    {
+        "id": "austrian_empire",
+        "name": "Austrian Empire",
+        "type": "png"
+    },
+    {
+        "id": "prussia_",
+        "name": "Prussia",
+        "type": "png"
+    },
+    {
+        "id": "russian_empire",
+        "name": "Russian Empire",
+        "type": "png"
+    },
+    {
+        "id": "dutch_empire",
+        "name": "Dutch Empire",
+        "type": "png"
+    },
+    {
+        "id": "kingdom_of_yugoslavia",
+        "name": "Kingdom of Yugoslavia",
+        "type": "png"
+    },
+    {
+        "id": "yugoslavia_",
+        "name": "Yugoslavia",
+        "type": "png"
+    },
+    {
+        "id": "austria_hungary",
+        "name": "Austria Hungary",
+        "type": "png"
+    },
+    {
+        "id": "soviet_union",
+        "name": "Soviet Union",
+        "type": "png"
+    },
+    {
+        "id": "german_empire",
+        "name": "German Empire",
+        "type": "png"
     }
 ]
 

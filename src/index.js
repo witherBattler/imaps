@@ -2216,7 +2216,7 @@ function TerritoryFillPickerPopup(props) {
                     color.setUpdate(color)
                     onUpdate(color)
                   }} key={flag.id} style={{marginRight: "15px", display: "flex", alignItems: "center"}}>
-                    <div style={{backgroundImage: `url(flags/${flag.id}.svg)`, backgroundRepeat: "no-repeat", backgroundPosition: "center", backgroundSize: "contain", height: "30px", width: "40px", marginRight: "10px"}}>
+                    <div style={{backgroundImage: `url(flags/${flag.id}.${flag.id.includes("_") ? "png" : "svg"})`, backgroundRepeat: "no-repeat", backgroundPosition: "center", backgroundSize: "contain", height: "30px", width: "40px", marginRight: "10px"}}>
 
                     </div>
                     <p>{flag.name}</p>
@@ -2448,8 +2448,11 @@ let DiscordOauthComponentLogin = function() {
   let sessionId = post("/login", {
     method: "discord",
     code: getQueryVariable("code")
-  }).then(function() {
-    localStorage.setItem("sessionId", sessionId)
+  }).then(function(sessionId) {
+    console.log(sessionId)
+    sessionId.text(sessionId => {
+      localStorage.setItem("sessionId", sessionId)
+    })
   })
   
   return null
@@ -2458,8 +2461,11 @@ let DiscordOauthComponentSignUp = function() {
   let sessionId = post("/sign-up", {
     method: "discord",
     code: getQueryVariable("code")
-  }).then(function() {
-    localStorage.setItem("sessionId", sessionId)
+  }).then(function(sessionId) {
+    console.log(sessionId)
+    sessionId.text(sessionId => {
+      localStorage.setItem("sessionId", sessionId)
+    })
   })
 
   return null

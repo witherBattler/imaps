@@ -5,7 +5,7 @@ import Button from '@mui/material/Button';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import KeyIcon from '@mui/icons-material/Key';
 import fetch from "node-fetch"
-import { serverLocation } from "../constants.js"
+import { serverLocation, discordOauth2UrlSignUp } from "../constants.js"
 import {post} from "../index.js"
 
 import "../login.css"
@@ -24,6 +24,14 @@ function SignUpWithGoogle() {
   })
 
   return <img onClick={() => login()} style={{backgroundColor: "white"}} src="https://content.stocktrak.com/wp-content/uploads/2016/10/google-logo.png"></img>
+}
+
+function SignUpWithDiscord() {
+  const login = function() {
+    window.open(discordOauth2UrlSignUp, "_self")
+  }
+
+  return <img onClick={login} style={{backgroundColor: "#5765F2"}} src="icons/discord.svg"></img>
 }
 
 export default function SignUp() {
@@ -48,7 +56,7 @@ export default function SignUp() {
             <SignUpWithGoogle></SignUpWithGoogle>
             <img style={{backgroundColor: "white"}} src="https://www.freepnglogos.com/uploads/apple-logo-png/apple-logo-png-dallas-shootings-don-add-are-speech-zones-used-4.png"></img>
             <img style={{background: "linear-gradient(to right, rgb(236, 146, 35) 0%, rgb(177, 42, 160) 50%, rgb(105, 14, 224) 100%)"}} src="icons/instagram.svg"></img>
-            <img style={{backgroundColor: "#5765F2"}} src="icons/discord.svg"></img>
+            <SignUpWithDiscord></SignUpWithDiscord>
           </div>
         </div>
       </div>

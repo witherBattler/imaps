@@ -27,32 +27,9 @@ function LoginWithGoogle() {
   return <img onClick={() => login()} style={{backgroundColor: "white"}} src="https://content.stocktrak.com/wp-content/uploads/2016/10/google-logo.png"></img>
 }
 
-const popupCenter = ({url, title, w, h}) => {
-  // Fixes dual-screen position                             Most browsers      Firefox
-  const dualScreenLeft = window.screenLeft !==  undefined ? window.screenLeft : window.screenX;
-  const dualScreenTop = window.screenTop !==  undefined   ? window.screenTop  : window.screenY;
-
-  const width = w
-  const height = h
-
-  const left = (width - w) / 2 + dualScreenLeft
-  const top = (height - h) / 2 + dualScreenTop
-  const newWindow = window.open(url, title, 
-    `
-    scrollbars=yes,
-    width=${w}, 
-    height=${h}, 
-    top=${top}, 
-    left=${left}
-    `
-  )
-
-  if (window.focus) newWindow.focus();
-}
 
 
 function LoginWithDiscord() {
-  let [openedWindow, setOpenedWindow] = useState(null)
   const login = function() {
     window.open(discordOauth2UrlLogin, "_self")
   }
