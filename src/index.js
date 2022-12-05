@@ -883,10 +883,22 @@ function EditableMap(props) {
         var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
 
         let context = penCachedImage.getContext("2d")
+        if(selectedTerritory) {
+          context.save()
+          if(Array.isArray(selectedTerritory)) {
+            for(let i = 0; i != selectedTerritory.length; i++) {
+              context.clip(new Path2D(selectedTerritory[i].path))
+            }
+          } else {
+            context.clip(new Path2D(selectedTerritory.path))
+          }
+        }
         context.beginPath()
         context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
         context.fillStyle = penColor
         context.fill()
+        
+        
 
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
@@ -896,6 +908,16 @@ function EditableMap(props) {
         var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
 
         let context = penCachedImage.getContext("2d")
+        if(selectedTerritory) {
+          context.save()
+          if(Array.isArray(selectedTerritory)) {
+            for(let i = 0; i != selectedTerritory.length; i++) {
+              context.clip(new Path2D(selectedTerritory[i].path))
+            }
+          } else {
+            context.clip(new Path2D(selectedTerritory.path))
+          }
+        }
         context.save()
         context.globalCompositeOperation = "destination-out"
         context.beginPath()
@@ -935,6 +957,9 @@ function EditableMap(props) {
     }} onMouseUp={mobile ? null : function(event) {
       selectingTerritories = false
       setCurrentlyDrawingNode(false)
+      if(currentTool == "pen" || currentTool == "eraser" && selectedTerritory) {
+        penCachedImage.getContext("2d").restore()
+      }
 
       if(currentlyMovingMarker) {
         dragging = false
