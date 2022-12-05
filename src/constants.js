@@ -80,7 +80,7 @@ export const MAP_NAMES = [
     {
         "name": "Antigua and Barbuda",
         "url": "https://simplemaps.com/static/svg/ag/ag.svg",
-        "id": "Antiguaand Barbuda"
+        "id": "AntiguaandBarbuda"
     },
     {
         "name": "Argentina",
@@ -170,7 +170,7 @@ export const MAP_NAMES = [
     {
         "name": "Bosnia and Herzegovina",
         "url": "https://simplemaps.com/static/svg/ba/ba.svg",
-        "id": "Bosniaand Herzegovina"
+        "id": "BosniaandHerzegovina"
     },
     {
         "name": "Botswana",
@@ -185,7 +185,7 @@ export const MAP_NAMES = [
     {
         "name": "British Virgin Islands",
         "url": "https://simplemaps.com/static/svg/vg/vg.svg",
-        "id": "BritishVirgin Islands"
+        "id": "BritishVirginIslands"
     },
     {
         "name": "Brunei",
@@ -235,7 +235,7 @@ export const MAP_NAMES = [
     {
         "name": "Central African Republic",
         "url": "https://simplemaps.com/static/svg/cf/cf.svg",
-        "id": "CentralAfrican Republic"
+        "id": "CentralAfricanRepublic"
     },
     {
         "name": "Chad",
@@ -280,7 +280,7 @@ export const MAP_NAMES = [
     {
         "name": "Curaco (Netherlands)",
         "url": "https://simplemaps.com/static/svg/cw/cw.svg",
-        "id": "Curaco(Netherlands)"
+        "id": "CuracoNetherlands"
     },
     {
         "name": "Cyprus",
@@ -295,12 +295,12 @@ export const MAP_NAMES = [
     {
         "name": "Côte d'Ivoire",
         "url": "https://simplemaps.com/static/svg/ci/ci.svg",
-        "id": "Côted'Ivoire"
+        "id": "CoteDivoire"
     },
     {
         "name": "Democratic Republic of the Congo",
         "url": "https://simplemaps.com/static/svg/cd/cd.svg",
-        "id": "DemocraticRepublic of the Congo"
+        "id": "DemocraticRepublicoftheCongo"
     },
     {
         "name": "Denmark",
@@ -745,7 +745,7 @@ export const MAP_NAMES = [
     {
         "name": "Papua New Guinea",
         "url": "https://simplemaps.com/static/svg/pg/pg.svg",
-        "id": "PapuaNew Guinea"
+        "id": "PapuaNewGuinea"
     },
     {
         "name": "Paraguay",
@@ -790,7 +790,7 @@ export const MAP_NAMES = [
     {
         "name": "Republic of Congo",
         "url": "https://simplemaps.com/static/svg/cg/cg.svg",
-        "id": "Republicof Congo"
+        "id": "RepublicofCongo"
     },
     {
         "name": "Romania",
@@ -810,7 +810,7 @@ export const MAP_NAMES = [
     {
         "name": "Saint Kitts and Nevis",
         "url": "https://simplemaps.com/static/svg/kn/kn.svg",
-        "id": "SaintKitts and Nevis"
+        "id": "SaintKittsandNevis"
     },
     {
         "name": "Saint Lucia",
@@ -820,17 +820,17 @@ export const MAP_NAMES = [
     {
         "name": "Saint Martin (Dutch)",
         "url": "https://simplemaps.com/static/svg/sx/sx.svg",
-        "id": "SaintMartin (Dutch)"
+        "id": "DutchSaintMartin"
     },
     {
         "name": "Saint Martin (French)",
         "url": "https://simplemaps.com/static/svg/mf/mf.svg",
-        "id": "SaintMartin (French)"
+        "id": "FrenchSaintMartin"
     },
     {
         "name": "Saint Vincent and the Grenadines",
         "url": "https://simplemaps.com/static/svg/vc/vc.svg",
-        "id": "SaintVincent and the Grenadines"
+        "id": "SaintVincentandtheGrenadines"
     },
     {
         "name": "Saudi Arabia",
@@ -940,7 +940,7 @@ export const MAP_NAMES = [
     {
         "name": "São Tomé and Principe",
         "url": "https://simplemaps.com/static/svg/st/st.svg",
-        "id": "SãoTomé and Principe"
+        "id": "SãoToméandPrincipe"
     },
     {
         "name": "Taiwan",
@@ -985,7 +985,7 @@ export const MAP_NAMES = [
     {
         "name": "Trinidad and Tobago",
         "url": "https://simplemaps.com/static/svg/tt/tt.svg",
-        "id": "Trinidadand Tobago"
+        "id": "TrinidadandTobago"
     },
     {
         "name": "Tunisia",
@@ -1005,7 +1005,7 @@ export const MAP_NAMES = [
     {
         "name": "Turks and Caicos Islands",
         "url": "https://simplemaps.com/static/svg/tc/tc.svg",
-        "id": "Turksand Caicos Islands"
+        "id": "TurksandCaicosIslands"
     },
     {
         "name": "Uganda",
@@ -1020,7 +1020,7 @@ export const MAP_NAMES = [
     {
         "name": "United Arab Emirates",
         "url": "https://simplemaps.com/static/svg/ae/ae.svg",
-        "id": "UnitedArab Emirates"
+        "id": "UnitedArabEmirates"
     },
     {
         "name": "United Kingdom",
@@ -1030,7 +1030,7 @@ export const MAP_NAMES = [
     {
         "name": "United States Virgin Islands",
         "url": "https://simplemaps.com/static/svg/vi/vi.svg",
-        "id": "UnitedStates Virgin Islands"
+        "id": "UnitedStatesVirginIslands"
     },
     {
         "name": "Uruguay",
@@ -1058,7 +1058,7 @@ export const MAP_NAMES = [
         "id": "Vietnam"
     },
     {
-        "name": "Western Sahara",
+        "name": "WesternSahara",
         "url": "https://simplemaps.com/static/svg/eh/eh.svg",
         "id": "WesternSahara"
     },
