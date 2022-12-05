@@ -2101,6 +2101,16 @@ export const FLAGS = [
         "name": "Zimbabwe"
     },
     {
+        "id": "kingdom_of_italy",
+        "name": "Kingdom of Italy",
+        "type": "png"
+    },
+    {
+        "id": "ottoman_empire",
+        "name": "Ottoman Empire",
+        "type": "png"
+    },
+    {
         "id": "imperial_japan",
         "name": "Imperial Japan",
         "type": "png"
