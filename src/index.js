@@ -873,7 +873,7 @@ function EditableMap(props) {
   let parsedScale = currentZoom
 
   return (
-    <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={function(event) {
+    <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={mobile ? null : function(event) {
       if(event.target.id == "map-div" || event.target.id == "map-svg") {
         setSelectedTerritory(null)
       }
@@ -886,9 +886,11 @@ function EditableMap(props) {
         if(selectedTerritory) {
           context.save()
           if(Array.isArray(selectedTerritory)) {
+            let fullPath = ""
             for(let i = 0; i != selectedTerritory.length; i++) {
-              context.clip(new Path2D(selectedTerritory[i].path))
+              fullPath += "M 0,0 " + selectedTerritory[i].path
             }
+            context.clip(new Path2D(fullPath))
           } else {
             context.clip(new Path2D(selectedTerritory.path))
           }
@@ -911,9 +913,11 @@ function EditableMap(props) {
         if(selectedTerritory) {
           context.save()
           if(Array.isArray(selectedTerritory)) {
+            let fullPath = ""
             for(let i = 0; i != selectedTerritory.length; i++) {
-              context.clip(new Path2D(selectedTerritory[i].path))
+              fullPath += "M 0,0 " + selectedTerritory[i].path
             }
+            context.clip(new Path2D(fullPath))
           } else {
             context.clip(new Path2D(selectedTerritory.path))
           }
@@ -1044,12 +1048,69 @@ function EditableMap(props) {
         setMoved(delta)
       }
     }} onTouchStart={!mobile ? null : function(event) {
-      if(currentTool == "move") {
+      if(currentTool == "pen") {
+        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+        var [mouseX, mouseY] = [(event.touches[0].clientX - mapRect.x) / currentZoom, (event.touches[0].clientY - mapRect.y) / currentZoom]
+
+        let context = penCachedImage.getContext("2d")
+        if(selectedTerritory) {
+          context.save()
+          if(Array.isArray(selectedTerritory)) {
+            let fullPath = ""
+            for(let i = 0; i != selectedTerritory.length; i++) {
+              fullPath += "M 0,0 " + selectedTerritory[i].path
+            }
+            context.clip(new Path2D(fullPath))
+          } else {
+            context.clip(new Path2D(selectedTerritory.path))
+          }
+        }
+        context.beginPath()
+        context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+        context.fillStyle = penColor
+        context.fill()
+        
+        
+
+        setLastPoint({x: mouseX, y: mouseY})
+        setCurrentlyDrawingNode(true)
+        drawnOnMap = true
+      } else if(currentTool == "eraser") {
+        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+        var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
+
+        let context = penCachedImage.getContext("2d")
+        if(selectedTerritory) {
+          context.save()
+          if(Array.isArray(selectedTerritory)) {
+            let fullPath = ""
+            for(let i = 0; i != selectedTerritory.length; i++) {
+              fullPath += "M 0,0 " + selectedTerritory[i].path
+            }
+            context.clip(new Path2D(fullPath))
+          } else {
+            context.clip(new Path2D(selectedTerritory.path))
+          }
+        }
+        context.save()
+        context.globalCompositeOperation = "destination-out"
+        context.beginPath()
+        context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+
+        setLastPoint({x: mouseX, y: mouseY})
+        setCurrentlyDrawingNode(true)
+      } else if(currentTool == "move") {
         setCurrentlyMoving(true)
         setMovingStartPosition({
           x: event.touches[0].clientX - moved.x,
           y: event.touches[0].clientY - moved.y
         })
+      } else if(currentTool == "cursor") {
+        if(event.target.id == "map-div" || event.target.id == "map-svg") {
+          setSelectedTerritory(null)
+        }
       }
     }} onTouchMove={!mobile ? null : function(event) {
       if(currentlyMoving) {
@@ -1062,6 +1123,11 @@ function EditableMap(props) {
       }
     }} onTouchEnd={!mobile ? null : function(event) {
       selectingTerritories = false
+
+      if(currentTool == "pen" || currentTool == "eraser" && selectedTerritory) {
+        penCachedImage.getContext("2d").restore()
+      }
+
       setCurrentlyMoving(false)
     }}>
       <svg id="map-svg" onTouchMove={!mobile ? null : function(event) {
