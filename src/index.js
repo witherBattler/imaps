@@ -1424,12 +1424,27 @@ function AnnotationRenderer({currentTool, annotations, setAnnotations}) {
   </>
 }
 
+function PropertiesTopAd() {
+  /* useEffect(() => {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  }, []) */
+
+  return null
+  // <ins className="adsbygoogle"
+  // style={{display: "block"}}
+  // data-ad-client="ca-pub-9613555170758176"
+  // data-ad-slot="7738173653"
+  // data-ad-format="auto"
+  // data-full-width-responsive="true"></ins>
+}
+
 function Properties(props) {
   const {effects, setEffects, recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
     <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100%", padding: "20px", boxSizing: "border-box"}}>
-      <div id="properties-panel" elevation={24} style={{boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
+      <div id="properties-panel" elevation={24} style={{display: "flex", flexDirection: "column", boxShadow: "#00000059 -7px 12px 60px", backgroundColor: "#465077", width: "100%", height: "100%", borderRadius: "10px", padding: "8px", boxSizing: "border-box"}}>
+        <PropertiesTopAd></PropertiesTopAd>
         {
           currentTool == "marker" 
             ? selectedMarker
