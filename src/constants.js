@@ -2179,48 +2179,56 @@ export const FLAGS = [
 
 export const GEOMETRY_DASH_ICONS = [
     {
-        id: "Auto",
+        id: "Headphones",
         index: 0
     },
     {
-        id: "Easy",
+        id: "Auto",
         index: 1
     },
     {
-        id: "Normal",
+        id: "Easy",
         index: 2
     },
     {
-        id: "Hard",
+        id: "Normal",
         index: 3
     },
     {
-        id: "Harder",
+        id: "Hard",
         index: 4
     },
     {
-        id: "Insane",
+        id: "Harder",
         index: 5
     },
     {
-        id: "EasyDemon",
+        id: "Insane",
         index: 6
     },
     {
-        id: "MediumDemon",
+        id: "EasyDemon",
         index: 7
     },
     {
-        id: "Demon",
+        id: "MediumDemon",
         index: 8
     },
     {
-        id: "InsaneDemon",
+        id: "Demon",
         index: 9
     },
     {
-        id: "ExtremeDemon",
+        id: "InsaneDemon",
         index: 10
+    },
+    {
+        id: "ExtremeDemon",
+        index: 11
+    },
+    {
+        id: "ExtremeDemon",
+        index: 12
     },
     {
         id: "Unrated",

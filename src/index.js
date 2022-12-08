@@ -2123,7 +2123,7 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
   let secondaryDataVisualizationEditorOnChange = null
   let resetButtonDataDisabled = true
   let resetButtonDataOnClick = null
-
+  let geometryDashValue = isNaN(parseInt(valueInputValue)) ? 11 : parseInt(valueInputValue)
 
 
   if(Array.isArray(selectedTerritory)) {
@@ -2163,12 +2163,14 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
     resetButtonStyleDisabled = selectedTerritory.fill == null && selectedTerritory.outlineColor == null && selectedTerritory.outlineSize == null
     resetButtonStyleOnClick = function() { changeValueSelectedTerritory(1, {fill: null, outlineColor: null, outlineSize: null})}
     valueInputValue = orEmptyString(selectedTerritory.value, defaultValue)
-    valueInputOnChange = function(event) { changeValueSelectedTerritory(1, {value: event.target.value}) }
+    valueInputOnChange = function(value) { changeValueSelectedTerritory(1, {value: value}) }
     secondaryDataVisualizationEditorValue = selectedTerritory
     secondaryDataVisualizationEditorOnChange = function(newValue) { changeValueSelectedTerritory(1, newValue) }
     resetButtonDataDisabled = selectedTerritory.value == null && selectedTerritory.dataOffsetX == 0 && selectedTerritory.dataOffsetY == 0
     resetButtonDataOnClick = function() { changeValueSelectedTerritory(1, {value: null, dataOffsetX: 0, dataOffsetY: 0}) }
   }
+
+  let selectId = generateId()
 
   return (
     <div>
@@ -2183,7 +2185,70 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
       </div>
       <Button style={{marginTop: "5px"}} variant="contained" disabled={resetButtonStyleDisabled} onClick={resetButtonStyleOnClick}>Reset</Button>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid", marginTop: "25px"}}>DATA VISUALIZATION: {territoryIdentifier}</Typography>
-      <TextField variant="filled" label="Value" size="small" sx={{marginTop: "5px", width: "100%"}} value={valueInputValue} onChange={valueInputOnChange}></TextField>
+      {
+        (() => {
+          switch(defaultDataVisualizer.type) {
+            case null:
+              return null
+            case "text":
+              return <TextField variant="filled" label="Text" size="small" sx={{marginTop: "5px", width: "100%"}} value={function(event) {valueInputValue(event.target.value)}} onChange={valueInputOnChange}></TextField>
+            case "geometryDash":
+              return <FormControl variant="filled" fullWidth style={{marginTop: "5px", marginBottom: "5px"}} size="small">
+                <InputLabel id={selectId} defaultValue="">Geometry Dash Icon</InputLabel>
+                <Select
+                  labelId={selectId}
+                  id={selectId}
+                  value={geometryDashValue}
+                  label="Geometry Dash Icon"
+                  onChange={function(event) {
+                    console.log(event.target.value)
+                    if(event.target.value == 11) {
+                      valueInputOnChange("")
+                    }
+                    valueInputOnChange(event.target.value.toString())
+                  }}
+                >
+                  <MenuItem value={11}>
+                    None
+                  </MenuItem>
+                  <MenuItem value={0}>
+                    0
+                  </MenuItem>
+                  <MenuItem value={1}>
+                    1
+                  </MenuItem>
+                  <MenuItem value={2}>
+                    2
+                  </MenuItem>
+                  <MenuItem value={3}>
+                    3
+                  </MenuItem>
+                  <MenuItem value={4}>
+                    4
+                  </MenuItem>
+                  <MenuItem value={5}>
+                    5
+                  </MenuItem>
+                  <MenuItem value={6}>
+                    6
+                  </MenuItem>
+                  <MenuItem value={7}>
+                    7
+                  </MenuItem>
+                  <MenuItem value={8}>
+                    8
+                  </MenuItem>
+                  <MenuItem value={9}>
+                    9
+                  </MenuItem>
+                  <MenuItem value={10}>
+                    10
+                  </MenuItem>
+                </Select>
+              </FormControl>
+          }
+        })()
+      }
       <SecondaryDataVisualizationEditor dataVisualizer={defaultDataVisualizer} onChange={secondaryDataVisualizationEditorOnChange} selectedTerritory={secondaryDataVisualizationEditorValue}></SecondaryDataVisualizationEditor>
       <Button style={{marginTop: "5px"}} variant="contained" disabled={resetButtonDataDisabled} onClick={resetButtonDataOnClick}>Reset</Button>
     </div>

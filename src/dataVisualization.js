@@ -20,7 +20,7 @@ class DataVisualizer {
             },
             geometryDash: {
                 min: 0,
-                max: 10,
+                max: 12,
                 reverse: false,
                 hideOnParseError: true
             },
@@ -154,7 +154,7 @@ class GeometryDashDataVisualizer extends DataVisualizer {
         let center = {x: boundingBox.x + boundingBox.width / 2, y: boundingBox.y + boundingBox.height / 2}
         let imagePosition = {x: center.x - GEOMETRY_DASH_ICON_WIDTH / 2, y: center.y - GEOMETRY_DASH_ICON_HEIGHT / 2}
         let imageUrl
-        if(!data || isNaN(parseInt(data))) {
+        /* if(!data || isNaN(parseInt(data))) {
             if(this.hideOnParseError) {
                 return null
             }
@@ -168,7 +168,17 @@ class GeometryDashDataVisualizer extends DataVisualizer {
                 imageIndex = 10 - imageIndex
             }
             imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[imageIndex].id + ".webp"
+        } */
+        if(isNaN(parseInt(data))) {
+            if(data == "Unrated") {
+                let imageUrl = "https://periphern.com/geometryDash/Unrated.webp"
+            } else {
+                return
+            }
+        } else {
+            imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[data].id + ".webp"
         }
+
         return <image key={territory.index + ".data-visualizer"} style={{transform: `scale(${this.data.scale * territory.dataVisualizerScale})`, transformOrigin: "center", transformBox: "fill-box", pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
     }
     clone() {
