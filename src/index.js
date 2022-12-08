@@ -239,6 +239,7 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     }
 
     let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
+    console.log(style)
     defsElement.innerHTML += ReactDOMServer.renderToStaticMarkup(style.defs)
 
     let gElement = document.createElementNS("http://www.w3.org/2000/svg", "g")
@@ -246,15 +247,16 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     pathElement.setAttribute("d", territory.path)
     pathElement.setAttribute("fill", style.fill)
     pathElement.setAttribute("stroke", style.outlineColor)
-    pathElement.setAttribute("strokeWidth", style.outlineSize)
+    pathElement.setAttributeNS(null, "stroke-width", style.outlineSize)
     let pathElement2 = document.createElementNS("http://www.w3.org/2000/svg", "path")
     pathElement2.setAttribute("d", territory.path)
     pathElement2.setAttribute("fill", "url(#drawn-pattern)")
+    pathElement2.setAttribute("stroke", style.outlineColor)
+    pathElement2.setAttributeNS(null, "stroke-width", style.outlineSize)
     if(effects.innerShadow.enabled) {
       pathElement.setAttribute("filter", "url(#inner-shadow)")
       pathElement2.setAttribute("filter", "url(#inner-shadow)")
     }
-    pathElement.setAttribute("strokeWidth", "0")
     gElement.appendChild(pathElement)
     gElement.appendChild(pathElement2)
     svgElement.appendChild(gElement)
@@ -444,7 +446,7 @@ function Editor({chosenMap, data}) {
     a.dispatchEvent(e)
   }
   async function downloadJpg() {
-    let element = mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
     element = await convertSvgUrlsToBase64(element)
     let converted = await svgToJpg(element.outerHTML)
     const a = document.createElement("a")
@@ -1295,7 +1297,7 @@ function EditableMap(props) {
                     }
                     filter={/* effects.innerShadow.enabled ? "url(#inner-shadow)" :  */null}
                   ></path>
-                  {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)"></path> : null}
+                  {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)" strokeWidth={style.outlineSize} stroke={style.outlineColor}></path> : null}
                 </g>
               }
             )
