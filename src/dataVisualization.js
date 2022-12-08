@@ -179,7 +179,6 @@ class GeometryDashDataVisualizer extends DataVisualizer {
             if(parseInt(data) > 12) {
                 return
             }
-            console.log(data)
             imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[parseInt(data)].id + ".webp"
         }
 
