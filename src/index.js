@@ -1830,24 +1830,6 @@ function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerG
   switch(dataVisualizerGetter.type) {
     case "geometryDash":
       return <div>
-        <div style={{display: "flex"}}>
-          <TextField style={{marginRight: "2.5px"}} variant="filled" value={dataVisualizerGetter.min} label="Min" size="small" onChange={function(event) {
-            let newDataVisualizer = {
-              ...dataVisualizerGetter,
-              min: parseInt(event.target.value) || 0
-            }
-            dataVisualizerGetter.setUpdate(newDataVisualizer)
-            dataVisualizerSetter(dataVisualizerGetter.clone())
-          }}></TextField>
-          <TextField style={{marginLeft: "2.5px"}} variant="filled" value={dataVisualizerGetter.max} label="Max" size="small" onChange={function(event) {
-            let newDataVisualizer = {
-              ...dataVisualizerGetter,
-              max: parseInt(event.target.value) || 0
-            }
-            dataVisualizerGetter.setUpdate(newDataVisualizer)
-            dataVisualizerSetter(dataVisualizerGetter.clone())
-          }}></TextField>
-        </div>
         <Typography style={{fontSize: "20px", lineHeight: "120%", marginTop: "5px"}}>Scale</Typography>
         <div style={{display: "flex", justifyContent: "center"}}>
           <Slider value={dataVisualizerGetter.data.scale} style={{width: "270px"}} step={0.15} marks min={0.25} max={4} valueLabelDisplay="auto" onChange={function(event) {
@@ -1856,31 +1838,6 @@ function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerG
             dataVisualizerSetter(newDataVisualizer)
           }}/>
         </div>
-        
-        <div style={{flexDirection: "column", display: "flex"}}>
-          <FormControlLabel style={{marginTop: "-5px"}} control={
-            <Switch checked={dataVisualizerGetter.reverse} onChange={function (event) {
-              let newDataVisualizer = {
-                ...dataVisualizerGetter,
-                reverse: !dataVisualizerGetter.reverse
-              }
-              dataVisualizerGetter.setUpdate(newDataVisualizer)
-              dataVisualizerSetter(dataVisualizerGetter.clone())
-            }}/>
-          } label="Reverse"/>
-          <FormControlLabel style={{marginTop: "-10px"}} control={
-            <Switch checked={dataVisualizerGetter.hideOnParseError} onChange={function (event) {
-              let newDataVisualizer = {
-                ...dataVisualizerGetter,
-                hideOnParseError: !dataVisualizerGetter.hideOnParseError
-              }
-              dataVisualizerGetter.setUpdate(newDataVisualizer)
-              dataVisualizerSetter(dataVisualizerGetter.clone())
-            }}/>
-          } label="Hide on error"/>
-        </div>
-
-        
       </div>
     
     case "text":
@@ -2123,8 +2080,6 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
   let secondaryDataVisualizationEditorOnChange = null
   let resetButtonDataDisabled = true
   let resetButtonDataOnClick = null
-  let geometryDashValue = isNaN(parseInt(valueInputValue)) ? valueInputValue == "Unrated" ? 11 : 12 : parseInt(valueInputValue)
-
 
   if(Array.isArray(selectedTerritory)) {
     territoryIdentifier = `TERRITORIES (${selectedTerritory.length})`
@@ -2142,7 +2097,7 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
     }
     resetButtonStyleOnClick = function() { changeValueSelectedTerritory(0, {fill: null, outlineColor: null, outlineSize: null})}
     valueInputValue = orEmptyString(selectedTerritory[0].value, defaultValue)
-    valueInputOnChange = function(event) { changeValueSelectedTerritory(0, {value: event.target.value}) }
+    valueInputOnChange = function(value) { changeValueSelectedTerritory(0, {value: value}) }
     secondaryDataVisualizationEditorValue = selectedTerritory[0]
     secondaryDataVisualizationEditorOnChange = function(newValue) { console.log("it doing the changing"); changeValueSelectedTerritory(0, newValue) }
     for(let i = 0; i != selectedTerritory.length; i++) {
@@ -2171,6 +2126,7 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
   }
 
   let selectId = generateId()
+  let geometryDashValue = isNaN(parseInt(valueInputValue)) ? valueInputValue == "Unrated" ? 13 : 14 : parseInt(valueInputValue)
 
   return (
     <div>
@@ -2191,7 +2147,7 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
             case null:
               return null
             case "text":
-              return <TextField variant="filled" label="Text" size="small" sx={{marginTop: "5px", width: "100%"}} value={function(event) {valueInputValue(event.target.value)}} onChange={valueInputOnChange}></TextField>
+              return <TextField variant="filled" label="Text" size="small" sx={{marginTop: "5px", width: "100%"}} value={valueInputValue} onChange={function(event) {valueInputOnChange(event.target.value)}}></TextField>
             case "geometryDash":
               return <FormControl variant="filled" fullWidth style={{marginTop: "5px", marginBottom: "5px"}} size="small">
                 <InputLabel id={selectId} defaultValue="">Geometry Dash Icon</InputLabel>
@@ -2203,9 +2159,11 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
                   onChange={function(event) {
                     if(event.target.value == 13) {
                       valueInputOnChange("Unrated")
+                      return
                     }
                     if(event.target.value == 14) {
                       valueInputOnChange("")
+                      return
                     }
                     valueInputOnChange(event.target.value.toString())
                   }}

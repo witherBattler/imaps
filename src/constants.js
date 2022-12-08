@@ -2227,7 +2227,7 @@ export const GEOMETRY_DASH_ICONS = [
         index: 11
     },
     {
-        id: "ExtremeDemon",
+        id: "Impossible",
         index: 12
     },
     {

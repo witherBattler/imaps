@@ -171,12 +171,16 @@ class GeometryDashDataVisualizer extends DataVisualizer {
         } */
         if(isNaN(parseInt(data))) {
             if(data == "Unrated") {
-                let imageUrl = "https://periphern.com/geometryDash/Unrated.webp"
+                imageUrl = "https://periphern.impixel.tech/geometryDash/Unrated.webp"
             } else {
                 return
             }
         } else {
-            imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[data].id + ".webp"
+            if(parseInt(data) > 12) {
+                return
+            }
+            console.log(data)
+            imageUrl = "https://periphern.impixel.tech/geometryDash/" + GEOMETRY_DASH_ICONS[parseInt(data)].id + ".webp"
         }
 
         return <image key={territory.index + ".data-visualizer"} style={{transform: `scale(${this.data.scale * territory.dataVisualizerScale})`, transformOrigin: "center", transformBox: "fill-box", pointerEvents: "none", zIndex: "10"}} id={id} x={imagePosition.x + territory.dataOffsetX} y={imagePosition.y + territory.dataOffsetY} width={GEOMETRY_DASH_ICON_WIDTH} height={GEOMETRY_DASH_ICON_HEIGHT} href={imageUrl}></image>
