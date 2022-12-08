@@ -2123,7 +2123,7 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
   let secondaryDataVisualizationEditorOnChange = null
   let resetButtonDataDisabled = true
   let resetButtonDataOnClick = null
-  let geometryDashValue = isNaN(parseInt(valueInputValue)) ? 11 : parseInt(valueInputValue)
+  let geometryDashValue = isNaN(parseInt(valueInputValue)) ? valueInputValue == "Unrated" ? 11 : 12 : parseInt(valueInputValue)
 
 
   if(Array.isArray(selectedTerritory)) {
@@ -2201,15 +2201,20 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
                   value={geometryDashValue}
                   label="Geometry Dash Icon"
                   onChange={function(event) {
-                    console.log(event.target.value)
-                    if(event.target.value == 11) {
+                    if(event.target.value == 13) {
+                      valueInputOnChange("Unrated")
+                    }
+                    if(event.target.value == 14) {
                       valueInputOnChange("")
                     }
                     valueInputOnChange(event.target.value.toString())
                   }}
                 >
-                  <MenuItem value={11}>
+                  <MenuItem value={14}>
                     None
+                  </MenuItem>
+                  <MenuItem value={13}>
+                    Unrated
                   </MenuItem>
                   <MenuItem value={0}>
                     0
@@ -2243,6 +2248,12 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
                   </MenuItem>
                   <MenuItem value={10}>
                     10
+                  </MenuItem>
+                  <MenuItem value={11}>
+                    11
+                  </MenuItem>
+                  <MenuItem value={12}>
+                    12
                   </MenuItem>
                 </Select>
               </FormControl>
