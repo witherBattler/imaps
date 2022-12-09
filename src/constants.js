@@ -18,6 +18,12 @@ export const MAP_NAMES = [
         "countryCodes": true
     },
     {
+        "name": "Middle East",
+        "url": "https://wikipedia.com/",
+        "id": "MiddleEast",
+        "countryCodes": true
+    },
+    {
         "name": "German Empire",
         "url": null,
         "id": "GermanEmpire"
@@ -1530,7 +1536,7 @@ export const FLAGS = [
     },
     {
         "id": "ir",
-        "name": "Iran, Islamic Republic of"
+        "name": "Iran"
     },
     {
         "id": "is",
@@ -1946,7 +1952,7 @@ export const FLAGS = [
     },
     {
         "id": "sy",
-        "name": "Syrian Arab Republic"
+        "name": "Syria"
     },
     {
         "id": "sz",
@@ -2404,7 +2410,7 @@ export const COUNTRY_CODES = {
     OM: 'Oman',
     PK: 'Pakistan',
     PW: 'Palau',
-    PS: 'Palestinian Territory, Occupied',
+    PS: 'Palestine',
     PA: 'Panama',
     PG: 'Papua New Guinea',
     PY: 'Paraguay',
@@ -2449,7 +2455,7 @@ export const COUNTRY_CODES = {
     SZ: 'Swaziland',
     SE: 'Sweden',
     CH: 'Switzerland',
-    SY: 'Syrian Arab Republic',
+    SY: 'Syria',
     TW: 'Taiwan',
     TJ: 'Tajikistan',
     TZ: 'Tanzania',
