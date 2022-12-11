@@ -1,0 +1,219 @@
+#dashboard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+#top-bar {
+  height: 60px;
+  background-color: #3F4570;
+  width: 100%;
+  display: flex;
+  border-bottom: rgba(255, 255, 255, 0.2) 1.5px solid;
+}
+#bottom {
+  flex-grow: 1;
+  background-color: #2A2E4A;
+}
+
+#top-bar > #search-bar-container > #search-bar-inner-container > #search-bar::placeholder {
+  color: white;
+  opacity: 0.6;
+}
+
+
+#profile-container {
+  height: 100%;
+  width: 340px;
+  border-right: rgba(255, 255, 255, 0.2) 1.5px solid;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+#profile-container > #profile-picture-container {
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 6px;
+}
+#profile-picture {
+  height: 100%;
+  width: 100%;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+#profile-letter {
+  height: 100%;
+  width: 100%;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-transform: capitalize;
+  font-family: rubik;
+  font-weight: 600;
+  font-size: 24px;
+}
+#profile-text {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+  overflow: hidden;
+  margin-right: 10px;
+}
+#profile-username {
+  color: white;
+  font-weight: bold;
+  font-family: rubik;
+  font-size: 20px;
+  line-height: 100%;
+}
+#profile-secondary-username {
+  color: #7B80A8;
+  font-family: rubik;
+  font-size: 17px;
+}
+#profile-text > * {
+  margin: 0px;
+  line-height: 100%;
+}
+#profile-container > .open-icon-container {
+  flex-grow: 1;
+  display: flex;
+  justify-content: end;
+}
+#profile-container > .open-icon-container > .open-icon {
+  height: 10px;
+  margin-right: 20px;
+}
+
+#search-bar-container {
+  width: 400px;
+  height: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+  margin-right: -6px;
+}
+#search-bar-container > #search-bar-inner-container {
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  padding: 7px;
+  box-sizing: border-box;
+  display: flex;
+}
+#search-bar-container > #search-bar-inner-container > img {
+  height: 80%;
+  margin-left: 5px;
+  margin-top: 4px;
+}
+#search-bar-container > #search-bar-inner-container > #search-bar {
+  flex-grow: 1;
+  margin: 0px;
+  border: 0px;
+  color: white;
+  box-sizing: border-box;
+  padding-left: 10px;
+  font-family: rubik;
+  font-size: 18px;
+  outline: none;
+  height: 100%;
+  background-color: transparent;
+}
+#top-bar > .right {
+  flex-grow: 1;
+  display: flex;
+  justify-content: end;
+}
+#top-bar > .right > .icon-button-container {
+  aspect-ratio: 1 / 1;
+  height: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+}
+#top-bar > .right > .icon-button-container > .icon {
+  height: 100%;
+  width: 100%;
+}
+
+#bottom {
+  display: flex;
+  justify-content: baseline;
+  align-items: baseline;
+  flex-direction: row;
+  padding-bottom: 0px;
+}
+#side-bar {
+  width: 340px;
+  height: 100%;
+  border-right: rgba(255, 255, 255, 0.2) 1.5px solid;
+  display: flex;
+  flex-direction: column;
+  padding-top: 30px;
+  box-sizing: border-box;
+}
+#side-bar > button {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  stroke: none;
+  border: none;
+  background-color: transparent;
+  padding-left: 15px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+#side-bar > button > img {
+  width: 30px;
+}
+#side-bar > button > span {
+  color: white;
+  font-family: rubik;
+  margin-left: 15px;
+  font-size: 23px;
+}
+#side-bar > button.selected {
+  background-color: #0085D2;
+}
+
+#content.hub {
+  box-sizing: border-box;
+  padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+}
+#content.hub > .header {
+  color: white;
+  font-family: rubik;
+  font-weight: 500;
+  margin: 0px;
+  margin-top: 15px;
+  font-size: 40px;
+}
+#content.hub > .header:first-child {
+  margin-top: 0px;
+}
+
+#content.hub > #projects-list > * {
+  width: 300px;
+  height: 200px;
+  background-color: #3F4570;
+  border-radius: 10px;
+}
+#content.hub > #projects-list > .create-project {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+#content.hub > #projects-list > .create-project > img {
+  height: 25%;
+}

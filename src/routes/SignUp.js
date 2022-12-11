@@ -6,7 +6,7 @@ import AccountBoxIcon from '@mui/icons-material/AccountBox';
 import KeyIcon from '@mui/icons-material/Key';
 import fetch from "node-fetch"
 import { serverLocation, discordOauth2UrlSignUp } from "../constants.js"
-import {post} from "../index.js"
+import {post} from "../util.js"
 
 import "../login.css"
 
@@ -19,7 +19,13 @@ function SignUpWithGoogle() {
         method: "google",
         access_token: data.access_token
       })
-      localStorage.setItem("sessionId", sessionId)
+      if(sessionId == "Account with this email already exists.") {
+        alert("Account with this email already exists.")
+      } else {
+        localStorage.setItem("sessionId", sessionId)
+        window.location = "/dashboard"
+      }
+      
     }
   })
 
@@ -54,8 +60,6 @@ export default function SignUp() {
           <Button style={{marginTop: "10px", fontFamily: "rubik"}} variant="contained" fullWidth>SIGN IN</Button>
           <div id="login-with">
             <SignUpWithGoogle></SignUpWithGoogle>
-            <img style={{backgroundColor: "white"}} src="https://www.freepnglogos.com/uploads/apple-logo-png/apple-logo-png-dallas-shootings-don-add-are-speech-zones-used-4.png"></img>
-            <img style={{background: "linear-gradient(to right, rgb(236, 146, 35) 0%, rgb(177, 42, 160) 50%, rgb(105, 14, 224) 100%)"}} src="icons/instagram.svg"></img>
             <SignUpWithDiscord></SignUpWithDiscord>
           </div>
         </div>

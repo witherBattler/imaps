@@ -1,3 +1,5 @@
+import {serverLocation} from "./constants.js"
+
 function getMapImageUrl(id) {
     return `./maps/${id}.svg`
 }
@@ -18,6 +20,30 @@ function ajax(url, method, data) {
         throw err
     })
 }
+export async function post(route, body) {
+    let s = await fetch(serverLocation + route, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'Session-Id': window.localStorage.getItem("sessionId"),
+      },
+      body: JSON.stringify(body)
+    })
+    
+    return s.text()
+  }
+  
+  export async function get(route) {
+    let s = await fetch(serverLocation + route, {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+        'Session-Id': window.localStorage.getItem("sessionId"),
+      },
+    })
+    
+    return s.text()
+  }
 
 function parseSvg(svgString) {
     let parser = new DOMParser()

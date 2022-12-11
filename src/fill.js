@@ -21,6 +21,9 @@ class Fill {
     get getBackgroundCSS() {
         return this.getBackground
     }
+    encode() {
+        return {objectType: "fill", fillType: this.type, data: this.data}
+    }
 }
 
 class ColorFill extends Fill {
@@ -58,7 +61,7 @@ class ColorFill extends Fill {
         }
     }
     clone() {
-        return new ColorFill(this.r, this.g, this.b, this.a, this.data)
+        return new ColorFill(this.r, this.g, this.b, this.a, JSON.parse(JSON.stringify(this.data)))
     }
 }
 
@@ -76,7 +79,6 @@ class FlagFill extends Fill {
         return `url(#${territory.index}.${mode})`
     }
     getDefs(territory, mode) {
-        console.log("https://periphern.impixel.tech/flags/" + this.id + (this.id.includes("_") ? "png" : "svg"))
         return <>
             <pattern id={`${territory.index}.${mode}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
                 <image preserveAspectRatio="none" href={"https://periphern.impixel.tech/flags/" + this.id + (this.id.includes("_") ? ".png" : ".svg")} width="1" height="1"></image>
@@ -88,12 +90,21 @@ class FlagFill extends Fill {
         this.data.flag.id = newObject.id
     }
     clone() {
-        return new FlagFill(this.id, this.data) 
+        return new FlagFill(this.id, JSON.parse(JSON.stringify(this.data))) 
     }
 }
 
+function decodeFill(object) {
+    switch(object.fillType) {
+        case "color":
+            return new ColorFill(object.data.color.r, object.data.color.g, object.data.color.b, object.data.color.a, object.data)
+        case "flag":
+            return new FlagFill(object.data.flag.id, object.data)
+    }
+}
 
 export {
     ColorFill,
-    FlagFill
+    FlagFill,
+    decodeFill
 }

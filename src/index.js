@@ -17,8 +17,8 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider } from '@mui/material/styles';
-import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp } from "./util"
-import { ColorFill, FlagFill } from "./fill"
+import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp, post, get } from "./util"
+import { ColorFill, FlagFill, decodeFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
 import AddIcon from '@mui/icons-material/Add';
@@ -52,6 +52,8 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./routes/Login.js"
 import SignUp from "./routes/SignUp.js"
+import Dashboard from "./routes/Dashboard.js"
+import EditMap from "./routes/EditMap.js"
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -91,7 +93,10 @@ function App() {
                   Choose map
                 </div>
                 <SearchBarMaps setMapSearch={setMapSearch}></SearchBarMaps>
-                <MapsChoiceContainer search={mapSearch} setStage={setStage} setChosenMap={setChosenMap}></MapsChoiceContainer>
+                <MapsChoiceContainer search={mapSearch} editMap={function (element) {
+                  setStage("editor")
+                  setChosenMap(element)
+                }} setChosenMap={setChosenMap}></MapsChoiceContainer>
               </div>
             </div>
           </ThemeProvider>
@@ -239,7 +244,6 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     }
 
     let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
-    console.log(style)
     defsElement.innerHTML += ReactDOMServer.renderToStaticMarkup(style.defs)
 
     let gElement = document.createElementNS("http://www.w3.org/2000/svg", "g")
@@ -366,19 +370,54 @@ function onKeyDown(func) {
   onKeyDownEventListeners.push(func)
 }
 
-function Editor({chosenMap, data}) {
-  data = data || {} 
-  chosenMap = data.chosenMap || chosenMap
-  const [defaultStyle, setDefaultStyle] = useState(data.defaultStyle || {
-    fill: new ColorFill(255, 255, 255, 1), // new ColorFill(255, 255, 255, 1),
-    outlineColor: new ColorFill(0, 0, 0, 1),
-    outlineSize: 1
-  })
+export function Editor({chosenMap, data, onUpdate}) {
+  function decodeStyle(style) {
+    return {
+      fill: decodeFill(style.fill),
+      outlineColor: decodeFill(style.outlineColor),
+      outlineSize: style.outlineSize
+    }
+  }
+
+  let [savingToCloud, setSavingToCloud] = useState(data != undefined)
+  function getStartingDefaultStyle() {
+    let startingDefaultStyle = {
+      fill: new ColorFill(255, 255, 255, 1), // new ColorFill(255, 255, 255, 1),
+      outlineColor: new ColorFill(0, 0, 0, 1),
+      outlineSize: 1
+    }
+    if(savingToCloud && data.defaultStyle) {
+      startingDefaultStyle = decodeStyle(data.defaultStyle)
+    }
+    return startingDefaultStyle;
+  }
+  
+  const [defaultStyle, setDefaultStyle] = useState(getStartingDefaultStyle())
   const [defaultDataVisualizer, setDefaultDataVisualizer] = useState(new DataVisualizer())
   const [selectedTerritory, setSelectedTerritory] = useState(null)
   const [territoriesHTML, setTerritoriesHTML] = useState([])
-  const [territories, setTerritories] = useState([])
-  const [mapDimensions, setMapDimensions] = useState({})
+  function getStartingTerritories() {
+    let startingTerritories = []
+    if(savingToCloud && data.territories) {
+      startingTerritories = data.territories.map(territory => {
+        return {
+          ...territory,
+          fill: territory.fill ? decodeFill(territory.fill) : null,
+          outlineColor: territory.outlineColor ? decodeFill(territory.outlineColor) : null
+        }
+      })
+    }
+    return startingTerritories
+  }
+  const [territories, setTerritories] = useState(getStartingTerritories())
+  function getStartingMapDimensions() {
+    let startingMapDimensions = {}
+    if(savingToCloud && data.mapDimensions) {
+      startingMapDimensions = data.mapDimensions
+    }
+    return startingMapDimensions
+  }
+  const [mapDimensions, setMapDimensions] = useState(getStartingMapDimensions())
   const [defaultValue, setDefaultValue] = useState("")
   const [currentZoom, setCurrentZoom] = useState(1)
   const [currentTool, setCurrentTool] = useState("cursor")
@@ -410,12 +449,30 @@ function Editor({chosenMap, data}) {
   })
 
   function getMapData() {
+    function encodeStyle(style) {
+      return {
+        fill: style.fill.encode(),
+        outlineColor: style.outlineColor.encode(),
+        outlineSize: style.outlineSize
+      }
+    }
+
     return {
-      chosenMap,
-      defaultStyle,
-      defaultDataVisualizer,
+      map: chosenMap,
+      defaultStyle: {
+        fill: defaultStyle.fill.encode(),
+        outlineColor: defaultStyle.outlineColor.encode(),
+        outlineSize: defaultStyle.outlineSize
+      },
       territoriesHTML,
-      territories,
+      defaultDataVisualizer,
+      territories: territories.map(territory => {
+        return {
+          ...territory,
+          fill: territory.fill ? territory.fill.encode() : null,
+          outlineColor: territory.outlineColor ? territory.outlineColor.encode() : null
+        }
+      }),
       mapDimensions,
       defaultValue,
       annotations,
@@ -423,8 +480,16 @@ function Editor({chosenMap, data}) {
       defaultMarkerStyle,
       mapSvgPath,
       recentColors,
+      effects
     }
   }
+
+  useEffect(() => {
+    if(!savingToCloud) return
+    onUpdate(getMapData())
+  }, [defaultStyle, defaultDataVisualizer, territories, mapDimensions, defaultValue, annotations, markers, defaultMarkerStyle, mapSvgPath, recentColors, effects])
+
+  
 
   async function downloadSvg() {
     let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
@@ -467,6 +532,9 @@ function Editor({chosenMap, data}) {
   }
 
   useEffect(function() {
+    if(savingToCloud && !data.firstLoad) {
+      return
+    }
     ajax(getMapImageUrl(chosenMap.id), "GET").then(data => {
       let svgData = parseSvg(data)
       setTerritoriesHTML(svgData.mapNodes)
@@ -680,7 +748,6 @@ function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, set
       setSpecial(element)
       setSpecialLocation(buttonRect.left - toolbarRect.left)
     }
-    
   }
 
   return <>
@@ -2326,9 +2393,9 @@ function TerritoryFillPickerPopup(props) {
           <p style={{color: "black", fontWeight: "500", fontFamily: "rubik", margin: "0px", marginBottom: "5px"}}>RECENT COLORS</p>
           <div>
             {
-              recentColors.map(recentColor => {
+              recentColors.map((recentColor, index) => {
                 let sameColor = color.r == recentColor.r && color.g == recentColor.g && color.b == recentColor.b && color.a == recentColor.a
-                return <div style={{outline: sameColor ? "2px black solid" : "none", marginBottom: "10px", display: "inline-flex", marginRight: "10px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: `rgba(${recentColor.r}, ${recentColor.g}, ${recentColor.b}, ${recentColor.a})`}} onClick={function() {
+                return <div key={index} style={{outline: sameColor ? "2px black solid" : "none", marginBottom: "10px", display: "inline-flex", marginRight: "10px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: `rgba(${recentColor.r}, ${recentColor.g}, ${recentColor.b}, ${recentColor.a})`}} onClick={function() {
                   color = color.clone()
                   color.r = recentColor.r
                   color.g = recentColor.g
@@ -2430,14 +2497,10 @@ function TerritoryFillPickerPopup(props) {
   )
 }
 
-function MapsChoiceContainer(props) {
-  const {setStage, setChosenMap} = props
+export function MapsChoiceContainer(props) {
+  const {editMap, setChosenMap} = props
   const searchedMapNames = MAP_NAMES.filter(element => element.name.toLowerCase().includes(props.search.toLowerCase()))
   searchedMapNames.length = Math.min(searchedMapNames.length, 12)
-  function editMap(element) {
-    setStage("editor")
-    setChosenMap(element)
-  }
   const [currentlySelectedMap, setCurrentlySelectedMap] = useState(null)
   return (
     <>
@@ -2472,7 +2535,7 @@ function MapsChoiceContainer(props) {
   )
 }
 
-function SearchBarMaps(props) {
+export function SearchBarMaps(props) {
   const {setMapSearch} = props
   return (
     <div id="maps-search-bar">
@@ -2480,7 +2543,6 @@ function SearchBarMaps(props) {
         setMapSearch(event.target.value)
       }}/>
     </div>
-    
   )
 }
 
@@ -2587,27 +2649,23 @@ function getQueryVariable(variable) {
 }
 
 let DiscordOauthComponentLogin = function() {
-  let sessionId = post("/login", {
+  post("/login", {
     method: "discord",
     code: getQueryVariable("code")
   }).then(function(sessionId) {
-    console.log(sessionId)
-    sessionId.text(sessionId => {
-      localStorage.setItem("sessionId", sessionId)
-    })
+    localStorage.setItem("sessionId", sessionId)
+    window.location = "/dashboard"
   })
   
   return null
 }
 let DiscordOauthComponentSignUp = function() {
-  let sessionId = post("/sign-up", {
+  post("/sign-up", {
     method: "discord",
     code: getQueryVariable("code")
   }).then(function(sessionId) {
-    console.log(sessionId)
-    sessionId.text(sessionId => {
-      localStorage.setItem("sessionId", sessionId)
-    })
+    localStorage.setItem("sessionId", sessionId)
+    window.location = "/dashboard"
   })
 
   return null
@@ -2624,28 +2682,20 @@ root.render(
       <Route path="sign-up" element={<SignUp/>}></Route>
       <Route path="discord-oauth-login" element={<DiscordOauthComponentLogin/>}></Route>
       <Route path="discord-oauth-signup" element={<DiscordOauthComponentSignUp/>}></Route>
+      <Route path="dashboard" element={<Dashboard/>}></Route>
+      <Route path="dashboard/:stage" element={<Dashboard/>}></Route>
+      <Route path="edit-map/:id" element={<EditMap/>}></Route>
       <Route path="*" element={<NotFound/>}></Route>
     </Routes>
   </BrowserRouter>
-  
 );
 
-export async function post(route, body) {
-  let s = await fetch(serverLocation + route, {
-    method: "POST",
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  })
-  
-  return s.text()
-}
+
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
 
-
+// react 😖
 ///// WTF!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Two different references?!???!??

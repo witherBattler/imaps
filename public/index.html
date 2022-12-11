@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <base href="/">
     <script>
-      if(window.location.host != "www.periphern.com") {
+      let environment = "%NODE_ENV%"
+      console.log(environment, "environment")
+      if(environment != "development" && window.location.host != "www.periphern.com") {
         window.location = "https://www.periphern.com/"
       }
     </script>
