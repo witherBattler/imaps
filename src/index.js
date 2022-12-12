@@ -56,6 +56,7 @@ import Dashboard from "./routes/Dashboard.js"
 import EditMap from "./routes/EditMap.js"
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+let drawnOnMap = false
 
 
 
@@ -424,8 +425,26 @@ export function Editor({chosenMap, data, onUpdate}) {
   const [annotations, setAnnotations] = useState([])
   const [penColor, setPenColor] = useState("#e00")
   const [penSize, setPenSize] = useState(10)
-  const [penCachedImage, setPenCachedImage] = useState(null)
-  const [refreshValue, setRefreshValue] = useState(true)
+  const [reload, setReload] = useState(true)
+  function getStartingPenCachedImage() {
+    let startingPenCachedImage = null
+    if(savingToCloud && !data.firstLoad) {
+      startingPenCachedImage = document.createElement("canvas")
+      startingPenCachedImage.width = data.mapDimensions.width
+      startingPenCachedImage.height = data.mapDimensions.height
+    }
+    return startingPenCachedImage
+  }
+  const [penCachedImage, setPenCachedImage] = useState(getStartingPenCachedImage())
+  useEffect(function() {
+    let image = new Image()
+    image.onload = () => {
+      penCachedImage.getContext("2d").drawImage(image, 0, 0)
+      setReload(!reload)
+    }
+    drawnOnMap = true
+    image.src = data.penCachedImage
+  }, [])
   const [eraserSize, setEraserSize] = useState(10)
   const [markers, setMarkers] = useState([])
   const [selectedMarker, setSelectedMarker] = useState(null)
@@ -480,7 +499,8 @@ export function Editor({chosenMap, data, onUpdate}) {
       defaultMarkerStyle,
       mapSvgPath,
       recentColors,
-      effects
+      effects,
+      penCachedImage: penCachedImage.toDataURL()
     }
   }
 
@@ -550,6 +570,7 @@ export function Editor({chosenMap, data, onUpdate}) {
       setMapSvgPath(fullPath)
       svgData.close() // parseSvg pastes the svg into the dom to make node.getBBox() possible. .close() removes the svg from the document.
       setMapDimensions(svgData.dimensions)
+      console.log("but this doesn't happen right")
       let canvas = document.createElement("canvas")
       canvas.setAttribute("width", svgData.dimensions.width)
       canvas.setAttribute("height", svgData.dimensions.height)
@@ -591,7 +612,10 @@ export function Editor({chosenMap, data, onUpdate}) {
   return(
     <>
       <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-        <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects}></EditableMap>
+        <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
+          if(!savingToCloud) return
+          onUpdate(getMapData())
+        }}></EditableMap>
         <div ref={mobileBottomDiv}>
           <Properties effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
           <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
@@ -920,10 +944,9 @@ function ZoomWidget({setDeleteTerritoryAlertOpened, setUniteTerritoriesAlertOpen
 
 let selectingTerritories = false
 let markerIndex = 0
-let drawnOnMap = false
 
 function EditableMap(props) {
-  const {effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue} = props
+  const {effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue, onMapDrawn} = props
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
   const [lastPoint, setLastPoint] = useState(null)
   const [currentlyMovingMarker, setCurrentlyMovingMarker] = useState(null)
@@ -973,6 +996,7 @@ function EditableMap(props) {
 
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
+        onMapDrawn()
         drawnOnMap = true
       } else if(currentTool == "eraser") {
         var mapRect = document.getElementById("map-svg").getBoundingClientRect()
@@ -1000,6 +1024,7 @@ function EditableMap(props) {
 
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
+        onMapDrawn()
       } else if(currentTool == "marker") {
         let territories = document.elementsFromPoint(event.pageX, event.pageY)
         let hoveringTerritories = false
@@ -1060,6 +1085,7 @@ function EditableMap(props) {
           context.stroke()
 
           setLastPoint({x: mouseX, y: mouseY})
+          onMapDrawn()
         } else if(currentTool == "eraser") {
           let mapRect = document.getElementById("map-svg").getBoundingClientRect()
           let mouseX = (event.clientX - mapRect.x) / currentZoom
@@ -1081,6 +1107,7 @@ function EditableMap(props) {
           context.restore()
 
           setLastPoint({x: mouseX, y: mouseY})
+          onMapDrawn()
         }
       } else if(currentTool == "marker") {
         if(currentlyMovingMarker) {
@@ -1108,7 +1135,6 @@ function EditableMap(props) {
         }
       }
       if(currentlyMoving) {
-        console.log("its happening")
         let delta = {
           x: event.clientX - movingStartPosition.x,
           y: event.clientY - movingStartPosition.y
@@ -1138,11 +1164,10 @@ function EditableMap(props) {
         context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
         context.fillStyle = penColor
         context.fill()
-        
-        
 
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
+        onMapDrawn()
         drawnOnMap = true
       } else if(currentTool == "eraser") {
         var mapRect = document.getElementById("map-svg").getBoundingClientRect()
@@ -1170,6 +1195,7 @@ function EditableMap(props) {
 
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
+        onMapDrawn()
       } else if(currentTool == "move") {
         setCurrentlyMoving(true)
         setMovingStartPosition({
@@ -1221,6 +1247,7 @@ function EditableMap(props) {
             context.stroke()
   
             setLastPoint({x: mouseX, y: mouseY})
+            onMapDrawn()
           } else if(currentTool == "eraser") {
             let mapRect = document.getElementById("map-svg").getBoundingClientRect()
             let mouseX = (clientX - mapRect.x) / currentZoom
@@ -1241,6 +1268,7 @@ function EditableMap(props) {
             context.stroke()
             context.restore()
   
+            onMapDrawn()
             setLastPoint({x: mouseX, y: mouseY})
           }
         }
