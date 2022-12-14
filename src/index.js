@@ -440,8 +440,9 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
   const [penSize, setPenSize] = useState(10)
   const [reload, setReload] = useState(true)
   function getStartingPenCachedImage() {
-    let startingPenCachedImage = null
+    let startingPenCachedImage = document.createElement("canvas")
     if(savingToCloud && !data.firstLoad) {
+      console.log("this?")
       startingPenCachedImage = document.createElement("canvas")
       startingPenCachedImage.width = data.mapDimensions.width
       startingPenCachedImage.height = data.mapDimensions.height
@@ -450,13 +451,16 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
   }
   const [penCachedImage, setPenCachedImage] = useState(getStartingPenCachedImage())
   useEffect(function() {
-    let image = new Image()
-    image.onload = () => {
-      penCachedImage.getContext("2d").drawImage(image, 0, 0)
-      setReload(!reload)
+    if(savingToCloud && !data.firstLoad) {
+      let image = new Image()
+      image.onload = () => {
+        penCachedImage.getContext("2d").drawImage(image, 0, 0)
+        setReload(!reload)
+      }
+      drawnOnMap = true
+      image.src = data.penCachedImage
     }
-    drawnOnMap = true
-    image.src = data.penCachedImage
+    
   }, [])
   const [eraserSize, setEraserSize] = useState(10)
   function getStartingMarkers() {
@@ -623,6 +627,7 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
       let canvas = document.createElement("canvas")
       canvas.setAttribute("width", svgData.dimensions.width)
       canvas.setAttribute("height", svgData.dimensions.height)
+      console.log("this gets done")
       setPenCachedImage(canvas)
     })
     const scroller = new VirtualScroll()
