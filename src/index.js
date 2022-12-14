@@ -33,7 +33,7 @@ import Divider from '@mui/material/Divider';
 import Switch from '@mui/material/Switch';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { RgbaColorPicker, HexAlphaColorPicker } from "react-colorful";
-import { GeometryDashDataVisualizer, DataVisualizer } from "./dataVisualization"
+import { decodeDataVisualizer, DataVisualizer } from "./dataVisualization"
 import * as ReactDOMServer from 'react-dom/server';
 import MenuIcon from '@mui/icons-material/Menu';
 import 'typeface-roboto'
@@ -371,7 +371,7 @@ function onKeyDown(func) {
   onKeyDownEventListeners.push(func)
 }
 
-export function Editor({chosenMap, data, onUpdate}) {
+export function Editor({chosenMap, data, onUpdate, saving}) {
   function decodeStyle(style) {
     return {
       fill: decodeFill(style.fill),
@@ -392,14 +392,20 @@ export function Editor({chosenMap, data, onUpdate}) {
     }
     return startingDefaultStyle;
   }
-  
   const [defaultStyle, setDefaultStyle] = useState(getStartingDefaultStyle())
-  const [defaultDataVisualizer, setDefaultDataVisualizer] = useState(new DataVisualizer())
+  function getStartingDefaultDataVisualizer() {
+    let startingDefaultDataVisualizer = new DataVisualizer()
+    if(savingToCloud && !data.firstLoad) {
+      startingDefaultDataVisualizer = decodeDataVisualizer(data.defaultDataVisualizer)
+    }
+    return startingDefaultDataVisualizer
+  }
+  const [defaultDataVisualizer, setDefaultDataVisualizer] = useState(getStartingDefaultDataVisualizer())
   const [selectedTerritory, setSelectedTerritory] = useState(null)
   const [territoriesHTML, setTerritoriesHTML] = useState([])
   function getStartingTerritories() {
     let startingTerritories = []
-    if(savingToCloud && data.territories) {
+    if(savingToCloud && !data.firstLoad) {
       startingTerritories = data.territories.map(territory => {
         return {
           ...territory,
@@ -413,13 +419,20 @@ export function Editor({chosenMap, data, onUpdate}) {
   const [territories, setTerritories] = useState(getStartingTerritories())
   function getStartingMapDimensions() {
     let startingMapDimensions = {}
-    if(savingToCloud && data.mapDimensions) {
+    if(savingToCloud && !data.firstLoad) {
       startingMapDimensions = data.mapDimensions
     }
     return startingMapDimensions
   }
   const [mapDimensions, setMapDimensions] = useState(getStartingMapDimensions())
-  const [defaultValue, setDefaultValue] = useState("")
+  function getStartingDefaultValue() {
+    let startingDefaultValue = ""
+    if(savingToCloud && !data.firstLoad) {
+      startingDefaultValue = data.defaultValue
+    }
+    return startingDefaultValue
+  }
+  const [defaultValue, setDefaultValue] = useState(getStartingDefaultValue())
   const [currentZoom, setCurrentZoom] = useState(1)
   const [currentTool, setCurrentTool] = useState("cursor")
   const [annotations, setAnnotations] = useState([])
@@ -446,7 +459,20 @@ export function Editor({chosenMap, data, onUpdate}) {
     image.src = data.penCachedImage
   }, [])
   const [eraserSize, setEraserSize] = useState(10)
-  const [markers, setMarkers] = useState([])
+  function getStartingMarkers() {
+    let startingMarkers = []
+    if(savingToCloud && !data.firstLoad) {
+      startingMarkers = data.markers.map(marker => {
+        return {
+          ...marker,
+          fill: marker.fill ? decodeFill(marker.fill) : null,
+          outlineColor: marker.outlineColor ? decodeFill(marker.outlineColor) : null
+        }
+      })
+    }
+    return startingMarkers
+  }
+  const [markers, setMarkers] = useState(getStartingMarkers())
   const [selectedMarker, setSelectedMarker] = useState(null)
   const [defaultMarkerStyle, setDefaultMarkerStyle] = useState({
     fill: new ColorFill(255, 0, 0, 1), // new ColorFill(255, 255, 255, 1),
@@ -454,28 +480,41 @@ export function Editor({chosenMap, data, onUpdate}) {
     outlineSize: 1
   })
   const [boosting, setBoosting] = useState(isMobile())
-  const [mapSvgPath, setMapSvgPath] = useState("")
+  function getStartingMapSvgPath() {
+    let startingMapSvgPath = ""
+    if(savingToCloud && !data.firstLoad) {
+      startingMapSvgPath = data.mapSvgPath
+    }
+    return startingMapSvgPath
+  }
+  const [mapSvgPath, setMapSvgPath] = useState(getStartingMapSvgPath())
   const mobileBottomDiv = useRef()
   const [moved, setMoved] = useState({x: 0, y: 0})
-  const [recentColors, setRecentColors] = useState([])
+  function getStartingRecentColors() {
+    let startingRecentColors = []
+    if(savingToCloud && !data.firstLoad) {
+      startingRecentColors = data.recentColors
+    }
+    return startingRecentColors
+  }
+  const [recentColors, setRecentColors] = useState(getStartingRecentColors())
   const [deleteTerritoryAlertOpened, setDeleteTerritoryAlertOpened] = useState(false)
   const [uniteTerritoriesAlertOpened, setUniteTerritoriesAlertOpened] = useState(false)
-  const [effects, setEffects] = useState({
-    innerShadow: {
-      enabled: false,
-      scale: 1
-    }
-  })
-
-  function getMapData() {
-    function encodeStyle(style) {
-      return {
-        fill: style.fill.encode(),
-        outlineColor: style.outlineColor.encode(),
-        outlineSize: style.outlineSize
+  function getStartingEffects() {
+    let startingEffects = {
+      innerShadow: {
+        enabled: false,
+        scale: 1
       }
     }
+    if(savingToCloud && !data.firstLoad) {
+      startingEffects = data.effects
+    }
+    return startingEffects
+  }
+  const [effects, setEffects] = useState(getStartingEffects())
 
+  function getMapData() {
     return {
       map: chosenMap,
       defaultStyle: {
@@ -484,19 +523,30 @@ export function Editor({chosenMap, data, onUpdate}) {
         outlineSize: defaultStyle.outlineSize
       },
       territoriesHTML,
-      defaultDataVisualizer,
+      defaultDataVisualizer: defaultDataVisualizer.encode(),
       territories: territories.map(territory => {
         return {
           ...territory,
           fill: territory.fill ? territory.fill.encode() : null,
-          outlineColor: territory.outlineColor ? territory.outlineColor.encode() : null
+          outlineColor: territory.outlineColor ? territory.outlineColor.encode() : null,
+          boundingBox: {x: territory.boundingBox.x, y: territory.boundingBox.y, width: territory.boundingBox.width, height: territory.boundingBox.height}
         }
       }),
       mapDimensions,
       defaultValue,
       annotations,
-      markers,
-      defaultMarkerStyle,
+      markers: markers.map(marker => {
+        return {
+          ...marker,
+          fill: marker.fill ? marker.fill.encode() : null,
+          outlineColor: marker.outlineColor ? marker.outlineColor.encode() : null
+        }
+      }),
+      defaultMarkerStyle: {
+        fill: defaultMarkerStyle.fill.encode(),
+        outlineColor: defaultMarkerStyle.outlineColor.encode(),
+        outlineSize: defaultMarkerStyle.outlineSize
+      },
       mapSvgPath,
       recentColors,
       effects,
@@ -506,7 +556,7 @@ export function Editor({chosenMap, data, onUpdate}) {
 
   useEffect(() => {
     if(!savingToCloud) return
-    onUpdate(getMapData())
+    onUpdate(getMapData)
   }, [defaultStyle, defaultDataVisualizer, territories, mapDimensions, defaultValue, annotations, markers, defaultMarkerStyle, mapSvgPath, recentColors, effects])
 
   
@@ -570,7 +620,6 @@ export function Editor({chosenMap, data, onUpdate}) {
       setMapSvgPath(fullPath)
       svgData.close() // parseSvg pastes the svg into the dom to make node.getBBox() possible. .close() removes the svg from the document.
       setMapDimensions(svgData.dimensions)
-      console.log("but this doesn't happen right")
       let canvas = document.createElement("canvas")
       canvas.setAttribute("width", svgData.dimensions.width)
       canvas.setAttribute("height", svgData.dimensions.height)
@@ -614,14 +663,14 @@ export function Editor({chosenMap, data, onUpdate}) {
       <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
         <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
           if(!savingToCloud) return
-          onUpdate(getMapData())
+          onUpdate(getMapData)
         }}></EditableMap>
         <div ref={mobileBottomDiv}>
           <Properties effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
           <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
           <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
         </div>
-        <ZoomWidget setUniteTerritoriesAlertOpened={setUniteTerritoriesAlertOpened} setDeleteTerritoryAlertOpened={setDeleteTerritoryAlertOpened} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} territories={territories} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
+        <ZoomWidget savingToCloud={savingToCloud} saving={saving} setUniteTerritoriesAlertOpened={setUniteTerritoriesAlertOpened} setDeleteTerritoryAlertOpened={setDeleteTerritoryAlertOpened} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} territories={territories} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       </div>
       
       {
@@ -909,8 +958,13 @@ function FloatingColorPicker({opened, onChange, value}) {
   </div>
 }
 
-function ZoomWidget({setDeleteTerritoryAlertOpened, setUniteTerritoriesAlertOpened, selectedTerritory, setSelectedTerritory, setTerritories, territories, currentZoom, setCurrentZoom}) {
+function ZoomWidget({savingToCloud, saving, setDeleteTerritoryAlertOpened, setUniteTerritoriesAlertOpened, selectedTerritory, setSelectedTerritory, setTerritories, territories, currentZoom, setCurrentZoom}) {
   return <div id="zoom-panel-positioner" style={{display: "flex"}}>
+    {
+      savingToCloud
+        ? <img style={{width: "50px", height: "50px", marginRight: "10px", cursor: "pointer"}} src="icons/autosave.svg" id="autosave-icon" className={"saving" + (saving ? " animating" : null)}/>
+        : null
+    }
     <div id="unite-icon" style={{display: selectedTerritory && Array.isArray(selectedTerritory) ? "flex" : "none", alignItems: "center", justifyContent: "center", cursor: "pointer", borderRadius: "10px", marginRight: "10px", backgroundColor: "#465077", width: "50px", height: "50px"}} onClick={function() {
       setUniteTerritoriesAlertOpened(true)
     }}>

@@ -99,3 +99,17 @@
   font-weight: 900;
   font-style: italic;
 }
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.saving.animating {
+  animation: rotating 1.4s linear infinite;
+}

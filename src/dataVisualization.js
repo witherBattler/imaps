@@ -50,6 +50,9 @@ class DataVisualizer {
                 return 2
         }
     }
+    encode() {
+        return {objectType: "dataVisualizer", dataVisualizerType: this.type, data: this.data}
+    }
 }
 
 class TextDataVisualizer extends DataVisualizer {
@@ -200,7 +203,19 @@ class GeometryDashDataVisualizer extends DataVisualizer {
     }
 }
 
+function decodeDataVisualizer(object) {
+    switch(object.dataVisualizerType) {
+        case null:
+            return new DataVisualizer()
+        case "text":
+            return new TextDataVisualizer(object.data.text.style, object.data)
+        case "geometryDash":
+            return new GeometryDashDataVisualizer(object.data.geometryDash.min, object.data.geometryDash.max, object.data.geometryDash.reverse, object.data.geometryDash.hideOnParseError, object.data)
+    }
+}
+
 export {
     GeometryDashDataVisualizer,
     DataVisualizer,
+    decodeDataVisualizer
 }

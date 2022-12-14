@@ -11,6 +11,7 @@ export default function EditMap() {
   let [chosenMap, setChosenMap] = useState(null)
   let [mapData, setMapData] = useState(null)
   let [mapId, setMapId] = useState(null)
+  let [saving, setSaving] = useState(false)
   let routeParams = useParams()
 
   useEffect(function() {
@@ -31,14 +32,16 @@ export default function EditMap() {
 
   if(chosenMap) {
     return <ThemeProvider theme={darkTheme}>
-      <Editor data={mapData} chosenMap={chosenMap} onUpdate={function(data) {
+      <Editor data={mapData} saving={saving} chosenMap={chosenMap} onUpdate={function(getData) {
         if(updateTimeout) {
           clearTimeout(updateTimeout)
         }
+        setSaving(true)
         updateTimeout = setTimeout(function() {
-          post(`/update-map/${mapId}`, data)
-          console.log("request officially sent")
-        }, 3000)
+          post(`/update-map/${mapId}`, getData()).then(() => {
+            setSaving(false)
+          })
+        }, 1000)
       }}/>
     </ThemeProvider>
   } else {
