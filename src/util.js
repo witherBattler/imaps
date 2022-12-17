@@ -241,6 +241,21 @@ function convertSvgUrlsToBase64(svg) {
     })  
 }
 
+function combineBoundingBoxes(boundingBox1, boundingBox2) {
+    let x = Math.min(boundingBox1.x, boundingBox2.x)
+    let y = Math.min(boundingBox1.y, boundingBox2.y)
+    let right1 = boundingBox1.x + boundingBox1.width
+    let right2 = boundingBox2.x + boundingBox2.width
+    let bottom1 = boundingBox1.y + boundingBox1.height
+    let bottom2 = boundingBox2.y + boundingBox2.height
+    let right = Math.max(right1, right2)
+    let bottom = Math.max(bottom1, bottom2)
+    let width = right - x
+    let height = bottom - y
+    
+    return {x, y, width, height}
+}
+
 export {
     getMapImageUrl,
     ajax,
@@ -258,5 +273,6 @@ export {
     getRectFromPoints,
     convertSvgUrlsToBase64,
     svgToJpg,
-    svgToWebp
+    svgToWebp,
+    combineBoundingBoxes
 }

@@ -134,12 +134,15 @@
 #top-bar > .right > .icon-button-container {
   aspect-ratio: 1 / 1;
   height: 100%;
-  padding: 12px;
+  padding: 15px;
   box-sizing: border-box;
+  padding-inline: 17px;
+  cursor: pointer;
 }
 #top-bar > .right > .icon-button-container > .icon {
   height: 100%;
   width: 100%;
+  opacity: 0.8;
 }
 
 #bottom {
@@ -201,7 +204,9 @@
 #content.hub > .header:first-child {
   margin-top: 0px;
 }
-
+#content.hub > #projects-list {
+  display: flex;
+}
 #content.hub > #projects-list > * {
   width: 300px;
   height: 200px;
@@ -216,4 +221,40 @@
 }
 #content.hub > #projects-list > .create-project > img {
   height: 25%;
+}
+#content.hub > #projects-list > .project {
+  width: 300px;
+  height: 200px;
+  background-color: #3F4570;
+  border-radius: 10px;
+  margin-left: 15px;
+  cursor: pointer;
+  user-select: none;
+}
+#content.hub > #projects-list > .project:hover > .title {
+  text-decoration: underline;
+}
+#content.hub > #projects-list > .project > .preview {
+  margin: 10px;
+  background-color: #EFF0FD;
+  height: 115px;
+  border-radius: 7px;
+  padding: 10px
+}
+#content.hub > #projects-list > .project > .title {
+  font-family: rubik;
+  color: white;
+  margin: 0px;
+  margin-top: -4.5px;
+  margin-left: 10px;
+  font-size: 20px;
+}
+#content.hub > #projects-list > .project > .creation-date {
+  font-family: rubik;
+  color: white;
+  margin: 0px;
+  margin-top: -2px;
+  margin-left: 10px;
+  font-size: 16px;
+  opacity: 0.5;
 }

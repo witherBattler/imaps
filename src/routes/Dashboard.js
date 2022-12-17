@@ -32,56 +32,7 @@ export default function Dashboard(props) {
 
   return <div id="dashboard">
     <link rel="stylesheet" href="dashboard.css"></link>
-    <div id="top-bar">
-      {
-        userData
-          ? <div id="profile-container">
-            <div id="profile-picture-container">
-              {
-                userData.profilePicture
-                  ? <img id="profile-picture" src={userData.profilePicture}/>
-                  : <p id="profile-letter">{userData.username[0]}</p>
-              }
-            </div>
-            <div id="profile-text">
-              <p id="profile-username">{userData.username}</p>
-              {
-                (() => {
-                  switch(userData.method) {
-                    case "normal":
-                      return <p id="profile-secondary-username">{userData.username}</p>
-                    case "discord":
-                      return <p id="profile-secondary-username">{userData.username + "#" + userData.tag}</p>
-                    case "google":
-                      return <p id="profile-secondary-username">{userData.email}</p>
-                    default:
-                      console.log(userData)
-                  }
-                })()
-              }
-            </div>
-            <div className="open-icon-container">
-              <img src="icons/open.svg" className="open-icon"/>
-            </div>
-            
-          </div>
-          : null
-      }
-      <div className="right">
-        <div id="search-bar-container">
-          <div id="search-bar-inner-container">
-            <img src="icons/search.svg"></img>
-            <input id="search-bar" placeholder="Search for users and projects..."></input>
-          </div>
-        </div>
-        <div className="icon-button-container">
-          <img className="icon" src="icons/notification.svg"></img>
-        </div>
-
-      </div>
-      
-      
-    </div>
+    <TopBar userData={userData}></TopBar>
     <div id="bottom">
       <div id="side-bar">
         <button className={stage == "hub" ? "selected" : null} onClick={function() {
@@ -130,6 +81,16 @@ export default function Dashboard(props) {
 function DashboardHub({userData}) {
   let [chooseMapPopupShown, setChooseMapPopupShown] = useState(false)
   let [mapSearch, setMapSearch] = useState("")
+  let [mapsData, setMapsData] = useState(null)
+
+  useEffect(() => {
+    if(userData && !mapsData) {
+      get(`/maps?ids=${userData.maps.join(",")}`).then(mapsData => {
+        console.log('this even get execut?')
+        setMapsData(JSON.parse(mapsData))
+      })
+    }
+  }, [userData])
 
   let secondaryToShow = null
   if(chooseMapPopupShown) {
@@ -162,10 +123,19 @@ function DashboardHub({userData}) {
         <img src="icons/create-project-center.svg"/>
       </div>
       {
-        userData
-          ? userData.maps.map(map => {
-            console.log(map)
-          })
+        mapsData
+          ?
+            mapsData.map(map => {
+              let date = new Date(map.createdAt)
+              let dateString = date.getFullYear() + "/" + (date.getMonth() + 1).toLocaleString("en-US", {minimumIntegerDigits: 2}) + "/" + date.getDay().toLocaleString("en-US", {minimumIntegerDigits: 2})
+              return <div className="project" onClick={function() {
+                window.open("/edit-map/" + map.id)
+              }}>
+                <div className="preview" dangerouslySetInnerHTML={{__html: map.preview}}/>
+                <p className="title">{map.name}</p>
+                <p className="creation-date">Created on {dateString}</p>
+              </div>
+            })
           : null
       }
     </div>
@@ -175,6 +145,58 @@ function DashboardHub({userData}) {
     </div>
     { secondaryToShow }
   </>
+}
+export function TopBar({userData}) {
+  return <div id="top-bar">
+    {
+      userData
+        ? <div id="profile-container">
+          <div id="profile-picture-container">
+            {
+              userData.profilePicture
+                ? <img referrerPolicy="no-referrer" id="profile-picture" src={userData.profilePicture}/>
+                : <p id="profile-letter">{userData.username[0]}</p>
+            }
+          </div>
+          <div id="profile-text">
+            <p id="profile-username">{userData.username}</p>
+            {
+              (() => {
+                switch(userData.method) {
+                  case "normal":
+                    return <p id="profile-secondary-username">{userData.username}</p>
+                  case "discord":
+                    return <p id="profile-secondary-username">{userData.username + "#" + userData.tag}</p>
+                  case "google":
+                    return <p id="profile-secondary-username">{userData.email}</p>
+                  default:
+                    console.log(userData)
+                }
+              })()
+            }
+          </div>
+          <div className="open-icon-container">
+            <img src="icons/open.svg" className="open-icon"/>
+          </div>
+          
+        </div>
+        : null
+    }
+    <div className="right">
+      <div id="search-bar-container">
+        <div id="search-bar-inner-container">
+          <img src="icons/search.svg"></img>
+          <input id="search-bar" placeholder="Search for users and projects..."></input>
+        </div>
+      </div>
+      <div className="icon-button-container">
+        <img className="icon" src="icons/notification.svg"></img>
+      </div>
+
+    </div>
+    
+    
+  </div>
 }
 
 function DashboardLearn() {

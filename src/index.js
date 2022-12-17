@@ -17,7 +17,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider } from '@mui/material/styles';
-import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp, post, get } from "./util"
+import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp, post, get, combineBoundingBoxes } from "./util"
 import { ColorFill, FlagFill, decodeFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
@@ -371,7 +371,7 @@ function onKeyDown(func) {
   onKeyDownEventListeners.push(func)
 }
 
-export function Editor({chosenMap, data, onUpdate, saving}) {
+export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   function decodeStyle(style) {
     return {
       fill: decodeFill(style.fill),
@@ -442,7 +442,6 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
   function getStartingPenCachedImage() {
     let startingPenCachedImage = document.createElement("canvas")
     if(savingToCloud && !data.firstLoad) {
-      console.log("this?")
       startingPenCachedImage = document.createElement("canvas")
       startingPenCachedImage.width = data.mapDimensions.width
       startingPenCachedImage.height = data.mapDimensions.height
@@ -554,7 +553,8 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
       mapSvgPath,
       recentColors,
       effects,
-      penCachedImage: penCachedImage.toDataURL()
+      penCachedImage: penCachedImage.toDataURL(),
+      preview: mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
     }
   }
 
@@ -665,7 +665,7 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
 
   return(
     <>
-      <div style={{height: "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
+      <div style={{position: "relative", height: removeHeight ? `calc(100% - ${removeHeight})` : "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
         <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
           if(!savingToCloud) return
           onUpdate(getMapData)
@@ -673,7 +673,7 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
         <div ref={mobileBottomDiv}>
           <Properties effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
           <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
-          <Toolbar boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+          <Toolbar removeHeight={removeHeight} boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
         </div>
         <ZoomWidget savingToCloud={savingToCloud} saving={saving} setUniteTerritoriesAlertOpened={setUniteTerritoriesAlertOpened} setDeleteTerritoryAlertOpened={setDeleteTerritoryAlertOpened} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} territories={territories} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       </div>
@@ -743,7 +743,7 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
               }
             }}
           >
-            <DialogTitle>Delete {Array.isArray(selectedTerritory) ? selectedTerritory.length + " territories" : selectedTerritory.name}?</DialogTitle>
+            <DialogTitle>Unite {Array.isArray(selectedTerritory) ? selectedTerritory.length + " territories" : selectedTerritory.name}?</DialogTitle>
             <DialogContent>
               <DialogContentText id="unite-territory-alert" style={{color: "rgba(0, 0, 0, 0.8)"}}>
                 Are you sure you want to unite {selectedTerritory.length} territories? This action is irreversible.
@@ -776,21 +776,19 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
                   outlineSize: selectedTerritory[0].outlineSize || null,
                   hidden: false
                 }
+                let boundingBox = {x: 0, y: 0, height: 0, width: 0}
                 let newTerritories = territories.filter(territory => {
                   if(Array.isArray(selectedTerritory)) {
                     if(selectedTerritory.some(territory2 => territory2.index == territory.index)) {
-                      return false
-                    }
-                  } else {
-                    if(territory.index == selectedTerritory.index) {
+                      boundingBox = combineBoundingBoxes(boundingBox, territory.boundingBox)
                       return false
                     }
                   }
                   
                   return true
                 })
+                object.boundingBox = boundingBox
                 newTerritories.push(object)
-
                 setTerritories(newTerritories)
               }}>Confirm</Button>
             </DialogActions>
@@ -806,7 +804,7 @@ export function Editor({chosenMap, data, onUpdate, saving}) {
 
 
 
-function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function Toolbar({removeHeight, eraserSize, boosting, setBoosting, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   const [special, setSpecial] = useState(null)
   const [specialLocation, setSpecialLocation] = useState(0)
   const toolbarRef = useRef()
@@ -865,7 +863,7 @@ function Toolbar({eraserSize, boosting, setBoosting, setEraserSize, penSize, set
     </div>
     {
       special 
-        ? <div style={{transform: `translate(${specialLocation}px) scale(${window.innerWidth < 1430 ? window.innerWidth < 1240 ? window.innerWidth < 1070 ? 0.8 : 0.6 : 0.7 : 0.8})`, position: "absolute", left: `calc(50% - ${toolbarRect.width / 2}px)`, top: toolbarRect.top}}>
+        ? <div style={{transform: `translate(${specialLocation}px) translateY(-${removeHeight}) scale(${window.innerWidth < 1430 ? window.innerWidth < 1240 ? window.innerWidth < 1070 ? 0.8 : 0.6 : 0.7 : 0.8})`, position: "absolute", left: `calc(50% - ${toolbarRect.width / 2}px)`, top: toolbarRect.top}}>
             { special }
           </div>
         : null
