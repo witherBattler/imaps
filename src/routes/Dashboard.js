@@ -82,6 +82,7 @@ function DashboardHub({userData}) {
   let [chooseMapPopupShown, setChooseMapPopupShown] = useState(false)
   let [mapSearch, setMapSearch] = useState("")
   let [mapsData, setMapsData] = useState(null)
+  let [selectedMap, setSelectedMap] = useState(null)
 
   useEffect(() => {
     if(userData && !mapsData) {
@@ -112,6 +113,20 @@ function DashboardHub({userData}) {
       </div>
     </ThemeProvider>
   }
+  if(selectedMap) {
+    secondaryToShow = <ThemeProvider theme={lightTheme}>
+      <div className="overlay">
+        <div className="popup-content big" id="popup-choose-map">
+          <div className="popup-header" style={{display: "flex", justifyContent: "space-between"}} onClick={function() {
+            window.open("/edit-map/" + selectedMap.id)
+          }}>
+            <span>{selectedMap.name}</span>
+            <img src="icons/external-link.svg" style={{height: "100%", padding: "8px", boxSizing: "border-box"}}></img>
+          </div>
+        </div>
+      </div>
+    </ThemeProvider>
+  }
   return <>
     <h2 className="header">Maps</h2>
     <div id="projects-list">
@@ -128,12 +143,18 @@ function DashboardHub({userData}) {
             mapsData.map(map => {
               let date = new Date(map.createdAt)
               let dateString = date.getFullYear() + "/" + (date.getMonth() + 1).toLocaleString("en-US", {minimumIntegerDigits: 2}) + "/" + date.getDay().toLocaleString("en-US", {minimumIntegerDigits: 2})
-              return <div className="project" onClick={function() {
-                window.open("/edit-map/" + map.id)
-              }}>
+              return <div className="project">
                 <div className="preview" dangerouslySetInnerHTML={{__html: map.preview}}/>
                 <p className="title">{map.name}</p>
                 <p className="creation-date">Created on {dateString}</p>
+                <div className="buttons">
+                  <button className="open" onClick={function() {
+                    window.open("/edit-map/" + map.id)
+                  }}>Open</button>
+                  <button className="settings" onClick={function() {
+                    setSelectedMap(map)
+                  }}>Settings</button>
+                </div>
               </div>
             })
           : null
