@@ -4,6 +4,10 @@ import { lightTheme } from "../constants.js"
 import React, {useState, useEffect} from "react"
 import {useParams} from "react-router-dom"
 import { ThemeProvider } from '@mui/material/styles';
+import { TextField, Button } from "@mui/material"
+import Clear from '@mui/icons-material/Clear';
+import CheckIcon from '@mui/icons-material/Check';
+
 
 export default function Dashboard(props) {
   const routeParams = useParams()
@@ -83,6 +87,7 @@ function DashboardHub({userData}) {
   let [mapSearch, setMapSearch] = useState("")
   let [mapsData, setMapsData] = useState(null)
   let [selectedMap, setSelectedMap] = useState(null)
+  let [mapChanges, setMapChanges] = useState({})
 
   useEffect(() => {
     if(userData && !mapsData) {
@@ -116,12 +121,49 @@ function DashboardHub({userData}) {
   if(selectedMap) {
     secondaryToShow = <ThemeProvider theme={lightTheme}>
       <div className="overlay">
-        <div className="popup-content big" id="popup-choose-map">
-          <div className="popup-header" style={{display: "flex", justifyContent: "space-between"}} onClick={function() {
+        <div className="popup-content big" style={{display: "flex", flexDirection: "column"}}>
+          <div className="popup-header" onClick={function() {
             window.open("/edit-map/" + selectedMap.id)
           }}>
-            <span>{selectedMap.name}</span>
-            <img src="icons/external-link.svg" style={{height: "100%", padding: "8px", boxSizing: "border-box"}}></img>
+            {selectedMap.name}
+          </div>
+          <div id="map-settings-content">
+            <div className="column-1">
+              <p className="section-title">General</p>
+              <TextField label="Name" value={mapChanges.name || selectedMap.name} id="name-input" size="small" fullWidth variant="filled" onChange={function(event) {
+                setMapChanges({
+                  ...mapChanges,
+                  name: event.target.value
+                })
+              }}></TextField>
+              <p style={{fontFamily: "rubik", margin: "0px", marginTop: "5px", opacity: "0.9"}} className="subtitle">Recent colors</p>
+              <div id="recent-colors">
+                {console.log(selectedMap.recentColors)}
+                {
+                  selectedMap.recentColors.map(recentColor => {
+                    let colorString = `rgba(${recentColor.r}, ${recentColor.g}, ${recentColor.b}, ${recentColor.a})`
+                    return <div key={colorString} className="recent-color" style={{backgroundColor: colorString}}>
+                      <div className="minus"/>
+                    </div>
+                  })
+                }
+              </div>
+            </div>
+            <div className="column-2">
+            </div>
+            <div className="column-3">
+            </div>
+          </div>
+          <div id="map-settings-buttons">
+            <Button startIcon={<CheckIcon></CheckIcon>} disabled={!Object.keys(mapChanges).length} style={{marginRight: "10px"}} variant="contained">
+              Save
+            </Button>
+            <Button startIcon={<Clear></Clear>} variant="contained" style={{color: "black"}} color="error" onClick={function() {
+              setMapChanges({})
+              setSelectedMap(null)
+            }}>
+              Close
+            </Button>
           </div>
         </div>
       </div>
@@ -143,7 +185,7 @@ function DashboardHub({userData}) {
             mapsData.map(map => {
               let date = new Date(map.createdAt)
               let dateString = date.getFullYear() + "/" + (date.getMonth() + 1).toLocaleString("en-US", {minimumIntegerDigits: 2}) + "/" + date.getDay().toLocaleString("en-US", {minimumIntegerDigits: 2})
-              return <div className="project">
+              return <div key={map.id} className="project">
                 <div className="preview" dangerouslySetInnerHTML={{__html: map.preview}}/>
                 <p className="title">{map.name}</p>
                 <p className="creation-date">Created on {dateString}</p>

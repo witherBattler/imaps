@@ -282,3 +282,47 @@
 #content.hub > #projects-list > .project > .buttons > .settings {
   background-color: #00A1FF;
 }
+#map-settings-content {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+#map-settings-content > div {
+  padding-left: 10px;
+  box-sizing: border-box;
+}
+#map-settings-content .section-title {
+  font-family: rubik;
+  opacity: 0.9;
+  font-size: 20px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  border-bottom: 1px black solid;
+}
+#map-settings-buttons {
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: right;
+}
+#recent-colors > .recent-color {
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  margin-right: 5px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+#recent-colors > .recent-color:hover > .minus {
+  opacity: 0.5
+}
+#recent-colors > .recent-color > .minus {
+  background-color: white;
+  opacity: 0.2;
+  width: 50%;
+  height: 3px;
+  opacity: 0
+}

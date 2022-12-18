@@ -633,17 +633,20 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
     const scroller = new VirtualScroll()
     let fullScroll = 150
     scroller.on((newValue) => {
-      if(document.getElementById("right-bar").contains(newValue.originalEvent.target)) {
-        return
+      if(document.getElementById("right-bar")) {
+        if(document.getElementById("right-bar").contains(newValue.originalEvent.target)) {
+          return
+        }
+        if(document.getElementById("properties-panel").contains(newValue.originalEvent.target)) {
+          return
+        }
+        if(isMobile() && (document.getElementById("right-bar-container").contains(newValue.originalEvent.target) || document.getElementById("properties-container").contains(newValue.originalEvent.target))) {
+          fullScroll -= newValue.deltaY / 2
+          fullScroll = Math.min(Math.max(fullScroll, 150), 1160)
+          document.documentElement.style.setProperty("--mobile-ui-slide", fullScroll + "px")
+        }
       }
-      if(document.getElementById("properties-panel").contains(newValue.originalEvent.target)) {
-        return
-      }
-      if(isMobile() && (document.getElementById("right-bar-container").contains(newValue.originalEvent.target) || document.getElementById("properties-container").contains(newValue.originalEvent.target))) {
-        fullScroll -= newValue.deltaY / 2
-        fullScroll = Math.min(Math.max(fullScroll, 150), 1160)
-        document.documentElement.style.setProperty("--mobile-ui-slide", fullScroll + "px")
-      }
+      
     })
   }, [])
 
@@ -1263,6 +1266,25 @@ function EditableMap(props) {
         if(event.target.id == "map-div" || event.target.id == "map-svg") {
           setSelectedTerritory(null)
         }
+      } else if(currentTool == "marker") {
+        console.log("touch")
+        let territories = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].pageY)
+        let hoveringTerritories = false
+        for(let i = 0; i != territories.length; i++) {
+          if(territories[i].getAttribute("class") == "territory-path") {
+            hoveringTerritories = true
+            break
+          }
+        }
+        if(!hoveringTerritories) {
+          setSelectedMarker(null)
+        }
+      } else if(currentTool == "move") {
+        setCurrentlyMoving(true)
+        setMovingStartPosition({
+          x: event.touches[0].clientX - moved.x,
+          y: event.touches[0].clientY - moved.y
+        })
       }
     }} onTouchMove={!mobile ? null : function(event) {
       if(currentlyMoving) {
@@ -1273,6 +1295,7 @@ function EditableMap(props) {
         
         setMoved(delta)
       }
+
     }} onTouchEnd={!mobile ? null : function(event) {
       selectingTerritories = false
 
@@ -1327,6 +1350,32 @@ function EditableMap(props) {
   
             onMapDrawn()
             setLastPoint({x: mouseX, y: mouseY})
+          }
+        }
+        if(currentTool == "marker") {
+          if(currentlyMovingMarker) {
+            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+            let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
+            let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
+            let delta = {
+              x: mouseX - movingMarkerStartingPositionMouse.x,
+              y: mouseY - movingMarkerStartingPositionMouse.y
+            }
+            console.log(movingMarkerStartingPositionMouse)
+            let newPosition = {
+              x: delta.x + movingMarkerStartingPosition.x,
+              y: delta.y + movingMarkerStartingPosition.y
+            }
+            setMarkers(markers.map(marker => {
+              if(marker.index == currentlyMovingMarker) {
+                return {
+                  ...marker,
+                  ...newPosition
+                }
+              } else {
+                return marker
+              }
+            }))
           }
         }
         
@@ -1427,6 +1476,22 @@ function EditableMap(props) {
                           setLastPoint({x: mouseX, y: mouseY})
                           setCurrentlyDrawingNode(true)
                           drawnOnMap = true
+                        } else if(currentTool == "marker") {
+                          if(!dragging) {
+                            let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
+                  
+                            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                            let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
+                            let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
+                  
+                            let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
+                            setSelectedMarker(newMarker)
+                  
+                            setMarkers([
+                              ...markers,
+                              newMarker
+                            ])
+                          }
                         }
                       }
                     }
@@ -1477,7 +1542,23 @@ function EditableMap(props) {
 
               let selected = selectedMarker ? marker.index == selectedMarker.index : true
 
-              return <path onMouseDown={function(event) {
+              return <path onTouchStart={!mobile ? null : function(event) {
+                if(selectedMarker && selectedMarker.index == marker.index) {
+                  console.log("this happens")
+                  setSelectedMarker(null)
+                  return
+                }
+                
+                let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
+                let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
+
+                dragging = true
+                setSelectedMarker(marker)
+                setCurrentlyMovingMarker(marker.index)
+                setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
+                setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
+              }} onMouseDown={mobile ? null : function(event) {
                 if(selectedMarker && selectedMarker.index == marker.index) {
                   setSelectedMarker(null)
                   return
