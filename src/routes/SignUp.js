@@ -7,7 +7,7 @@ import KeyIcon from '@mui/icons-material/Key';
 import fetch from "node-fetch"
 import { serverLocation, discordOauth2UrlSignUp } from "../constants.js"
 import {post} from "../util.js"
-
+import {useState} from "react"
 import "../login.css"
 
 
@@ -41,6 +41,11 @@ function SignUpWithDiscord() {
 }
 
 export default function SignUp() {
+  const [usernameValue, setUsernameValue] = useState("")
+  const [passwordValue, setPasswordValue] = useState("")
+  const [requestPending, setRequestPending] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(null)
+
   return <GoogleOAuthProvider clientId="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com">
     <div id="background">
       <div className="left">
@@ -50,14 +55,48 @@ export default function SignUp() {
             endAdornment: <InputAdornment position="start">
               <AccountBoxIcon></AccountBoxIcon>
             </InputAdornment>
+          }} onChange={function(event) {
+            setUsernameValue(event.target.value)
           }}></TextField>
           <TextField style={{marginTop: "15px", fontFamily: "rubik"}} label="Password" variant="standard" fullWidth InputProps={{
             style: {fontFamily: "rubik"},
             endAdornment: <InputAdornment position="start">
               <KeyIcon></KeyIcon>
             </InputAdornment>
+          }} onChange={function(event) {
+            setPasswordValue(event.target.value)
           }}></TextField>
-          <Button style={{marginTop: "10px", fontFamily: "rubik"}} variant="contained" fullWidth>SIGN IN</Button>
+          <Button style={{marginTop: "10px", fontFamily: "rubik"}} variant="contained" fullWidth onClick={function() {
+            if(requestPending) {
+              return
+            }
+            if(passwordValue.length < 6) {
+              setErrorMessage("The length of your password has to be at least 6 characters.")
+              return
+            }
+            if(usernameValue.length < 4) {
+              setErrorMessage("The length of your username has to be at least 4 characters.")
+              return
+            }
+            setErrorMessage("")
+            setRequestPending(true)
+            post("/sign-up", {
+              method: "password",
+              username: usernameValue,
+              password: passwordValue
+            }).then(value => {
+              setRequestPending(false)
+              if(value == "Username is taken.") {
+                setErrorMessage("This username is already taken!")
+              } else {
+                window.localStorage.setItem("sessionId", value)
+                window.location = "/dashboard"
+              }
+            })
+          }}>SIGN UP</Button>
+          { errorMessage ? <p style={{color: "red", fontFamily: "rubik", margin: "0px", fontSize: "20px", textAlign: "center", marginTop: "5px"}}>
+            { errorMessage }
+          </p> : null}
           <div id="login-with">
             <SignUpWithGoogle></SignUpWithGoogle>
             <SignUpWithDiscord></SignUpWithDiscord>
