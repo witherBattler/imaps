@@ -109,9 +109,8 @@ function App() {
             <div className="content-row" id="navbar-content-row">
               <img src="./logo.svg"/>
               <div id="navbar-buttons">
-                <a>Premium</a>
-                <a>Create</a>
-                <a>Login</a>
+                <a href="/dashboard">Dashboard</a>
+                <a href="/login">Login</a>
                 {/* <GoogleLogin
                   clientId="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com"
                   buttonText="Login with Google"
