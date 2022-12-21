@@ -1,4 +1,6 @@
 import { createTheme } from '@mui/material/styles';
+import Slide from '@mui/material/Slide';
+import React from "react"
 
 export const MAP_NAMES = [
     {
@@ -2513,6 +2515,9 @@ export const lightTheme = createTheme({
     },
   })
 
+export const SlideUpTransition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />
+})
 export const serverLocation = process.env.NODE_ENV == "production" ? "https://api.periphern.com" : "http://localhost:8080"
 export const discordOauth2UrlLogin = process.env.NODE_ENV == "production" ? "https://discord.com/api/oauth2/authorize?client_id=1048754435381280909&redirect_uri=https%3A%2F%2Fperiphern.impixel.tech%2Fdiscord-oauth-login&response_type=code&scope=identify" : "https://discord.com/api/oauth2/authorize?client_id=1048754435381280909&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fdiscord-oauth-login&response_type=code&scope=identify"
 export const discordOauth2UrlSignUp = process.env.NODE_ENV == "production" ? "https://discord.com/api/oauth2/authorize?client_id=1048754435381280909&redirect_uri=https%3A%2F%2Fperiphern.impixel.tech%2Fdiscord-oauth-signup&response_type=code&scope=identify" : "https://discord.com/api/oauth2/authorize?client_id=1048754435381280909&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fdiscord-oauth-signup&response_type=code&scope=identify"

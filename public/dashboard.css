@@ -285,7 +285,9 @@
 #map-settings-content {
   flex-grow: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-right: 10px;
+  box-sizing: border-box;
 }
 #map-settings-content > div {
   padding-left: 10px;
@@ -317,12 +319,58 @@
   cursor: pointer;
 }
 #recent-colors > .recent-color:hover > .minus {
-  opacity: 0.5
+  opacity: 1
 }
 #recent-colors > .recent-color > .minus {
   background-color: white;
   opacity: 0.2;
   width: 50%;
   height: 3px;
-  opacity: 0
+  opacity: 0.5;
+  transition: opacity 0.05s;
+}
+#add-recent-color {
+  background-color: black;
+  transform: translateY(4px);
+}
+#add-recent-color > .plus {
+  opacity: 0.5;
+  height: 50%;
+  transition: opacity 0.05s;
+}
+#add-recent-color:hover > .plus {
+  opacity: 1;
+}
+
+#copy-link {
+  width: 100%;
+  height: 35px;
+  display: flex;
+}
+#copy-link-text {
+  flex-grow: 1 / 1;
+  font-family: rubik;
+  background-color: #E4E6EF;
+  overflow-x: hidden;
+  user-select: all;
+  flex-grow: 1;
+  height: 100%;
+  border-bottom-left-radius: 5px;
+  border-top-left-radius: 5px;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.42);
+}
+#copy-link-button {
+  background-color: #0085D2;
+  aspect-ratio: 1 / 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom-right-radius: 5px;
+  border-top-right-radius: 5px;
+  cursor: pointer;
 }

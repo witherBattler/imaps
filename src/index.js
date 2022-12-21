@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './default.css';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import { MAP_NAMES, FLAGS, COUNTRY_CODES, lightTheme, darkTheme, serverLocation } from "./constants"
+import { MAP_NAMES, FLAGS, COUNTRY_CODES, lightTheme, darkTheme, serverLocation, SlideUpTransition } from "./constants"
 import Card from "@mui/material/Card"
 import Box from "@mui/material/Box"
 import Grid from '@mui/material/Grid';
@@ -45,7 +45,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import Slide from '@mui/material/Slide';
 import VirtualScroll from "virtual-scroll"
 import EditIcon from '@mui/icons-material/Edit';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
@@ -54,6 +53,8 @@ import Login from "./routes/Login.js"
 import SignUp from "./routes/SignUp.js"
 import Dashboard from "./routes/Dashboard.js"
 import EditMap from "./routes/EditMap.js"
+import ClearIcon from '@mui/icons-material/Clear';
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 let drawnOnMap = false
@@ -2071,9 +2072,7 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
   )
 }
 
-let SlideUpTransition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />
-})
+
 
 function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerGetter, dataVisualizerSetter}) {
   switch(dataVisualizerGetter.type) {
@@ -2500,8 +2499,8 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 }
 
 
-function TerritoryFillPicker(props) {
-  const {recentColors, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
+export function TerritoryFillPicker(props) {
+  const {recentColors, lightTheme, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
@@ -2509,7 +2508,7 @@ function TerritoryFillPicker(props) {
   const backgroundId = generateId()
 
   return (
-    <div id={containerId} style={{borderRadius: "5px", display: "flex", width: "100%", height: "40px", backgroundColor: "#565F83", cursor: "pointer"}} onClick={function(event) {
+    <div id={containerId} style={{borderTopLeftRadius: "5px", borderTopRightRadius: "5px", display: "flex", borderBottom: "1px solid #00000066", width: "100%", height: "40px", backgroundColor: lightTheme ? "rgba(0, 0, 0, 0.06)" : "rgba(255, 255, 255, 0.09)", cursor: "pointer"}} onClick={function(event) {
       if(!document.getElementById(backgroundId).matches(":hover")) {
         setOffsetLeft(event.target.offsetLeft - 5)
         setOffsetTop(parseInt(event.target.offsetTop + event.target.offsetHeight) + 10)
@@ -2618,7 +2617,7 @@ function TerritoryFillPickerPopup(props) {
 
   return (
     <>
-      <div className="bg" id={backgroundId} style={{zIndex: "10", position: "fixed", top: "0px", left: "0px", width: "100%", height: "100%", backgroundColor: "rgba(0, 0, 0, 0.7)", display: opened ? "flex" : "none", alignItems: "center", justifyContent: "center"}} onClick={function(event) {
+      <div className="bg" id={backgroundId} style={{contain: "content", zIndex: "10", position: "fixed", top: "0px", left: "0px", width: "100%", height: "100%", backgroundColor: "rgba(0, 0, 0, 0.7)", display: opened ? "flex" : "none", alignItems: "center", justifyContent: "center"}} onClick={function(event) {
         if(event.target.className == "bg") {
           setOpened(false)
           if(color.type == "color") {
@@ -2633,7 +2632,7 @@ function TerritoryFillPickerPopup(props) {
         }
       }}>
         <div className="territory-fill-picker popup-content" style={{borderTopLeftRadius: "10px", borderTopRightRadius: "10px", width: "800px", height: "400px", display: "flex", flexDirection: "column"}}>
-          <div className="popup-header" elevation={3} style={{padding: "0px", width: "100%"}}>
+          <div className="popup-header" elevation={3} style={{padding: "0px", width: "100%", display: "flex", justifyContent: "space-between"}}>
             <Tabs value={tabIndex} onChange={function(event, newValue) {
               let updateStyleArgument
               switch(newValue) {
@@ -2652,6 +2651,18 @@ function TerritoryFillPickerPopup(props) {
               <Tab value={0} label="Color"></Tab>
               {allowFlagFill ? <Tab value={1} label="Flag"></Tab> : null}
             </Tabs>
+            <ClearIcon style={{marginRight: "15px"}} onClick={function() {
+              setOpened(false)
+              if(color.type == "color") {
+                for(let i = 0; i != recentColors.length; i++) {
+                  let recentColor = recentColors[i]
+                  if(recentColor.r == color.r && recentColor.g == color.g && recentColor.b == color.b) {
+                    return
+                  }
+                }
+                setRecentColors([...recentColors, {r: color.r, g: color.g, b: color.b, a: color.a}])
+              }
+            }}></ClearIcon>
           </div>
           <ThemeProvider theme={lightTheme}>
             { content }
