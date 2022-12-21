@@ -73,7 +73,7 @@ class FlagFill extends Fill {
         this.data = data || this.data
     }
     getBackgroundCSS(territory, mode) {
-        return `url("https://periphern.com/flags/${this.id}.${this.id.includes("_") ? "png" : "svg"}")`
+        return `url("https://www.periphern.com/flags/${this.id}.${this.id.includes("_") ? "png" : "svg"}")`
     }
     getBackground(territory, mode) {
         return `url(#${territory.index}.${mode})`
