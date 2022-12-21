@@ -322,7 +322,11 @@ function DashboardHub({userData}) {
               </div>
             </div>
             <div id="map-settings-buttons">
-              <Button startIcon={<CheckIcon></CheckIcon>} disabled={!Object.keys(mapChanges).length} style={{marginRight: "10px"}} variant="contained">
+              <Button startIcon={<CheckIcon></CheckIcon>} disabled={!Object.keys(mapChanges).length} variant="contained" onClick={async function() {
+                await post(`/update-map/${selectedMap.id}`, mapChanges)
+                setMapChanges({})
+                setSelectedMap(null)
+              }}>
                 Save
               </Button>
             </div>
