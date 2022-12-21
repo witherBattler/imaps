@@ -241,7 +241,7 @@ function DashboardHub({userData}) {
                 <p className="section-title">Share</p>
                 <div id="copy-link">
                   <div id="copy-link-text">
-                    https://periphern.com/view/{selectedMap.id}/
+                    https://www.periphern.com/view/{selectedMap.id}/
                   </div>
                   <div id="copy-link-button" onClick={async function() {
                     navigator.clipboard.writeText(document.getElementById("copy-link-text").innerText)
