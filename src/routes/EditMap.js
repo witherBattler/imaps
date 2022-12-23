@@ -16,6 +16,8 @@ export default function EditMap() {
   const [userData, setUserData] = useState(null)
   let routeParams = useParams()
 
+  console.log(mapData)
+
   useEffect(function() {
     get(`/map/${routeParams.id}`).then(mapData => {
       if(mapData == "Not logged in/session ID invalid.") {

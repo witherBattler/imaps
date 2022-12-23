@@ -92,12 +92,13 @@ export default function Dashboard(props) {
 }
 
 function DashboardHub({userData}) {
-  let [chooseMapPopupShown, setChooseMapPopupShown] = useState(false)
-  let [mapSearch, setMapSearch] = useState("")
-  let [mapsData, setMapsData] = useState(null)
-  let [selectedMap, setSelectedMap] = useState(null)
-  let [mapChanges, setMapChanges] = useState({})
-  let [deleteSelectedMapAlertOpened, setDeleteSelectedMapAlertOpened] = useState(false)
+  const [chooseMapPopupShown, setChooseMapPopupShown] = useState(false)
+  const [mapSearch, setMapSearch] = useState("")
+  const [mapsData, setMapsData] = useState(null)
+  const [selectedMap, setSelectedMap] = useState(null)
+  const [mapChanges, setMapChanges] = useState({})
+  const [deleteSelectedMapAlertOpened, setDeleteSelectedMapAlertOpened] = useState(false)
+  const [projectsListScroll, setProjectsListScroll] = useState(0)
 
   useEffect(() => {
     if(userData && !mapsData) {
@@ -110,6 +111,8 @@ function DashboardHub({userData}) {
   if(selectedMap) {
     console.log(selectedMap.effects.innerShadow.enabled)
   }
+
+  console.log(projectsListScroll)
 
   let secondaryToShow = null
   function getSecondaryToShow() {
@@ -134,8 +137,12 @@ function DashboardHub({userData}) {
     }
     if(selectedMap) {
       return <ThemeProvider theme={lightTheme}>
-        <div className="overlay">
-          <div className="popup-content big" style={{display: "flex", flexDirection: "column"}}>
+        <div className="overlay" onClick={function(event) {
+          if(!document.getElementById("selected-map-popup").matches(":hover")) {
+            setSelectedMap(null)
+          }
+        }}>
+          <div id="selected-map-popup" className="popup-content big" style={{display: "flex", flexDirection: "column"}}>
             <div className="popup-header" onClick={function() {
               window.open("/edit-map/" + selectedMap.id)
             }}>
@@ -361,7 +368,7 @@ function DashboardHub({userData}) {
               post("/delete-map", {
                 id: selectedMap.id
               }).then(function() {
-                window.reload()
+                window.location.reload()
               })
             }}>Confirm</Button>
           </DialogActions>
@@ -373,7 +380,9 @@ function DashboardHub({userData}) {
 
   return <>
     <h2 className="header">Maps</h2>
-    <div id="projects-list">
+    <div id="projects-list" style={{position: "relative"}} onScroll={function() {
+      setProjectsListScroll(document.getElementById("projects-list").scrollTop)
+    }}>
       <div className="create-project" onClick={function() {
         if(userData) {
           setChooseMapPopupShown(true)
@@ -403,6 +412,14 @@ function DashboardHub({userData}) {
             })
           : <p id="loading-maps">Loading maps...</p>
       }
+      {/* left arrow */}
+      <div className="arrow" style={{display: projectsListScroll == 0 ? "none" : "block", position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", backgroundColor: "rgba(0, 0, 0, 0.5)", width: "50px", height: "50px"}} onClick={function() {
+        document.getElementById("projects-list").scrollLeft = projectsListScroll - 100
+      }}>
+
+      </div>
+
+      {/* right arrow */}
     </div>
     <h2 className="header">Tutorials</h2>
     <div id="tutorials-list">

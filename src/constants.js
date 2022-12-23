@@ -2149,6 +2149,10 @@ export const FLAGS = [
         "type": "png"
     },
     {
+        "id": "persian_empire",
+        "name": "Persian Empire",
+    },
+    {
         "id": "russian_empire",
         "name": "Russian Empire",
         "type": "png"
