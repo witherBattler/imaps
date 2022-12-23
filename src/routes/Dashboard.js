@@ -401,7 +401,7 @@ function DashboardHub({userData}) {
                 </div>
               </div>
             })
-          : null
+          : <p id="loading-maps">Loading maps...</p>
       }
     </div>
     <h2 className="header">Tutorials</h2>

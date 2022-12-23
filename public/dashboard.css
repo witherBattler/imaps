@@ -13,6 +13,7 @@
 #bottom {
   flex-grow: 1;
   background-color: #2A2E4A;
+  max-width: 100%;
 }
 
 #top-bar > #search-bar-container > #search-bar-inner-container > #search-bar::placeholder {
@@ -154,6 +155,7 @@
 }
 #side-bar {
   width: 340px;
+  min-width: 340px;
   height: 100%;
   border-right: rgba(255, 255, 255, 0.2) 1.5px solid;
   display: flex;
@@ -192,6 +194,8 @@
   padding-left: 15px;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
+  width: calc(100vw - 340px);
 }
 #content.hub > .header {
   color: white;
@@ -206,12 +210,41 @@
 }
 #content.hub > #projects-list {
   display: flex;
+  overflow-x: scroll;
+  padding-right: 10px;
+  box-sizing: border-box;
 }
-#content.hub > #projects-list > * {
-  width: 300px;
+#content.hub > #projects-list::-webkit-scrollbar {
+  height: 5px;
+  border: 10px transparent solid;
+}
+#content.hub > #projects-list::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1) !important;
+  width: 3px;
+  border-radius: 100px;
+  -webkit-border-radius: 100px;
+  -moz-border-radius: 100px;
+  -ms-border-radius: 100px;
+  -o-border-radius: 100px;
+  height: 6px;
+}
+#content.hub > #projects-list > :not(#loading-maps):not(.arrow) {
+  min-width: 300px;
+  max-width: 300px;
   height: 240px;
   background-color: #3F4570;
   border-radius: 10px;
+}
+#loading-maps {
+  margin: 0px;
+  height: 240px;
+  width: 400px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: rubik;
+  font-size: 30px;
+  color: white;
 }
 #content.hub > #projects-list > .create-project {
   display: flex;
@@ -373,4 +406,12 @@
   border-bottom-right-radius: 5px;
   border-top-right-radius: 5px;
   cursor: pointer;
+}
+
+@media only screen and (max-width: 620px) {
+  #map-settings-content {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
 }
