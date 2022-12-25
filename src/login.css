@@ -155,3 +155,88 @@
 #login-with > img:last-child {
   margin-right: 0px;
 }
+
+#background.mobile {
+  display: none;
+}
+@media (max-width: 480px) {
+  #background.mobile {
+    display: flex;
+  }
+  #background.normal {
+    display: none;
+  }
+}
+@media (max-width: 380px) {
+  #background.mobile > .bottom > .panel > .subtitle {
+    font-size: 16px;
+  }
+}
+#background.mobile {
+  flex-direction: column;
+  height: 100%;
+}
+#background.mobile > .top {
+  background-color: #2A2E4A;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: url(../public/assets/seamless-pattern-1.svg);
+  background-size: 300px;
+  background-position: 15px 15px;
+}
+#background.mobile > .top > img {
+  margin-bottom: 50px;
+  user-select: none;
+  filter: drop-shadow(0px 0px 20px rgba(0, 0, 0, 0.4));
+  width: 65%;
+}
+#background.mobile > .bottom {
+  flex-grow: 1;
+  margin-top: -80px;
+  background-color: #ECF0F2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#background.mobile > .bottom > .panel {
+  flex-grow: 1;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 15px;
+  width: calc(100% - 60px);
+  position: relative;
+  z-index: 1;
+  padding-inline: 20px;
+  box-sizing: border-box;
+}
+#background.mobile > .bottom > .panel > .title {
+  color: black;
+  font-family: rubik;
+  text-align: center;
+  margin-top: 22px;
+  font-size: 30px;
+}
+#background.mobile > .bottom > .panel > .subtitle {
+  text-align: center;
+  font-family: rubik;
+  color: black;
+  opacity: 0.6;
+  font-size: 17px;
+}
+#background.mobile > .bottom > a {
+  height: 80px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-family: rubik;
+  color: #000000;
+  opacity: 0.8;
+  font-size: 25px;
+}

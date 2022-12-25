@@ -108,6 +108,8 @@ function typeToValue(string) {
             return 0
         case "flag":
             return 1
+        case "image":
+            return 2
     }
 }
 

@@ -54,7 +54,7 @@ import SignUp from "./routes/SignUp.js"
 import Dashboard from "./routes/Dashboard.js"
 import EditMap from "./routes/EditMap.js"
 import ClearIcon from '@mui/icons-material/Clear';
-
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 let drawnOnMap = false
@@ -459,7 +459,6 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
       drawnOnMap = true
       image.src = data.penCachedImage
     }
-    
   }, [])
   const [eraserSize, setEraserSize] = useState(10)
   function getStartingMarkers() {
@@ -516,6 +515,14 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
     return startingEffects
   }
   const [effects, setEffects] = useState(getStartingEffects())
+  function getStartingAssets() {
+    let startingAssets = []
+    if(savingToCloud && !data.firstLoad) {
+      startingAssets = data.assets || []
+    }
+    return startingAssets
+  }
+  const [assets, setAssets] = useState(getStartingAssets())
 
   function getMapData() {
     return {
@@ -554,7 +561,8 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
       recentColors,
       effects,
       penCachedImage: penCachedImage.toDataURL(),
-      preview: mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
+      preview: mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects),
+      assets
     }
   }
 
@@ -669,12 +677,12 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   return(
     <>
       <div style={{position: "relative", height: removeHeight ? `calc(100% - ${removeHeight})` : "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-        <EditableMap moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
+        <EditableMap assets={assets} setAssets={setAssets} moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
           if(!savingToCloud) return
           onUpdate(getMapData)
         }}></EditableMap>
         <div ref={mobileBottomDiv}>
-          <Properties effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+          <Properties assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
           <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
           <Toolbar removeHeight={removeHeight} boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
         </div>
@@ -1006,7 +1014,7 @@ let selectingTerritories = false
 let markerIndex = 0
 
 function EditableMap(props) {
-  const {effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue, onMapDrawn} = props
+  const {assets, setAssets, effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue, onMapDrawn} = props
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
   const [lastPoint, setLastPoint] = useState(null)
   const [currentlyMovingMarker, setCurrentlyMovingMarker] = useState(null)
@@ -1394,138 +1402,144 @@ function EditableMap(props) {
           }
         }
       }} width={mapDimensions.width} height={mapDimensions.height} style={{minWidth: mapDimensions.width + "px", minHeight: mapDimensions.height + "px", transform: `translate(-50%,-50%) translate(${moved.x}px, ${moved.y}px) scale(${parsedScale})`, transition: boosting ? "" : "transform 0.1s", position: "absolute", top: "50%", left: "50%"}}>
-          {
-            shownTerritories
-              .map((territory) => {
-                let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
-                defs = <>
-                  {defs}
-                  {style.defs}
-                </>
-                let selected = false
-                if(selectedTerritory) {
-                  if(Array.isArray(selectedTerritory)) {
-                    selected = selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)
-                  } else {
-                    selected = selectedTerritory.index == territory.index
-                  }
+        {
+          assets.map(asset => {
+            return <pattern id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
+                <image preserveAspectRatio="none" href={asset.data} width="1" height="1"></image>
+            </pattern>
+          })
+        }
+        {
+          shownTerritories
+            .map((territory) => {
+              let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
+              defs = <>
+                {defs}
+                {style.defs}
+              </>
+              let selected = false
+              if(selectedTerritory) {
+                if(Array.isArray(selectedTerritory)) {
+                  selected = selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)
+                } else {
+                  selected = selectedTerritory.index == territory.index
                 }
-                return <g className="territory" key={territory.index} style={selectedTerritory ? {opacity: selected ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
-                  <path
-                    className="territory-path"
-                    data-index={territory.index}
-                    d={territory.path}
-                    fill={style.fill}
-                    stroke={style.outlineColor}
-                    strokeWidth={style.outlineSize}
-                    style={defaultMapCSSStyle}
-                    onMouseDown={mobile ? null :
-                      function(event) {
-                        if(currentTool == "cursor") {
-                          if(selectedTerritory && (territory.index == selectedTerritory.index)) {
-                            setSelectedTerritory(null)
-                          } else {
-                            setSelectedTerritory(territory)
-                            selectingTerritories = true
-                          }
-                        } else if(currentTool == "marker") {
-                          if(!dragging) {
-                            let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
-                            for(let i = 0; i != markersElements.length; i++) {
-                              if(markersElements[i].matches(":hover")) {
-                                return
-                              }
-                            }
-                  
-                            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                            let mouseX = (event.clientX - mapRect.x) / currentZoom
-                            let mouseY = (event.clientY - mapRect.y) / currentZoom
-                  
-                            let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
-                            setSelectedMarker(newMarker)
-                  
-                            setMarkers([
-                              ...markers,
-                              newMarker
-                            ])
-                          }
-                        }
-                      }
-                    }
-                    onTouchStart={!mobile ? null :
-                      function(event) {
-                        if(currentTool == "cursor") {
-                          if(selectedTerritory && (territory.index == selectedTerritory.index)) {
-                            setSelectedTerritory(null)
-                          } else {
-                            setSelectedTerritory(territory)
-                          }
-                          selectingTerritories = true
-                        } else if(currentTool == "pen") {
-                          var mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                          let clientX = event.touches[0].clientX;
-                          let clientY = event.touches[0].clientY;
-                          var [mouseX, mouseY] = [(clientX - mapRect.x) / currentZoom, (clientY - mapRect.y) / currentZoom]
-                  
-                          let context = penCachedImage.getContext("2d")
-                          context.beginPath()
-                          context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
-                          context.fillStyle = penColor
-                          context.fill()
-                  
-                          setLastPoint({x: mouseX, y: mouseY})
-                          setCurrentlyDrawingNode(true)
-                          drawnOnMap = true
-                        } else if(currentTool == "marker") {
-                          if(!dragging) {
-                            let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
-                  
-                            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                            let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
-                            let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
-                  
-                            let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
-                            setSelectedMarker(newMarker)
-                  
-                            setMarkers([
-                              ...markers,
-                              newMarker
-                            ])
-                          }
-                        }
-                      }
-                    }
-                    onTouchEnd={!mobile ? null :
-                      function(event) {
-                        selectingTerritories = false
-                      }
-                    }
-                    onMouseEnter={mobile ? null :
-                      function(event) {
-                        if(selectingTerritories) {
-                          if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
-                            return
-                          } else if(selectedTerritory.index == territory.index) {
-                            return
-                          }
-                          setSelectedTerritory(createArray(selectedTerritory, territory))
-                        }
-                      }
-                    }
-                    filter={/* effects.innerShadow.enabled ? "url(#inner-shadow)" :  */null}
-                  ></path>
-                  {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)" strokeWidth={style.outlineSize} stroke={style.outlineColor}></path> : null}
-                </g>
               }
-            )
-          }
-          {
-            shownTerritories
-              .map((territory) => {
-                return (territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")
-              })
-          }
-          
+              return <g className="territory" key={territory.index} style={selectedTerritory ? {opacity: selected ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
+                <path
+                  className="territory-path"
+                  data-index={territory.index}
+                  d={territory.path}
+                  fill={style.fill}
+                  stroke={style.outlineColor}
+                  strokeWidth={style.outlineSize}
+                  style={defaultMapCSSStyle}
+                  onMouseDown={mobile ? null :
+                    function(event) {
+                      if(currentTool == "cursor") {
+                        if(selectedTerritory && (territory.index == selectedTerritory.index)) {
+                          setSelectedTerritory(null)
+                        } else {
+                          setSelectedTerritory(territory)
+                          selectingTerritories = true
+                        }
+                      } else if(currentTool == "marker") {
+                        if(!dragging) {
+                          let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
+                          for(let i = 0; i != markersElements.length; i++) {
+                            if(markersElements[i].matches(":hover")) {
+                              return
+                            }
+                          }
+                
+                          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                          let mouseX = (event.clientX - mapRect.x) / currentZoom
+                          let mouseY = (event.clientY - mapRect.y) / currentZoom
+                
+                          let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
+                          setSelectedMarker(newMarker)
+                
+                          setMarkers([
+                            ...markers,
+                            newMarker
+                          ])
+                        }
+                      }
+                    }
+                  }
+                  onTouchStart={!mobile ? null :
+                    function(event) {
+                      if(currentTool == "cursor") {
+                        if(selectedTerritory && (territory.index == selectedTerritory.index)) {
+                          setSelectedTerritory(null)
+                        } else {
+                          setSelectedTerritory(territory)
+                        }
+                        selectingTerritories = true
+                      } else if(currentTool == "pen") {
+                        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                        let clientX = event.touches[0].clientX;
+                        let clientY = event.touches[0].clientY;
+                        var [mouseX, mouseY] = [(clientX - mapRect.x) / currentZoom, (clientY - mapRect.y) / currentZoom]
+                
+                        let context = penCachedImage.getContext("2d")
+                        context.beginPath()
+                        context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+                        context.fillStyle = penColor
+                        context.fill()
+                
+                        setLastPoint({x: mouseX, y: mouseY})
+                        setCurrentlyDrawingNode(true)
+                        drawnOnMap = true
+                      } else if(currentTool == "marker") {
+                        if(!dragging) {
+                          let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
+                
+                          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                          let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
+                          let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
+                
+                          let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
+                          setSelectedMarker(newMarker)
+                
+                          setMarkers([
+                            ...markers,
+                            newMarker
+                          ])
+                        }
+                      }
+                    }
+                  }
+                  onTouchEnd={!mobile ? null :
+                    function(event) {
+                      selectingTerritories = false
+                    }
+                  }
+                  onMouseEnter={mobile ? null :
+                    function(event) {
+                      if(selectingTerritories) {
+                        if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
+                          return
+                        } else if(selectedTerritory.index == territory.index) {
+                          return
+                        }
+                        setSelectedTerritory(createArray(selectedTerritory, territory))
+                      }
+                    }
+                  }
+                  filter={/* effects.innerShadow.enabled ? "url(#inner-shadow)" :  */null}
+                ></path>
+                {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)" strokeWidth={style.outlineSize} stroke={style.outlineColor}></path> : null}
+              </g>
+            }
+          )
+        }
+        {
+          shownTerritories
+            .map((territory) => {
+              return (territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")
+            })
+        }
         {boosting ? drawnOnMap ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null : null}
         {
           markers
@@ -1672,7 +1686,7 @@ function PropertiesTopAd() {
 }
 
 function Properties(props) {
-  const {effects, setEffects, recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {assets, setAssets, effects, setEffects, recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
     <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100%", padding: "20px", boxSizing: "border-box"}}>
@@ -1681,7 +1695,7 @@ function Properties(props) {
         {
           currentTool == "marker" 
             ? selectedMarker
-              ? <MarkerProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
+              ? <MarkerProperties assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
                 setSelectedMarker(newValue)
                 setMarkers(markers.map(marker => {
                   if(marker.index == selectedMarker.index) {
@@ -1691,21 +1705,21 @@ function Properties(props) {
                   }
                 }))
               }}></MarkerProperties>
-              : <MarkerDefaultProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
+              : <MarkerDefaultProperties assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
             : selectedTerritory
-              ? <TerritoryProperties recentColors={recentColors} setRecentColors={setRecentColors} defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
-              : <DefaultsProperties effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
+              ? <TerritoryProperties assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
+              : <DefaultsProperties assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
         }
       </div>
     </div>
   )
 }
 
-function MarkerDefaultProperties({recentColors, setRecentColors, defaultMarkerStyle, setDefaultMarkerStyle}) {
+function MarkerDefaultProperties({assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, setDefaultMarkerStyle}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.fill} onUpdate={function(fill) {
+    <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.fill} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         fill: fill
@@ -1713,7 +1727,7 @@ function MarkerDefaultProperties({recentColors, setRecentColors, defaultMarkerSt
       setDefaultMarkerStyle(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
+    <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         outlineColor: fill
@@ -1731,11 +1745,11 @@ function MarkerDefaultProperties({recentColors, setRecentColors, defaultMarkerSt
     </div>
   </div>
 }
-function MarkerProperties({recentColors, setRecentColors, defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
+function MarkerProperties({assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
         ...selectedMarker,
         fill: fill
@@ -1743,7 +1757,7 @@ function MarkerProperties({recentColors, setRecentColors, defaultMarkerStyle, se
       setSelectedMarker(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
         ...selectedMarker,
         outlineColor: fill
@@ -1775,14 +1789,14 @@ function MarkerProperties({recentColors, setRecentColors, defaultMarkerStyle, se
 
 
 function DefaultsProperties(props) {
-  const {effects, setEffects, recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {assets, setAssets, effects, setEffects, recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
   
 
   return (
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT TERRITORY STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
+      <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           fill: fill
@@ -1797,7 +1811,7 @@ function DefaultsProperties(props) {
       <DataVisualizationEditor recentColors={recentColors} setRecentColors={setRecentColors} dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizationEditor>
       <Typography style={{marginTop: "25px", fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>MAP STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
+      <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           outlineColor: fill
@@ -2074,7 +2088,7 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
 
 
 
-function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerGetter, dataVisualizerSetter}) {
+function DataVisualizationEditor({assets, setAssets, recentColors, setRecentColors, dataVisualizerGetter, dataVisualizerSetter}) {
   switch(dataVisualizerGetter.type) {
     case "geometryDash":
       return <div>
@@ -2092,7 +2106,7 @@ function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerG
       var id = generateId()
       return <>
         <Typography style={{fontSize: "20px", lineHeight: "120%"}}>Fill</Typography>
-        <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
+        <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
           let newDataVisualizer = {
             ...dataVisualizerGetter,
             style: {
@@ -2104,7 +2118,7 @@ function DataVisualizationEditor({recentColors, setRecentColors, dataVisualizerG
           dataVisualizerSetter(dataVisualizerGetter.clone())
         }}></TerritoryFillPicker>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-        <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
+        <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
           let newDataVisualizer = {
             ...dataVisualizerGetter,
             style: {
@@ -2282,7 +2296,7 @@ function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, on
   }
 }
 
-function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
+function TerritoryProperties({assets, setAssets, recentColors, setRecentColors, defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
   // we want support for multiple selected territories as well as one only.
   function changeValueSelectedTerritory(type, object2) {
     if(type == 0) {
@@ -2380,9 +2394,9 @@ function TerritoryProperties({recentColors, setRecentColors, defaultDataVisualiz
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED TERRITORY STYLE: {territoryIdentifier}</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
+      <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker recentColors={recentColors} setRecentColors={setRecentColors} color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
+      <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
       <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
         <Slider value={sizePickerSliderValue} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={sizeSliderOnChange}/>
@@ -2500,7 +2514,7 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 
 
 export function TerritoryFillPicker(props) {
-  const {recentColors, lightTheme, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
+  const {assets, setAssets, recentColors, lightTheme, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
@@ -2517,7 +2531,7 @@ export function TerritoryFillPicker(props) {
     }}>
       <div style={{flexGrow: "1", padding: "6.5px", paddingRight: "0px", boxSizing: "border-box"}}>
         <div style={{background: color.getBackgroundCSS(), width: "100%", height: "100%", borderRadius: "3px"}}>
-          <TerritoryFillPickerPopup recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
+          <TerritoryFillPickerPopup assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
         </div>
       </div>
       
@@ -2529,7 +2543,7 @@ export function TerritoryFillPicker(props) {
 }
 
 function TerritoryFillPickerPopup(props) {
-  let {recentColors, setRecentColors, color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
+  let {assets, setAssets, recentColors, setRecentColors, color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
   if(allowFlagFill !== false) {
     allowFlagFill = true
   }
@@ -2608,9 +2622,21 @@ function TerritoryFillPickerPopup(props) {
           </div>
       </div>
       break;
+    case "image":
+      content = <div id="image-fill-picker-popup" style={{padding: "10px", boxSizing: "border-box", flexGrow: "1", minHeight: "0"}}>
+        <label for="add-image-input" className="add">
+          <AddPhotoAlternateIcon className="icon"></AddPhotoAlternateIcon>
+        </label>
+        <input id="add-image-input" type="file" onChange={function(event) {
+          let file = event.target.files[0]
+          console.log(file.name)
+        }} style={{display: "none"}}></input>
+          
+      </div>
+      break
     default:
       content = <>
-        
+        Error :(
       </>
       break
   }
@@ -2644,12 +2670,16 @@ function TerritoryFillPickerPopup(props) {
                   // flag fill
                   onUpdate(color.toFlagFill())
                   break
+                case 2:
+                  // image fill
+                  onUpdate(color.toImageFill())
                 default:
                   throw new Error("Unknown value: ", newValue)
               }
             }}>
               <Tab value={0} label="Color"></Tab>
               {allowFlagFill ? <Tab value={1} label="Flag"></Tab> : null}
+              {allowFlagFill ? <Tab value={2} label="Image"></Tab> : null}
             </Tabs>
             <ClearIcon style={{marginRight: "15px"}} onClick={function() {
               setOpened(false)

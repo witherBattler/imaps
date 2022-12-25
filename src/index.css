@@ -912,5 +912,24 @@ code {
 .territory-name.editing {
   outline: none;
   border: none;
-  
+}
+#image-fill-picker-popup {
+  display: grid;
+}
+#image-fill-picker-popup > * {
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+}
+#image-fill-picker-popup > .add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+#image-fill-picker-popup > .add > .icon {
+  opacity: 1;
+  color: #939393;
+  height: 30px;
+  width: 30px;
 }

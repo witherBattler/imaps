@@ -9,6 +9,9 @@ class Fill {
             },
             flag: {
                 id: "ad"
+            },
+            image: {
+                assetId: null
             }
         }
     }
@@ -17,6 +20,9 @@ class Fill {
     }
     toFlagFill() {
         return new FlagFill(this.data.flag.id, this.data)
+    }
+    toImageFill() {
+        return new ImageFill(this.data.image.assetId, this.data)
     }
     get getBackgroundCSS() {
         return this.getBackground
@@ -91,6 +97,31 @@ class FlagFill extends Fill {
     }
     clone() {
         return new FlagFill(this.id, JSON.parse(JSON.stringify(this.data))) 
+    }
+}
+
+class ImageFill extends Fill {
+    constructor(assetId, data) {
+        super()
+        this.assetId = assetId || null
+        this.type = "image"
+        this.data = data || this.data
+    }
+    getBackgroundCSS() {
+        return "red"
+    }
+    getBackground(territory, mode, additionalData) {
+        return `#asset.${this.assetId}`
+    }
+    getDefs(territory, mode) {
+        return null
+    }
+    setUpdate(newObject) {
+        this.assetId = newObject.assetId
+        this.data.image.assetId = newObject.assetId
+    }
+    clone() {
+        return new ImageFill(this.assetId, JSON.parse(JSON.stringify(this.data)))
     }
 }
 
