@@ -20,6 +20,11 @@ export const MAP_NAMES = [
         "countryCodes": true
     },
     {
+        "name": "Europe Drawn",
+        "url": "",
+        "id": "EuropeDrawn"
+    },
+    {
         "name": "Middle East",
         "url": "https://wikipedia.com/",
         "id": "MiddleEast",

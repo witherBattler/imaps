@@ -57,6 +57,7 @@ code {
 }
 #navbar-content-row > img {
   height: 70%;
+  cursor: pointer;
 }
 #navbar-buttons {
   display: flex;

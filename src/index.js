@@ -109,7 +109,7 @@ function App() {
         <>
           <div id="navbar" ref={navbarRef}>
             <div className="content-row" id="navbar-content-row">
-              <img src="./logo.svg"/>
+              <img src="./logo.svg" onClick={() => {window.location = "/"}}/>
               <div id="navbar-buttons">
                 <a href="/download">Download</a>
                 <a href="/dashboard">Dashboard</a>
