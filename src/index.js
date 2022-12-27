@@ -53,6 +53,7 @@ import Login from "./routes/Login.js"
 import SignUp from "./routes/SignUp.js"
 import Dashboard from "./routes/Dashboard.js"
 import EditMap from "./routes/EditMap.js"
+import Download from "./routes/Download.js"
 import ClearIcon from '@mui/icons-material/Clear';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 
@@ -110,18 +111,9 @@ function App() {
             <div className="content-row" id="navbar-content-row">
               <img src="./logo.svg"/>
               <div id="navbar-buttons">
+                <a href="/download">Download</a>
                 <a href="/dashboard">Dashboard</a>
                 <a href="/login">Login</a>
-                {/* <GoogleLogin
-                  clientId="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com"
-                  buttonText="Login with Google"
-                  onSuccess={function(result) {
-                    console.log(result)
-                  }}
-                  onError={function(error) {
-                    alert(JSON.stringify(error))
-                  }}
-                ></GoogleLogin> */}
               </div>
               <IconButton id="menu-icon" style={{width: "60px", height: "60px"}}>
                 <MenuIcon></MenuIcon>
@@ -2891,6 +2883,7 @@ root.render(
       <Route path="dashboard" element={<Dashboard/>}></Route>
       <Route path="dashboard/:stage" element={<Dashboard/>}></Route>
       <Route path="edit-map/:id" element={<EditMap/>}></Route>
+      <Route path="download" element={<Download/>}></Route>
       <Route path="*" element={<NotFound/>}></Route>
     </Routes>
   </BrowserRouter>

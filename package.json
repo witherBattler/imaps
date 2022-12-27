@@ -20,8 +20,8 @@
     "convert-svg-to-png": "^0.6.4",
     "cross-fetch": "^3.1.5",
     "dotenv": "^16.0.3",
-    "electron": "^22.0.0",
     "electron-is-dev": "^2.0.0",
+    "electron-packager": "^17.1.1",
     "https": "^1.0.0",
     "material-ui-number-input": "^5.0.24",
     "material-ui-numeric-input": "^3.1.1",
@@ -50,7 +50,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron-dev": "concurrently \"npm run start\" \"wait-on http://localhost:3000 && electron .\""
+    "electron-dev": "wait-on https://www.periphern.com/ && electron ."
   },
   "eslintConfig": {
     "extends": [
@@ -69,5 +69,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "electron": "^22.0.0"
   }
 }
