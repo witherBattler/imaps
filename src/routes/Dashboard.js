@@ -397,7 +397,7 @@ function DashboardHub({userData}) {
               let date = new Date(map.createdAt)
               let dateString = date.getFullYear() + "/" + (date.getMonth() + 1).toLocaleString("en-US", {minimumIntegerDigits: 2}) + "/" + date.getDay().toLocaleString("en-US", {minimumIntegerDigits: 2})
               return <div key={map.id} className="project">
-                <div className="preview" dangerouslySetInnerHTML={{__html: map.preview}}/>
+                <img className="preview" style={{objectFit: "contain"}} src={map.preview}/>
                 <p className="title">{map.name}</p>
                 <p className="creation-date">Created on {dateString}</p>
                 <div className="buttons">

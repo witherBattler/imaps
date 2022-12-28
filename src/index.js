@@ -674,7 +674,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
           onUpdate(getMapData)
         }}></EditableMap>
         <div ref={mobileBottomDiv}>
-          <Properties assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+          <Properties mapData={data} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
           <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
           <Toolbar removeHeight={removeHeight} boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
         </div>
@@ -1678,7 +1678,7 @@ function PropertiesTopAd() {
 }
 
 function Properties(props) {
-  const {assets, setAssets, effects, setEffects, recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {mapData, savingToCloud, assets, setAssets, effects, setEffects, recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
     <div id="properties-container" style={{position: "absolute", top: "0px", left: "0px", height: "100%", padding: "20px", boxSizing: "border-box"}}>
@@ -1687,7 +1687,7 @@ function Properties(props) {
         {
           currentTool == "marker" 
             ? selectedMarker
-              ? <MarkerProperties assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
+              ? <MarkerProperties mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
                 setSelectedMarker(newValue)
                 setMarkers(markers.map(marker => {
                   if(marker.index == selectedMarker.index) {
@@ -1697,21 +1697,21 @@ function Properties(props) {
                   }
                 }))
               }}></MarkerProperties>
-              : <MarkerDefaultProperties assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
+              : <MarkerDefaultProperties mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
             : selectedTerritory
-              ? <TerritoryProperties assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
-              : <DefaultsProperties assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
+              ? <TerritoryProperties mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
+              : <DefaultsProperties mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
         }
       </div>
     </div>
   )
 }
 
-function MarkerDefaultProperties({assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, setDefaultMarkerStyle}) {
+function MarkerDefaultProperties({mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, setDefaultMarkerStyle}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.fill} onUpdate={function(fill) {
+    <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.fill} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         fill: fill
@@ -1719,7 +1719,7 @@ function MarkerDefaultProperties({assets, setAssets, recentColors, setRecentColo
       setDefaultMarkerStyle(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
+    <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         outlineColor: fill
@@ -1737,11 +1737,11 @@ function MarkerDefaultProperties({assets, setAssets, recentColors, setRecentColo
     </div>
   </div>
 }
-function MarkerProperties({assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
+function MarkerProperties({mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
         ...selectedMarker,
         fill: fill
@@ -1749,7 +1749,7 @@ function MarkerProperties({assets, setAssets, recentColors, setRecentColors, def
       setSelectedMarker(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
         ...selectedMarker,
         outlineColor: fill
@@ -1773,7 +1773,6 @@ function MarkerProperties({assets, setAssets, recentColors, setRecentColors, def
         outlineColor: null,
         outlineSize: null
       }
-      console.log(reset, selectedMarker)
       setSelectedMarker(reset)
     }}>Reset</Button>
   </div>
@@ -1781,14 +1780,14 @@ function MarkerProperties({assets, setAssets, recentColors, setRecentColors, def
 
 
 function DefaultsProperties(props) {
-  const {assets, setAssets, effects, setEffects, recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {mapData, savingToCloud, assets, setAssets, effects, setEffects, recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
   
 
   return (
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT TERRITORY STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
+      <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           fill: fill
@@ -1803,7 +1802,7 @@ function DefaultsProperties(props) {
       <DataVisualizationEditor recentColors={recentColors} setRecentColors={setRecentColors} dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizationEditor>
       <Typography style={{marginTop: "25px", fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>MAP STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
+      <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           outlineColor: fill
@@ -2080,7 +2079,7 @@ function RightBar({territories, setTerritories, selectedTerritory, setSelectedTe
 
 
 
-function DataVisualizationEditor({assets, setAssets, recentColors, setRecentColors, dataVisualizerGetter, dataVisualizerSetter}) {
+function DataVisualizationEditor({mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, dataVisualizerGetter, dataVisualizerSetter}) {
   switch(dataVisualizerGetter.type) {
     case "geometryDash":
       return <div>
@@ -2098,7 +2097,7 @@ function DataVisualizationEditor({assets, setAssets, recentColors, setRecentColo
       var id = generateId()
       return <>
         <Typography style={{fontSize: "20px", lineHeight: "120%"}}>Fill</Typography>
-        <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
+        <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
           let newDataVisualizer = {
             ...dataVisualizerGetter,
             style: {
@@ -2110,7 +2109,7 @@ function DataVisualizationEditor({assets, setAssets, recentColors, setRecentColo
           dataVisualizerSetter(dataVisualizerGetter.clone())
         }}></TerritoryFillPicker>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-        <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
+        <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
           let newDataVisualizer = {
             ...dataVisualizerGetter,
             style: {
@@ -2288,7 +2287,7 @@ function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, on
   }
 }
 
-function TerritoryProperties({assets, setAssets, recentColors, setRecentColors, defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
+function TerritoryProperties({mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
   // we want support for multiple selected territories as well as one only.
   function changeValueSelectedTerritory(type, object2) {
     if(type == 0) {
@@ -2386,9 +2385,9 @@ function TerritoryProperties({assets, setAssets, recentColors, setRecentColors, 
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED TERRITORY STYLE: {territoryIdentifier}</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
+      <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
+      <TerritoryFillPicker mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
       <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
         <Slider value={sizePickerSliderValue} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={sizeSliderOnChange}/>
@@ -2506,7 +2505,7 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 
 
 export function TerritoryFillPicker(props) {
-  const {assets, setAssets, recentColors, lightTheme, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
+  const {mapData, savingToCloud, assets, setAssets, recentColors, lightTheme, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
@@ -2523,7 +2522,7 @@ export function TerritoryFillPicker(props) {
     }}>
       <div style={{flexGrow: "1", padding: "6.5px", paddingRight: "0px", boxSizing: "border-box"}}>
         <div style={{background: color.getBackgroundCSS(), width: "100%", height: "100%", borderRadius: "3px"}}>
-          <TerritoryFillPickerPopup assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
+          <TerritoryFillPickerPopup mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
         </div>
       </div>
       
@@ -2535,7 +2534,7 @@ export function TerritoryFillPicker(props) {
 }
 
 function TerritoryFillPickerPopup(props) {
-  let {assets, setAssets, recentColors, setRecentColors, color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
+  let {mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
   if(allowFlagFill !== false) {
     allowFlagFill = true
   }
@@ -2626,6 +2625,9 @@ function TerritoryFillPickerPopup(props) {
             id: ++lastAssetId,
             data
           }])
+          if(savingToCloud) {
+            console.log(mapData)
+          }
         }} style={{display: "none"}}></input>
         {
           assets.map(asset => {

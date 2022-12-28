@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react"
 import {useParams} from "react-router-dom"
 import { ThemeProvider } from '@mui/material/styles';
 import { TopBar } from "./Dashboard"
+import {convertSvgUrlsToBase64, svgToPng} from "../util.js"
 
 let updateTimeout = null
 
@@ -51,12 +52,10 @@ export default function EditMap() {
         }
         setSaving(true)
         updateTimeout = setTimeout(async function() {
-          let data = getData()
+          let data = getData()    
           data.preview = await data.preview
-          data.preview.setAttributeNS(null, "viewBox", `0 0 ${data.preview.getAttribute("width")} ${data.preview.getAttribute("height")}`)
-          data.preview.setAttribute("width", "100%")
-          data.preview.setAttribute("height", "100%")
-          data.preview = data.preview.outerHTML
+          data.preview = await convertSvgUrlsToBase64(data.preview)
+          data.preview = await svgToPng(data.preview.outerHTML)          
           post(`/update-map/${mapId}`, data).then(() => {
             setSaving(false)
           })
