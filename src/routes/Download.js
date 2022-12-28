@@ -39,10 +39,7 @@ export default function Download() {
           Desktop download
         </div>
         <Button size="large" variant="contained" style={{backgroundColor: "#00A1FF", marginTop: "10px"}} className="download-button" startIcon={<DesktopWindowsIcon/>} onClick={function() {
-          const link = document.createElement("a")
-          link.download = "Periphern_Setup.exe"
-          link.href = "downloads/Periphern_Setup.exe"
-          link.click()
+          window.location = "https://drive.google.com/uc?export=download&id=1hABH1A8khlm6eYciVo2llVXETbaBR3uS"
         }}>
           Download
         </Button>
