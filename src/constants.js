@@ -31,6 +31,11 @@ export const MAP_NAMES = [
         "countryCodes": true
     },
     {
+        "name": "Balkans",
+        "url": "",
+        "id": "Balkans",
+    },
+    {
         "name": "German Empire",
         "url": null,
         "id": "GermanEmpire"

@@ -17,7 +17,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider } from '@mui/material/styles';
-import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp, post, get, combineBoundingBoxes } from "./util"
+import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp, post, get, combineBoundingBoxes, getBase64 } from "./util"
 import { ColorFill, FlagFill, decodeFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
@@ -59,7 +59,7 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 let drawnOnMap = false
-
+let lastAssetId = 0
 
 
 function App() {
@@ -2616,12 +2616,16 @@ function TerritoryFillPickerPopup(props) {
       break;
     case "image":
       content = <div id="image-fill-picker-popup" style={{padding: "10px", boxSizing: "border-box", flexGrow: "1", minHeight: "0"}}>
-        <label for="add-image-input" className="add">
+        <label htmlFor="add-image-input" className="add">
           <AddPhotoAlternateIcon className="icon"></AddPhotoAlternateIcon>
         </label>
-        <input id="add-image-input" type="file" onChange={function(event) {
+        <input id="add-image-input" type="file" onChange={async function(event) {
           let file = event.target.files[0]
-          console.log(file.name)
+          let data = await getBase64(file)
+          setAssets([...assets, {
+            id: ++lastAssetId,
+            data
+          }])
         }} style={{display: "none"}}></input>
           
       </div>
