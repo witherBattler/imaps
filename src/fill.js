@@ -111,7 +111,7 @@ class ImageFill extends Fill {
         return "red"
     }
     getBackground(territory, mode, additionalData) {
-        return `#asset.${this.assetId}`
+        return `url(#asset.${this.assetId})`
     }
     getDefs(territory, mode) {
         return null

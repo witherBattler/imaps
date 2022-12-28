@@ -1395,13 +1395,6 @@ function EditableMap(props) {
         }
       }} width={mapDimensions.width} height={mapDimensions.height} style={{minWidth: mapDimensions.width + "px", minHeight: mapDimensions.height + "px", transform: `translate(-50%,-50%) translate(${moved.x}px, ${moved.y}px) scale(${parsedScale})`, transition: "", position: "absolute", top: "50%", left: "50%"}}>
         {
-          assets.map(asset => {
-            return <pattern id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
-                <image preserveAspectRatio="none" href={asset.data} width="1" height="1"></image>
-            </pattern>
-          })
-        }
-        {
           shownTerritories
             .map((territory) => {
               let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
@@ -1583,6 +1576,13 @@ function EditableMap(props) {
             })
         }
         <defs>
+          {
+            assets.map(asset => {
+              return <pattern id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
+                  <image preserveAspectRatio="none" href={asset.data} width="1" height="1"></image>
+              </pattern>
+            })
+          }
           {defs}
           {
             drawnOnMap
@@ -2627,7 +2627,19 @@ function TerritoryFillPickerPopup(props) {
             data
           }])
         }} style={{display: "none"}}></input>
-          
+        {
+          assets.map(asset => {
+            return <div className={"asset" + (color.assetId == asset.id ? " selected" : "")} key={asset.id} onClick={function() {
+              color = color.clone()
+              color.assetId = asset.id
+              color.setUpdate(color)
+              onUpdate(color)
+            }}>
+              <img src={asset.data}></img>
+              <p>{asset.id}</p>
+            </div>
+          })
+        }
       </div>
       break
     default:
