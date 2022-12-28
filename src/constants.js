@@ -866,6 +866,11 @@ export const MAP_NAMES = [
         "id": "Serbia"
     },
     {
+        "name": "Serbia with Kosovo",
+        "url": "https://mapsvg.com/static/maps/geo-calibrated/serbia.svg",
+        "id": "SerbiaKosovo"
+    },
+    {
         "name": "Seychelles",
         "url": "https://simplemaps.com/static/svg/sc/sc.svg",
         "id": "Seychelles"
