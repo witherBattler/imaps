@@ -241,6 +241,11 @@ export const MAP_NAMES = [
         "id": "Canada"
     },
     {
+        "name": "Caucasus",
+        "url": "https://simplemaps.com/static/demos/resources/svg-library/svgs/world.svg",
+        "id": "Caucasus"
+    },
+    {
         "name": "Cape Verde",
         "url": "https://simplemaps.com/static/svg/cv/cv.svg",
         "id": "CapeVerde"
