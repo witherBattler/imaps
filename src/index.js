@@ -474,14 +474,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
     outlineSize: 1
   })
   const [boosting, setBoosting] = useState(isMobile())
-  function getStartingMapSvgPath() {
-    let startingMapSvgPath = ""
-    if(savingToCloud && !data.firstLoad) {
-      startingMapSvgPath = data.mapSvgPath
-    }
-    return startingMapSvgPath
-  }
-  const [mapSvgPath, setMapSvgPath] = useState(getStartingMapSvgPath())
+  const [mapSvgPath, setMapSvgPath] = useState("")
   const mobileBottomDiv = useRef()
   const [moved, setMoved] = useState({x: 0, y: 0})
   function getStartingRecentColors() {
@@ -516,7 +509,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   }
   const [assets, setAssets] = useState(getStartingAssets())
 
-  function getMapData() {
+  function getMapData(penCachedImageUpdated = true) {
     return {
       map: chosenMap,
       defaultStyle: {
@@ -549,10 +542,9 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
         outlineColor: defaultMarkerStyle.outlineColor.encode(),
         outlineSize: defaultMarkerStyle.outlineSize
       },
-      mapSvgPath,
       recentColors,
       effects,
-      penCachedImage: penCachedImage.toDataURL(),
+      ...(!penCachedImageUpdated ? {penCachedImage: penCachedImage.toDataURL()} : {}),
       preview: mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects),
       assets
     }
@@ -560,7 +552,9 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
 
   useEffect(() => {
     if(!savingToCloud) return
-    onUpdate(getMapData)
+    onUpdate(function() {
+      return getMapData()
+    })
   }, [defaultStyle, defaultDataVisualizer, territories, mapDimensions, defaultValue, annotations, markers, defaultMarkerStyle, mapSvgPath, recentColors, effects])
 
   
@@ -607,6 +601,11 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
 
   useEffect(function() {
     if(savingToCloud && !data.firstLoad) {
+      let fullPath = ""
+      data.territories.forEach((node, index) => {
+        fullPath += "M 0,0 " + node.path
+      })
+      setMapSvgPath(fullPath)
       return
     }
     ajax(getMapImageUrl(chosenMap.id), "GET").then(data => {
@@ -671,7 +670,9 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
       <div style={{position: "relative", height: removeHeight ? `calc(100% - ${removeHeight})` : "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
         <EditableMap assets={assets} setAssets={setAssets} moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
           if(!savingToCloud) return
-          onUpdate(getMapData)
+          onUpdate(function() {
+            return getMapData(false)
+          })
         }}></EditableMap>
         <div ref={mobileBottomDiv}>
           <Properties mapData={data} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
