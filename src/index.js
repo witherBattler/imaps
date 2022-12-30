@@ -450,6 +450,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
       }
       drawnOnMap = true
       image.src = data.penCachedImage
+      console.log(data.penCachedImage)
     }
   }, [])
   const [eraserSize, setEraserSize] = useState(10)
@@ -487,6 +488,8 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   const [recentColors, setRecentColors] = useState(getStartingRecentColors())
   const [deleteTerritoryAlertOpened, setDeleteTerritoryAlertOpened] = useState(false)
   const [uniteTerritoriesAlertOpened, setUniteTerritoriesAlertOpened] = useState(false)
+  const [eyedropperOpened, setEyedropperOpened] = useState(false)
+  const [eyedropperSetter, setEyedropperSetter] = useState(false)
   function getStartingEffects() {
     let startingEffects = {
       innerShadow: {
@@ -544,7 +547,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
       },
       recentColors,
       effects,
-      ...(!penCachedImageUpdated ? {penCachedImage: penCachedImage.toDataURL()} : {}),
+      ...(penCachedImageUpdated ? {penCachedImage: penCachedImage.toDataURL()} : {}),
       preview: mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects),
       assets
     }
@@ -553,7 +556,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   useEffect(() => {
     if(!savingToCloud) return
     onUpdate(function() {
-      return getMapData()
+      return getMapData(false)
     })
   }, [defaultStyle, defaultDataVisualizer, territories, mapDimensions, defaultValue, annotations, markers, defaultMarkerStyle, mapSvgPath, recentColors, effects])
 
@@ -668,16 +671,16 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   return(
     <>
       <div style={{position: "relative", height: removeHeight ? `calc(100% - ${removeHeight})` : "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-        <EditableMap assets={assets} setAssets={setAssets} moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
+        <EditableMap eyedropperOpened={eyedropperOpened} assets={assets} setAssets={setAssets} moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
           if(!savingToCloud) return
           onUpdate(function() {
-            return getMapData(false)
+            return getMapData(true)
           })
         }}></EditableMap>
         <div ref={mobileBottomDiv}>
           <Properties mapData={data} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
           <RightBar setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
-          <Toolbar removeHeight={removeHeight} boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
+          <Toolbar setEyedropperOpened={setEyedropperOpened} eyedropperOpened={eyedropperOpened} removeHeight={removeHeight} boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
         </div>
         <ZoomWidget savingToCloud={savingToCloud} saving={saving} setUniteTerritoriesAlertOpened={setUniteTerritoriesAlertOpened} setDeleteTerritoryAlertOpened={setDeleteTerritoryAlertOpened} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} territories={territories} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom}></ZoomWidget>
       </div>
@@ -808,7 +811,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
 
 
 
-function Toolbar({removeHeight, eraserSize, boosting, setBoosting, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function Toolbar({eyedropperOpened, setEyedropperOpened, removeHeight, eraserSize, boosting, setBoosting, setEraserSize, penSize, setPenSize, penColor, setPenColor, setCurrentTool, currentTool, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   const [special, setSpecial] = useState(null)
   const [specialLocation, setSpecialLocation] = useState(0)
   const toolbarRef = useRef()
@@ -831,7 +834,7 @@ function Toolbar({removeHeight, eraserSize, boosting, setBoosting, setEraserSize
   }
 
   return <>
-    <div id="toolbar" ref={toolbarRef}>
+    <div style={{display: eyedropperOpened ? "none" : "flex"}} id="toolbar" ref={toolbarRef}>
       <ToolbarButton name="CURSOR" icon="icons/cursor.svg" selected={currentTool == "cursor"} onClick={function() {
         setCurrentTool("cursor")
         setSpecial(null)
@@ -840,7 +843,7 @@ function Toolbar({removeHeight, eraserSize, boosting, setBoosting, setEraserSize
         setCurrentTool("move")
         setSpecial(null)
       }}></ToolbarButton>
-      <ToolbarButton name="PEN" colorPickerOpened={colorPickerOpened} setColorPickerOpened={setColorPickerOpened} setSpecial={trueSetSpecial} special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.svg" selected={currentTool == "pen"} onClick={function() {
+      <ToolbarButton setEyedropperOpened={setEyedropperOpened} name="PEN" colorPickerOpened={colorPickerOpened} setColorPickerOpened={setColorPickerOpened} setSpecial={trueSetSpecial} special="pen" penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} icon="icons/pen.svg" selected={currentTool == "pen"} onClick={function() {
         setCurrentTool("pen")
       }}></ToolbarButton>
       <ToolbarButton name="ERASER" setSpecial={trueSetSpecial} special="eraser" eraserSize={eraserSize} setEraserSize={setEraserSize} icon="icons/eraser.svg" selected={currentTool == "eraser"} onClick={function() {
@@ -874,7 +877,7 @@ function Toolbar({removeHeight, eraserSize, boosting, setBoosting, setEraserSize
     }
   </>
 }
-function ToolbarButton({setSpecial, colorPickerOpened, setColorPickerOpened, setEraserSize, eraserSize, penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
+function ToolbarButton({setEyedropperOpened, setSpecial, colorPickerOpened, setColorPickerOpened, setEraserSize, eraserSize, penColor, penSize, setPenColor, setPenSize, name, icon, selected, onClick, special, downloadSvg, downloadPng, downloadJpg, downloadWebp}) {
   const buttonRef = useRef()
 
   var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
@@ -911,6 +914,12 @@ function ToolbarButton({setSpecial, colorPickerOpened, setColorPickerOpened, set
                 penColor = newValue
                 setSpecial(buttonRef.current, getSpecialContent())
               }}></FloatingColorPicker>
+            </div>
+            <div onClick={function() {
+              setEyedropperOpened(true)
+               
+            }}>
+              <img src="icons/eyedropper.svg"></img>
             </div>
             <div className="button size-container" style={{outline: "none"}} onClick={function(event) {
               let element = event.currentTarget.getElementsByTagName("input")[0]
@@ -1007,7 +1016,7 @@ let selectingTerritories = false
 let markerIndex = 0
 
 function EditableMap(props) {
-  const {assets, setAssets, effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue, onMapDrawn} = props
+  const {eyedropperOpened, assets, setAssets, effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue, onMapDrawn} = props
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
   const [lastPoint, setLastPoint] = useState(null)
   const [currentlyMovingMarker, setCurrentlyMovingMarker] = useState(null)
