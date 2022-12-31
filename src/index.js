@@ -1070,6 +1070,7 @@ function EditableMap(props) {
 
   useEffect(() => {
     if(!lastPngPreview || !eyedropperOpened || !eyedropperImageData) {
+      console.log("this maybe?")
       return
     }
     let eyedropperImageBoundingBox = eyedropperImageRef.current.getBoundingClientRect()
@@ -1078,7 +1079,8 @@ function EditableMap(props) {
       y: eyedropperMousePosition.y - eyedropperImageBoundingBox.top
     }
     let canvasContext = eyedropperCanvasRef.current.getContext("2d")
-    let color = eyedropperImageData.getImageData(eyedropperImageMousePosition.x, eyedropperImageMousePosition.y, 1, 1).data
+    let scale = eyedropperImageRef.current.offsetWidth / mapDimensions.width
+    let color = eyedropperImageData.getImageData(Math.round(eyedropperImageMousePosition.x / scale), Math.round(eyedropperImageMousePosition.y / scale), 1, 1).data
     canvasContext.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`
     canvasContext.rect(0, 0, 150, 150)
     canvasContext.fill()
@@ -1367,9 +1369,8 @@ function EditableMap(props) {
       {
         eyedropperOpened && lastPngPreview
           ? <div style={{maxHeight: "100%", maxWidth: "100%", display: "flex", flexDirection: "column", alignItems: "center"}}>
-            <p style={{fontSize: "25px", color: "white", fontFamily: "rubik"}}>Hover over the map and click to pick a color.</p>
-            <img onMouseDown={mobile ? null : function(event) {
-              console.log("huh?")
+            <p id="eyedropper-label" style={{textAlign: "center", color: "white", fontFamily: "rubik"}}>Hover over the map and click to pick a color.</p>
+            <img style={{width: "calc(100% - 20px)", cursor: "crosshair"}} onMouseDown={mobile ? null : function(event) {
               if(!lastPngPreview || !eyedropperOpened || !eyedropperImageData) {
                 return
               }
@@ -1383,8 +1384,8 @@ function EditableMap(props) {
               setEyedropperMousePosition({x: 0, y: 0})
               eyedropperSetter(color)
               setEyedropperSetter(null)
+              setEyedropperImageData(null)
             }} onTouchEnd={!mobile ? null : function() {
-              console.log("huh? 2")
               if(!lastPngPreview || !eyedropperOpened || !eyedropperImageData) {
                 return
               }
@@ -1393,13 +1394,17 @@ function EditableMap(props) {
                 x: eyedropperMousePosition.x - eyedropperImageBoundingBox.left,
                 y: eyedropperMousePosition.y - eyedropperImageBoundingBox.top
               }
-              let color = eyedropperImageData.getImageData(eyedropperImageMousePosition.x, eyedropperImageMousePosition.y, 1, 1).data
+              let scale = eyedropperImageRef.current.offsetWidth / mapDimensions.width
+              let color = eyedropperImageData.getImageData(eyedropperImageMousePosition.x / scale, eyedropperImageMousePosition.y / scale, 1, 1).data
               setEyedropperOpened(false)
               setEyedropperMousePosition({x: 0, y: 0})
               eyedropperSetter(color)
               setEyedropperSetter(null)
-            }} ref={eyedropperImageRef} style={{cursor: "crosshair"}} src={lastPngPreview} onMouseMove={function(event) {
+              setEyedropperImageData(null)
+            }} ref={eyedropperImageRef} src={lastPngPreview} onMouseMove={mobile ? null : function(event) {
               setEyedropperMousePosition({x: event.clientX, y: event.clientY})
+            }} onTouchMove={!mobile ? null : function(event) {
+              setEyedropperMousePosition({x: event.touches[0].clientX, y: event.touches[0].clientY})
             }}></img>
             <canvas ref={eyedropperCanvasRef} width="150px" height="150px" style={{borderRadius: "50%", position: "absolute", left: eyedropperMousePosition.x + 10 + "px", top: eyedropperMousePosition.y + 10 + "px"}}></canvas>
           </div>

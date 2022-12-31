@@ -826,12 +826,18 @@ code {
     font-size: 12px;
   }
 }
+#eyedropper-label {
+  font-size: 25px;
+}
 @media only screen and (max-width: 570px) {
   #toolbar > .toolbar-button > .bottom {
     font-size: 10px;
   }
   #map-choice-grid {
     grid-template-columns: 1fr;
+  }
+  #eyedropper-label {
+    font-size: 20px !important;
   }
 }
 @media only screen and (max-width: 700px) {
