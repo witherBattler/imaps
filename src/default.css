@@ -133,3 +133,33 @@
     width: 1200px;
   }
 }
+
+@keyframes ui-hidden {
+  0% {
+    opacity: 1;
+    display: flex;
+  }
+  100% {
+    opacity: 0;
+    display: none;
+  }
+}
+@keyframes ui-shown {
+  0% {
+    opacity: 0;
+    display: none;
+  }
+  100% {
+    opacity: 1;
+    display: flex;
+  }
+}
+
+.ui-hidden {
+  animation: ui-hidden 0.5s;
+  animation-fill-mode: forwards;
+}
+.ui-shown {
+
+}
+

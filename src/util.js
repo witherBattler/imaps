@@ -134,7 +134,7 @@ function createArray(element1, element2) {
     }
 }
 
-async function svgToPng(svg) {
+function svgToPng(svg) {
     const url = getSvgUrl(svg);
     return new Promise(function(resolve, reject) {
         svgUrlToType(url, "image/png", (imgData) => {
@@ -143,8 +143,7 @@ async function svgToPng(svg) {
         });
     })
 }
-async function svgToJpg(svg) {
-    console.log("even getting ran?")
+function svgToJpg(svg) {
     const url = getSvgUrl(svg)
     return new Promise(function(resolve, reject) {
         svgUrlToType(url, "image/jpeg", (imgData) => {
@@ -153,7 +152,7 @@ async function svgToJpg(svg) {
         });
     })
 }
-async function svgToWebp(svg) {
+function svgToWebp(svg) {
     const url = getSvgUrl(svg)
     return new Promise(function(resolve, reject) {
         svgUrlToType(url, "image/webp", (imgData) => {
@@ -274,6 +273,28 @@ const getBase64 = file => new Promise((resolve, reject) => {
     reader.onerror = error => reject(error);
 });
 
+function getImageDataCoordinate(imageData, x, y) {
+    var red = imageData.data[((imageData.width * y) + x) * 4];
+    var green = imageData.data[((imageData.width * y) + x) * 4 + 1];
+    var blue = imageData.data[((imageData.width * y) + x) * 4 + 2];
+    var alpha = imageData.data[((imageData.width * y) + x) * 4 + 3];
+    return {
+        r: red,
+        g: green,
+        b: blue,
+        a: alpha
+    }
+}
+
+function componentToHex(c) {
+  var hex = c.toString(16);
+  return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbaToHex(r, g, b, a) {
+  return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
 export {
     getMapImageUrl,
     ajax,
@@ -294,5 +315,7 @@ export {
     svgToWebp,
     combineBoundingBoxes,
     hexToRgb,
-    getBase64
+    getBase64,
+    getImageDataCoordinate,
+    rgbaToHex
 }
