@@ -510,6 +510,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   const [lastPngPreview, setLastPngPreview] = useState(null)
   const [fillPickerFocused, setFillPickerFocused] = useState(false)
   const [fillPickerFocusedInterface, setFillPickerFocusedInterface] = useState(null)
+  const [fillPickerFocusedDisplacementStart, setFillPickerFocusedDisplacementStart] = useState({x: 0, y: 0})
   function getStartingEffects() {
     let startingEffects = {
       innerShadow: {
@@ -701,14 +702,14 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   return(
     <>
       <div style={{position: "relative", height: removeHeight ? `calc(100% - ${removeHeight})` : "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-        <EditableMap fillPickerFocused={fillPickerFocused} setFillPickerFocused={setFillPickerFocused} setEyedropperOpened={setEyedropperOpened} setEyedropperSetter={setEyedropperSetter} eyedropperSetter={eyedropperSetter} setLastPngPreview={setLastPngPreview} lastPngPreview={lastPngPreview} eyedropperOpened={eyedropperOpened} assets={assets} setAssets={setAssets} moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
+        <EditableMap fillPickerFocusedDisplacementStart={fillPickerFocusedDisplacementStart} setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} fillPickerFocused={fillPickerFocused} setFillPickerFocused={setFillPickerFocused} setEyedropperOpened={setEyedropperOpened} setEyedropperSetter={setEyedropperSetter} eyedropperSetter={eyedropperSetter} setLastPngPreview={setLastPngPreview} lastPngPreview={lastPngPreview} eyedropperOpened={eyedropperOpened} assets={assets} setAssets={setAssets} moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
           if(!savingToCloud) return
           onUpdate(function() {
             return getMapData(true)
           })
         }}></EditableMap>
         <div ref={mobileBottomDiv}>
-          <Properties fillPickerFocused={fillPickerFocused} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} eyedropperOpened={eyedropperOpened} mapData={data} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
+          <Properties setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} fillPickerFocused={fillPickerFocused} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} eyedropperOpened={eyedropperOpened} mapData={data} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} markers={markers} setMarkers={setMarkers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle} currentTool={currentTool} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} setSelectedTerritory={setSelectedTerritory} territories={territories} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle} selectedTerritory={selectedTerritory} setTerritories={setTerritories}></Properties>
           <RightBar fillPickerFocused={fillPickerFocused} eyedropperOpened={eyedropperOpened} setMarkers={setMarkers} markers={markers} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} setTerritories={setTerritories} selectedTerritory={selectedTerritory} setSelectedTerritory={setSelectedTerritory} territories={territories}></RightBar>
           <Toolbar fillPickerFocused={fillPickerFocused} setEyedropperSetter={setEyedropperSetter} setEyedropperOpened={setEyedropperOpened} eyedropperOpened={eyedropperOpened} removeHeight={removeHeight} boosting={boosting} setBoosting={setBoosting} eraserSize={eraserSize} setEraserSize={setEraserSize} penSize={penSize} setPenSize={setPenSize} penColor={penColor} setPenColor={setPenColor} downloadSvg={downloadSvg} downloadPng={downloadPng} downloadJpg={downloadJpg} downloadWebp={downloadWebp} currentTool={currentTool} setCurrentTool={setCurrentTool}></Toolbar>
         </div>
@@ -1050,9 +1051,10 @@ function ZoomWidget({fillPickerFocused, eyedropperOpened, savingToCloud, saving,
 
 let selectingTerritories = false
 let markerIndex = 0
+let lastAssetDisplacementData = null
 
 function EditableMap(props) {
-  const {setLastPngPreview, setEyedropperOpened, setEyedropperSetter, eyedropperSetter, eyedropperOpened, lastPngPreview, assets, setAssets, effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue, onMapDrawn} = props
+  const {fillPickerFocusedDisplacementStart, setFillPickerFocusedDisplacementStart, fillPickerFocused, fillPickerFocusedInterface, setLastPngPreview, setEyedropperOpened, setEyedropperSetter, eyedropperSetter, eyedropperOpened, lastPngPreview, assets, setAssets, effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue, onMapDrawn} = props
   const [currentlyDrawingNode, setCurrentlyDrawingNode] = useState(null)
   const [lastPoint, setLastPoint] = useState(null)
   const [currentlyMovingMarker, setCurrentlyMovingMarker] = useState(null)
@@ -1062,6 +1064,7 @@ function EditableMap(props) {
   const [movingStartPosition, setMovingStartPosition] = useState(null)
   const [eyedropperMousePosition, setEyedropperMousePosition] = useState({x: 0, y: 0})
   const [eyedropperImageData, setEyedropperImageData] = useState(null)
+  const [fillPickerFocusedMousePositionStart, setFillPickerFocusedMousePositionStart] = useState(null)
   const eyedropperCanvasRef = useRef()
   const eyedropperImageRef = useRef()
 
@@ -1107,6 +1110,12 @@ function EditableMap(props) {
 
   return (
     <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={mobile ? null : function(event) {
+      console.log(fillPickerFocused)
+      if(fillPickerFocused) {
+        setFillPickerFocusedMousePositionStart({x: event.clientX, y: event.clientY})
+        return
+      }
+      
       if(event.target.id == "map-div" || event.target.id == "map-svg") {
         setSelectedTerritory(null)
       }
@@ -1132,9 +1141,6 @@ function EditableMap(props) {
         context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
         context.fillStyle = penColor
         context.fill()
-        
-        
-
         setLastPoint({x: mouseX, y: mouseY})
         setCurrentlyDrawingNode(true)
         onMapDrawn()
@@ -1181,8 +1187,8 @@ function EditableMap(props) {
       } else if(currentTool == "move") {
         setCurrentlyMoving(true)
         setMovingStartPosition({
-          x: event.clientX - moved.x,
-          y: event.clientY - moved.y
+          x: event.clientX + moved.x,
+          y: event.clientY + moved.y
         })
       }
     }} onWheel={function(event) {
@@ -1194,6 +1200,10 @@ function EditableMap(props) {
         setCurrentZoom(roundToTwo(unrounded))
       }
     }} onMouseUp={mobile ? null : function(event) {
+      if(fillPickerFocusedMousePositionStart) {
+        setFillPickerFocusedMousePositionStart(null)
+        setFillPickerFocusedDisplacementStart(lastAssetDisplacementData)
+      }
       selectingTerritories = false
       setCurrentlyDrawingNode(false)
       if(currentTool == "pen" || currentTool == "eraser" && selectedTerritory) {
@@ -1207,6 +1217,18 @@ function EditableMap(props) {
 
       setCurrentlyMoving(false)
     }} onMouseMove={mobile ? null : function(event) {
+      if(fillPickerFocused && fillPickerFocusedMousePositionStart) {
+        // fillPickerFocused is either null or a function
+        let delta = {
+          x: fillPickerFocusedMousePositionStart.x - event.clientX,
+          y: fillPickerFocusedMousePositionStart.y - event.clientY
+        }
+        lastAssetDisplacementData = fillPickerFocused({
+          displaceX: delta.x - fillPickerFocusedMousePositionStart.x,
+          displaceY: delta.y - fillPickerFocusedMousePositionStart.y
+        })
+        return
+      }
       if(currentlyDrawingNode) {
         if(currentTool == "pen") {
           let mapRect = document.getElementById("map-svg").getBoundingClientRect()
@@ -1700,7 +1722,7 @@ function EditableMap(props) {
             <defs>
               {
                 assets.map(asset => {
-                  return <pattern id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
+                  return <pattern patternTransform={`translate(${asset.displaceX}, ${asset.displaceY})`} id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
                       <image preserveAspectRatio="none" href={asset.data} width="1" height="1"></image>
                   </pattern>
                 })
@@ -1801,7 +1823,7 @@ function PropertiesTopAd() {
 }
 
 function Properties(props) {
-  const {fillPickerFocused, setFillPickerFocused, setFillPickerFocusedInterface, eyedropperOpened, mapData, savingToCloud, assets, setAssets, effects, setEffects, recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {setFillPickerFocusedDisplacementStart, fillPickerFocused, setFillPickerFocused, setFillPickerFocusedInterface, eyedropperOpened, mapData, savingToCloud, assets, setAssets, effects, setEffects, recentColors, setRecentColors, currentTool, setMarkers, markers, setDefaultMarkerStyle, setSelectedMarker, defaultMarkerStyle, selectedMarker, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, selectedTerritory, setTerritories, territories, setSelectedTerritory, defaultDataVisualizer, setDefaultDataVisualizer} = props
 
   return (
     <div id="properties-container" className={fillPickerFocused || eyedropperOpened ? "ui-hidden" : "ui-shown"} style={{position: "absolute", top: "0px", left: "0px", height: "100%", padding: "20px", boxSizing: "border-box"}}>
@@ -1810,7 +1832,7 @@ function Properties(props) {
         {
           currentTool == "marker" 
             ? selectedMarker
-              ? <MarkerProperties setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
+              ? <MarkerProperties setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={function(newValue) {
                 setSelectedMarker(newValue)
                 setMarkers(markers.map(marker => {
                   if(marker.index == selectedMarker.index) {
@@ -1820,21 +1842,21 @@ function Properties(props) {
                   }
                 }))
               }}></MarkerProperties>
-              : <MarkerDefaultProperties mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
+              : <MarkerDefaultProperties setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultMarkerStyle={defaultMarkerStyle} setDefaultMarkerStyle={setDefaultMarkerStyle}></MarkerDefaultProperties>
             : selectedTerritory
-              ? <TerritoryProperties setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
-              : <DefaultsProperties setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
+              ? <TerritoryProperties setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} defaultDataVisualizer={defaultDataVisualizer} defaultValue={defaultValue} territories={territories} setSelectedTerritory={setSelectedTerritory} selectedTerritory={selectedTerritory} setTerritories={setTerritories} defaultStyle={defaultStyle}></TerritoryProperties>
+              : <DefaultsProperties setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} effects={effects} setEffects={setEffects} recentColors={recentColors} setRecentColors={setRecentColors} defaultValue={defaultValue} setDefaultValue={setDefaultValue} defaultDataVisualizer={defaultDataVisualizer} setDefaultDataVisualizer={setDefaultDataVisualizer} defaultStyle={defaultStyle} setDefaultStyle={setDefaultStyle}></DefaultsProperties>
         }
       </div>
     </div>
   )
 }
 
-function MarkerDefaultProperties({setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, setDefaultMarkerStyle}) {
+function MarkerDefaultProperties({setFillPickerFocusedDisplacementStart, setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, setDefaultMarkerStyle}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.fill} onUpdate={function(fill) {
+    <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.fill} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         fill: fill
@@ -1842,7 +1864,7 @@ function MarkerDefaultProperties({setFillPickerFocused, setFillPickerFocusedInte
       setDefaultMarkerStyle(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
+    <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultMarkerStyle.outlineColor} onUpdate={function(fill) {
       let newStyle = {
         ...defaultMarkerStyle,
         outlineColor: fill
@@ -1860,11 +1882,11 @@ function MarkerDefaultProperties({setFillPickerFocused, setFillPickerFocusedInte
     </div>
   </div>
 }
-function MarkerProperties({setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
+function MarkerProperties({setFillPickerFocusedDisplacementStart, setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultMarkerStyle, selectedMarker, setSelectedMarker}) {
   return <div>
     <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED MARKER STYLE</Typography>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-    <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.fill || defaultMarkerStyle.fill} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
         ...selectedMarker,
         fill: fill
@@ -1872,7 +1894,7 @@ function MarkerProperties({setFillPickerFocused, setFillPickerFocusedInterface, 
       setSelectedMarker(newStyle)
     }}></TerritoryFillPicker>
     <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-    <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
+    <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={selectedMarker.outlineColor || defaultMarkerStyle.outlineColor} style={defaultMarkerStyle} onUpdate={function(fill) {
       let newStyle = {
         ...selectedMarker,
         outlineColor: fill
@@ -1903,14 +1925,14 @@ function MarkerProperties({setFillPickerFocused, setFillPickerFocusedInterface, 
 
 
 function DefaultsProperties(props) {
-  const {setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, effects, setEffects, recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
+  const {setFillPickerFocusedDisplacementStart, setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, effects, setEffects, recentColors, setRecentColors, defaultValue, setDefaultValue, defaultStyle, setDefaultStyle, defaultDataVisualizer, setDefaultDataVisualizer} = props
   
 
   return (
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>DEFAULT TERRITORY STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
+      <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.fill} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           fill: fill
@@ -1925,7 +1947,7 @@ function DefaultsProperties(props) {
       <DataVisualizationEditor setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} dataVisualizerGetter={defaultDataVisualizer} dataVisualizerSetter={setDefaultDataVisualizer}></DataVisualizationEditor>
       <Typography style={{marginTop: "25px", fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>MAP STYLE</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
+      <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={defaultStyle.outlineColor} style={defaultStyle} onUpdate={function(fill) {
         let newStyle = {
           ...defaultStyle,
           outlineColor: fill
@@ -2202,7 +2224,7 @@ function RightBar({fillPickerFocused, eyedropperOpened, territories, setTerritor
 
 
 
-function DataVisualizationEditor({setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, dataVisualizerGetter, dataVisualizerSetter}) {
+function DataVisualizationEditor({setFillPickerFocusedDisplacementStart, setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, dataVisualizerGetter, dataVisualizerSetter}) {
   switch(dataVisualizerGetter.type) {
     case "geometryDash":
       return <div>
@@ -2220,7 +2242,7 @@ function DataVisualizationEditor({setFillPickerFocused, setFillPickerFocusedInte
       var id = generateId()
       return <>
         <Typography style={{fontSize: "20px", lineHeight: "120%"}}>Fill</Typography>
-        <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
+        <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowDynamicFill={false} color={dataVisualizerGetter.style.fill} onUpdate={function(newFill) {
           let newDataVisualizer = {
             ...dataVisualizerGetter,
             style: {
@@ -2232,7 +2254,7 @@ function DataVisualizationEditor({setFillPickerFocused, setFillPickerFocusedInte
           dataVisualizerSetter(dataVisualizerGetter.clone())
         }}></TerritoryFillPicker>
         <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-        <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
+        <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={false} allowDynamicFill={false} color={dataVisualizerGetter.style.outlineColor} onUpdate={function(newFill) {
           let newDataVisualizer = {
             ...dataVisualizerGetter,
             style: {
@@ -2410,7 +2432,7 @@ function SecondaryDataVisualizationEditor({dataVisualizer, selectedTerritory, on
   }
 }
 
-function TerritoryProperties({setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
+function TerritoryProperties({setFillPickerFocusedDisplacementStart, setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, defaultDataVisualizer, selectedTerritory, setSelectedTerritory, setTerritories, defaultStyle, territories, defaultValue}) {
   // we want support for multiple selected territories as well as one only.
   function changeValueSelectedTerritory(type, object2) {
     if(type == 0) {
@@ -2508,9 +2530,9 @@ function TerritoryProperties({setFillPickerFocused, setFillPickerFocusedInterfac
     <div>
       <Typography style={{fontSize: "15px", paddingLeft: "3px", boxSizing: "border-box", borderBottomColor: darkTheme.color, borderBottom: "1px solid"}}>SELECTED TERRITORY STYLE: {territoryIdentifier}</Typography>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Fill</Typography>
-      <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
+      <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={fillPickerValue} onUpdate={fillPickerOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline color</Typography>
-      <TerritoryFillPicker setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
+      <TerritoryFillPicker setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} color={outlineColorPickerValue} onUpdate={outlineColorOnUpdate}></TerritoryFillPicker>
       <Typography style={{fontSize: "20px", marginTop: "4px", lineHeight: "120%"}}>Outline size</Typography>
       <div style={{width: "100%", display: "flex", justifyContent: "center"}}>
         <Slider value={sizePickerSliderValue} style={{width: "270px"}} step={1} marks min={0} max={10} valueLabelDisplay="auto" onChange={sizeSliderOnChange}/>
@@ -2628,7 +2650,7 @@ function DataVisualizerSelect({dataVisualizerGetter, dataVisualizerSetter}) {
 
 
 export function TerritoryFillPicker(props) {
-  const {setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, lightTheme, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
+  const {setFillPickerFocusedDisplacementStart, setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, lightTheme, setRecentColors, allowFlagFill, color, mode, onColorChange, onColorFillChange, onUpdate, currentTool} = props
   const [opened, setOpened] = useState(false)
   const [offsetLeft, setOffsetLeft] = useState(0)
   const [offsetTop, setOffsetTop] = useState(0)
@@ -2645,7 +2667,7 @@ export function TerritoryFillPicker(props) {
     }}>
       <div style={{flexGrow: "1", padding: "6.5px", paddingRight: "0px", boxSizing: "border-box"}}>
         <div style={{background: color.getBackgroundCSS(), width: "100%", height: "100%", borderRadius: "3px"}}>
-          <TerritoryFillPickerPopup setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
+          <TerritoryFillPickerPopup setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} setFillPickerFocused={setFillPickerFocused} setFillPickerFocusedInterface={setFillPickerFocusedInterface} mapData={mapData} savingToCloud={savingToCloud} assets={assets} setAssets={setAssets} recentColors={recentColors} setRecentColors={setRecentColors} allowFlagFill={allowFlagFill} backgroundId={backgroundId} mode={mode} onUpdate={onUpdate} setOpened={setOpened} onColorFillChange={onColorFillChange} onColorChange={onColorChange} opened={opened} top={offsetTop} left={offsetLeft} color={color} ></TerritoryFillPickerPopup>
         </div>
       </div>
       
@@ -2657,7 +2679,7 @@ export function TerritoryFillPicker(props) {
 }
 
 function TerritoryFillPickerPopup(props) {
-  let {setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
+  let {setFillPickerFocusedDisplacementStart, setFillPickerFocused, setFillPickerFocusedInterface, mapData, savingToCloud, assets, setAssets, recentColors, setRecentColors, color, opened, setOpened, style, onUpdate, mode, backgroundId, allowFlagFill} = props
   if(allowFlagFill !== false) {
     allowFlagFill = true
   }
@@ -2762,11 +2784,23 @@ function TerritoryFillPickerPopup(props) {
                 <p>
                   {asset.id}
                   <IconButton className="transform-asset" size="small" style={{marginLeft: "5px", height: "25px", width: "25px"}} onClick={function(event) {
-                    setFillPickerFocused(true)
+                    setFillPickerFocused(() => value => {
+                      let toReturn = {
+                        ...asset,
+                        ...value
+                      }
+                      setAssets(assets.map(asset2 => {
+                        if(asset2.id == asset.id) {
+                          return toReturn
+                        }
+                      }))
+                      return toReturn
+                    })
+                    setFillPickerFocusedDisplacementStart(asset)
                     setFillPickerFocusedInterface(<div style={{display: "flex", justifyContent: "space-between"}}>
                       <p>Drag to displace image, zoom/scroll to scale.</p>
                       <IconButton style={{marginLeft: "10px"}} onClick={function() {
-                        setFillPickerFocused(false)
+                        
                       }}>
                         <CheckIcon></CheckIcon>
                       </IconButton>
