@@ -219,7 +219,7 @@ function App() {
   )
 }
 
-function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects) {
+function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects, assets) {
   let svgElement = document.createElement("svg")
   svgElement.setAttribute("xmlns", "http://www.w3.org/2000/svg")
   svgElement.setAttribute("width", mapDimensions.width)
@@ -271,7 +271,6 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
         ).firstElementChild
       )
     }
-    
   }
 
   // drawn pattern
@@ -318,7 +317,23 @@ function mapFromProperties(territories, mapDimensions, defaultValue, defaultStyl
     <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite>`
     defsElement.appendChild(filterElement)
   }
-
+  for(let i = 0; i != assets.length; i++) {
+    let asset = assets[i]
+    let patternElement = document.createElementNS("http://www.w3.org/2000/svg", "pattern")
+    patternElement.setAttribute("id", `asset.${asset.id}`)
+    patternElement.setAttribute("width", "100%")
+    patternElement.setAttribute("height", "100%")
+    patternElement.setAttributeNS(null, "patternContentUnits", "objectBoundingBox")
+    patternElement.setAttributeNS(null, "viewBox", "0 0 1 1")
+    patternElement.setAttributeNS(null, "preserveAspectRatio", "xMidYMid slice")
+    let imageElement = document.createElementNS("http://www.w3.org/2000/svg", "image")
+    imageElement.setAttributeNS(null, "preserveAspectRatio", "none")
+    imageElement.setAttribute("href", asset.data)
+    imageElement.setAttribute("height", "1")
+    imageElement.setAttribute("width", "1")
+    patternElement.appendChild(imageElement)
+    defsElement.appendChild(patternElement)
+  }
   if(defaultDataVisualizer && defaultDataVisualizer.type == "text") {
     return new Promise(async (resolve, reject) => {
       let reader = new window.FileReader()
@@ -548,7 +563,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
       recentColors,
       effects,
       ...(penCachedImageUpdated ? {penCachedImage: penCachedImage.toDataURL()} : {}),
-      preview: mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects),
+      preview: mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects, assets),
       assets
     }
   }
@@ -562,7 +577,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
 
   useEffect(() => {
     if(eyedropperOpened) {
-      mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects).then(element => {
+      mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects, assets).then(element => {
         convertSvgUrlsToBase64(element).then(element => {
           svgToPng(element.outerHTML).then(png => {
             setLastPngPreview(png)
@@ -574,7 +589,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   
 
   async function downloadSvg() {
-    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects, assets)
     let base64 = btoa(unescape(encodeURIComponent(element.outerHTML)))
     const a = document.createElement("a")
     const e = new MouseEvent("click")
@@ -583,7 +598,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
     a.dispatchEvent(e)
   }
   async function downloadPng() {
-    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects, assets)
     element = await convertSvgUrlsToBase64(element)
     let converted = await svgToPng(element.outerHTML)
     const a = document.createElement("a")
@@ -593,7 +608,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
     a.dispatchEvent(e)
   }
   async function downloadJpg() {
-    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects, assets)
     element = await convertSvgUrlsToBase64(element)
     let converted = await svgToJpg(element.outerHTML)
     const a = document.createElement("a")
@@ -603,7 +618,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
     a.dispatchEvent(e)
   }
   async function downloadWebp() {
-    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects)
+    let element = await mapFromProperties(territories, mapDimensions, defaultValue, defaultStyle, defaultDataVisualizer, territoriesHTML, penCachedImage, markers, defaultMarkerStyle, effects, assets)
     element = await convertSvgUrlsToBase64(element)
     let converted = await svgToWebp(element.outerHTML)
     const a = document.createElement("a")
