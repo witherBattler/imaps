@@ -533,6 +533,10 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   }
   const [assets, setAssets] = useState(getStartingAssets())
 
+  useEffect(function() {
+    console.log(assets)
+  }, [assets])
+
   function getMapData(penCachedImageUpdated = true) {
     return {
       map: chosenMap,
@@ -1108,9 +1112,24 @@ function EditableMap(props) {
     canvasContext.fill()
   }, [eyedropperMousePosition])
 
+  function updateFillPickerFocused(assetUpdateData) {
+    let toReturn = null
+    setAssets(assets.map(asset => {
+      if(asset.id == fillPickerFocused.id) {
+        toReturn = {
+          ...asset,
+          ...assetUpdateData
+        }
+        return toReturn
+      } else {
+        return asset
+      }
+    }))
+    return toReturn
+  }
+
   return (
     <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={mobile ? null : function(event) {
-      console.log(fillPickerFocused)
       if(fillPickerFocused) {
         setFillPickerFocusedMousePositionStart({x: event.clientX, y: event.clientY})
         return
@@ -1192,6 +1211,19 @@ function EditableMap(props) {
         })
       }
     }} onWheel={function(event) {
+      if(fillPickerFocused) {
+        if(event.deltaY > 0) {
+          
+          setFillPickerFocusedDisplacementStart(
+            updateFillPickerFocused({scale: fillPickerFocusedDisplacementStart.scale - 0.1})
+          )
+        } else {
+          setFillPickerFocusedDisplacementStart(
+            updateFillPickerFocused({scale: fillPickerFocusedDisplacementStart.scale + 0.1})
+          )
+        }
+        return
+      }
       if(event.deltaY > 0) {
         let unrounded = Math.max(currentZoom + ((0 - currentZoom) / 5) || 0.1, 0.25)
         setCurrentZoom(roundToTwo(unrounded))
@@ -1202,7 +1234,6 @@ function EditableMap(props) {
     }} onMouseUp={mobile ? null : function(event) {
       if(fillPickerFocusedMousePositionStart) {
         setFillPickerFocusedMousePositionStart(null)
-        setFillPickerFocusedDisplacementStart(lastAssetDisplacementData)
       }
       selectingTerritories = false
       setCurrentlyDrawingNode(false)
@@ -1223,10 +1254,10 @@ function EditableMap(props) {
           x: fillPickerFocusedMousePositionStart.x - event.clientX,
           y: fillPickerFocusedMousePositionStart.y - event.clientY
         }
-        lastAssetDisplacementData = fillPickerFocused({
-          displaceX: delta.x - fillPickerFocusedMousePositionStart.x,
-          displaceY: delta.y - fillPickerFocusedMousePositionStart.y
-        })
+        lastAssetDisplacementData = setFillPickerFocusedDisplacementStart(updateFillPickerFocused({
+          displaceX: delta.x + fillPickerFocusedMousePositionStart.x,
+          displaceY: delta.y + fillPickerFocusedMousePositionStart.y
+        }))
         return
       }
       if(currentlyDrawingNode) {
@@ -1722,7 +1753,7 @@ function EditableMap(props) {
             <defs>
               {
                 assets.map(asset => {
-                  return <pattern patternTransform={`translate(${asset.displaceX}, ${asset.displaceY})`} id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
+                  return <pattern patternTransform={`translate(${asset.displaceX}, ${asset.displaceY}) scale(${asset.scale})`} id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
                       <image preserveAspectRatio="none" href={asset.data} width="1" height="1"></image>
                   </pattern>
                 })
@@ -2769,6 +2800,9 @@ function TerritoryFillPickerPopup(props) {
             let data = await getBase64(file)
             setAssets([...assets, {
               id: ++lastAssetId,
+              displaceX: 0,
+              displaceY: 0,
+              scale: 0.2,
               data
             }])
           }} style={{display: "none"}}></input>
@@ -2784,18 +2818,7 @@ function TerritoryFillPickerPopup(props) {
                 <p>
                   {asset.id}
                   <IconButton className="transform-asset" size="small" style={{marginLeft: "5px", height: "25px", width: "25px"}} onClick={function(event) {
-                    setFillPickerFocused(() => value => {
-                      let toReturn = {
-                        ...asset,
-                        ...value
-                      }
-                      setAssets(assets.map(asset2 => {
-                        if(asset2.id == asset.id) {
-                          return toReturn
-                        }
-                      }))
-                      return toReturn
-                    })
+                    setFillPickerFocused(asset)
                     setFillPickerFocusedDisplacementStart(asset)
                     setFillPickerFocusedInterface(<div style={{display: "flex", justifyContent: "space-between"}}>
                       <p>Drag to displace image, zoom/scroll to scale.</p>
