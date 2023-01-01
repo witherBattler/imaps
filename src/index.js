@@ -1058,6 +1058,8 @@ function ZoomWidget({fillPickerFocused, eyedropperOpened, savingToCloud, saving,
 let selectingTerritories = false
 let markerIndex = 0
 let lastAssetDisplacementData = null
+let pinchStartZoom = 1
+let pinchStartMoved = {x: 0, y: 0}
 
 function EditableMap(props) {
   const {fillPickerFocusedDisplacementStart, setFillPickerFocusedDisplacementStart, fillPickerFocused, fillPickerFocusedInterface, setLastPngPreview, setEyedropperOpened, setEyedropperSetter, eyedropperSetter, eyedropperOpened, lastPngPreview, assets, setAssets, effects, moved, setMoved, mapSvgPath, boosting, defaultMarkerStyle, selectedMarker, setSelectedMarker, markers, setMarkers, eraserSize, penCachedImage, penSize, penColor, annotations, setAnnotations, currentTool, currentZoom, setCurrentZoom, mapDimensions, territories, defaultStyle, selectedTerritory, defaultMapCSSStyle, setSelectedTerritory, territoriesHTML, defaultDataVisualizer, defaultValue, onMapDrawn} = props
@@ -1132,22 +1134,42 @@ function EditableMap(props) {
 
   return (
     <Gesture enablePinch direction="all" onPanMove={function(data) {
-      updateFillPickerFocused({
-        displaceX: fillPickerFocusedDisplacementStart.displaceX + data.moveStatus.x,
-        displaceY: fillPickerFocusedDisplacementStart.displaceY + data.moveStatus.y
-      })
+      if(fillPickerFocused) {
+        updateFillPickerFocused({
+          displaceX: fillPickerFocusedDisplacementStart.displaceX + data.moveStatus.x,
+          displaceY: fillPickerFocusedDisplacementStart.displaceY + data.moveStatus.y
+        })
+      }
+    }} onPinchStart={function(data) {
+      pinchStartZoom = currentZoom
+      pinchStartMoved = moved
     }} onPinchIn={function(data) {
-      setFillPickerFocusedDisplacementStart(
-        updateFillPickerFocused({
-          scale: fillPickerFocusedDisplacementStart.scale + data.scale
-        })
-      )
+      if(fillPickerFocused) {
+        setFillPickerFocusedDisplacementStart(
+          updateFillPickerFocused({
+            scale: fillPickerFocusedDisplacementStart.scale * data.scale
+          })
+        )
+      } else {
+        setCurrentZoom(Math.max(pinchStartZoom * data.scale, 0.25))
+      }
     }} onPinchOut={function(data) {
-      setFillPickerFocusedDisplacementStart(
-        updateFillPickerFocused({
-          scale: fillPickerFocusedDisplacementStart.scale - data.scale
+      if(fillPickerFocused) {
+        setFillPickerFocusedDisplacementStart(
+          updateFillPickerFocused({
+            scale: fillPickerFocusedDisplacementStart.scale * data.scale
+          })
+        )
+      } else {
+        setCurrentZoom(Math.min(pinchStartZoom * data.scale, 3))
+      }
+    }} onPinchMove={function(data) {
+      if(!fillPickerFocused) {
+        setMoved({
+          x: pinchStartMoved.x + data.moveStatus.x,
+          y: pinchStartMoved.y + data.moveStatus.y
         })
-      )
+      }
     }}>
       <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column"}} onMouseDown={mobile ? null : function(event) {
         if(fillPickerFocused) {
