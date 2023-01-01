@@ -380,11 +380,6 @@ code {
     display: flex;
   }
 }
-@media only screen and (max-width: 500px) {
-  #intro-left-big {
-    font-size: 30px;
-  }
-}
 
 @media only screen and (max-width: 1600px) and (min-width: 1300px) {
   .content-row {
@@ -878,6 +873,9 @@ code {
   .feature > .content-row > .right > .description {
     font-size: 17px;
   }
+  #image-fill-picker-popup {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
 }
 #pen-size-span {
   font-family: rubik;
@@ -964,4 +962,14 @@ code {
   align-items: center;
   justify-content: center;
   font-family: rubik;
+}
+
+
+@media only screen and (max-width: 500px) {
+  #intro-left-big {
+    font-size: 30px;
+  }
+  #image-fill-picker-popup {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
 }

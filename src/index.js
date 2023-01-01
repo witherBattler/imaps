@@ -57,6 +57,8 @@ import Download from "./routes/Download.js"
 import ClearIcon from '@mui/icons-material/Clear';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import Gesto from "gesto";
+import Gesture from 'rc-gesture';
 
 
 
@@ -706,7 +708,7 @@ export function Editor({removeHeight, chosenMap, data, onUpdate, saving}) {
   return(
     <>
       <div style={{position: "relative", height: removeHeight ? `calc(100% - ${removeHeight})` : "100%", width: "100%", display: "flex", overflow: "hidden", backgroundColor: "#2A2E4A", backgroundImage: "none", cursor: currentTool == "rectangle" || currentTool == "ellipse" ? "crosshair" : null}}>
-        <EditableMap fillPickerFocusedDisplacementStart={fillPickerFocusedDisplacementStart} setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} fillPickerFocused={fillPickerFocused} setFillPickerFocused={setFillPickerFocused} setEyedropperOpened={setEyedropperOpened} setEyedropperSetter={setEyedropperSetter} eyedropperSetter={eyedropperSetter} setLastPngPreview={setLastPngPreview} lastPngPreview={lastPngPreview} eyedropperOpened={eyedropperOpened} assets={assets} setAssets={setAssets} moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
+        <EditableMap fillPickerFocusedInterface={fillPickerFocusedInterface} fillPickerFocusedDisplacementStart={fillPickerFocusedDisplacementStart} setFillPickerFocusedDisplacementStart={setFillPickerFocusedDisplacementStart} fillPickerFocused={fillPickerFocused} setFillPickerFocused={setFillPickerFocused} setEyedropperOpened={setEyedropperOpened} setEyedropperSetter={setEyedropperSetter} eyedropperSetter={eyedropperSetter} setLastPngPreview={setLastPngPreview} lastPngPreview={lastPngPreview} eyedropperOpened={eyedropperOpened} assets={assets} setAssets={setAssets} moved={moved} setMoved={setMoved} mapSvgPath={mapSvgPath} boosting={boosting} defaultMarkerStyle={defaultMarkerStyle} selectedMarker={selectedMarker} setSelectedMarker={setSelectedMarker} markers={markers} setMarkers={setMarkers} eraserSize={eraserSize} penCachedImage={penCachedImage} penColor={penColor} penSize={penSize} currentTool={currentTool} currentZoom={currentZoom} setCurrentZoom={setCurrentZoom} defaultValue={defaultValue} defaultDataVisualizer={defaultDataVisualizer} mapDimensions={mapDimensions} territories={territories} defaultStyle={defaultStyle} selectedTerritory={selectedTerritory} defaultMapCSSStyle={defaultMapCSSStyle} setSelectedTerritory={setSelectedTerritory} territoriesHTML={territoriesHTML} annotations={annotations} setAnnotations={setAnnotations} effects={effects} onMapDrawn={function() {
           if(!savingToCloud) return
           onUpdate(function() {
             return getMapData(true)
@@ -1129,663 +1131,694 @@ function EditableMap(props) {
   }
 
   return (
-    <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center"}} onMouseDown={mobile ? null : function(event) {
-      if(fillPickerFocused) {
-        setFillPickerFocusedMousePositionStart({x: event.clientX, y: event.clientY})
-        return
-      }
-      
-      if(event.target.id == "map-div" || event.target.id == "map-svg") {
-        setSelectedTerritory(null)
-      }
-
-      if(currentTool == "pen" && !eyedropperOpened) {
-        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
-        var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
-
-        let context = penCachedImage.getContext("2d")
-        if(selectedTerritory) {
-          context.save()
-          if(Array.isArray(selectedTerritory)) {
-            let fullPath = ""
-            for(let i = 0; i != selectedTerritory.length; i++) {
-              fullPath += "M 0,0 " + selectedTerritory[i].path
-            }
-            context.clip(new Path2D(fullPath))
-          } else {
-            context.clip(new Path2D(selectedTerritory.path))
-          }
-        }
-        context.beginPath()
-        context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
-        context.fillStyle = penColor
-        context.fill()
-        setLastPoint({x: mouseX, y: mouseY})
-        setCurrentlyDrawingNode(true)
-        onMapDrawn()
-        drawnOnMap = true
-      } else if(currentTool == "eraser") {
-        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
-        var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
-
-        let context = penCachedImage.getContext("2d")
-        if(selectedTerritory) {
-          context.save()
-          if(Array.isArray(selectedTerritory)) {
-            let fullPath = ""
-            for(let i = 0; i != selectedTerritory.length; i++) {
-              fullPath += "M 0,0 " + selectedTerritory[i].path
-            }
-            context.clip(new Path2D(fullPath))
-          } else {
-            context.clip(new Path2D(selectedTerritory.path))
-          }
-        }
-        context.save()
-        context.globalCompositeOperation = "destination-out"
-        context.beginPath()
-        context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
-        context.fill()
-        context.restore()
-
-        setLastPoint({x: mouseX, y: mouseY})
-        setCurrentlyDrawingNode(true)
-        onMapDrawn()
-      } else if(currentTool == "marker") {
-        let territories = document.elementsFromPoint(event.pageX, event.pageY)
-        let hoveringTerritories = false
-        for(let i = 0; i != territories.length; i++) {
-          if(territories[i].getAttribute("class") == "territory-path") {
-            hoveringTerritories = true
-            break
-          }
-        }
-        if(!hoveringTerritories) {
-          setSelectedMarker(null)
-        }
-      } else if(currentTool == "move") {
-        setCurrentlyMoving(true)
-        setMovingStartPosition({
-          x: event.clientX + moved.x,
-          y: event.clientY + moved.y
+    <Gesture enablePinch direction="all" onPanMove={function(data) {
+      updateFillPickerFocused({
+        displaceX: fillPickerFocusedDisplacementStart.displaceX + data.moveStatus.x,
+        displaceY: fillPickerFocusedDisplacementStart.displaceY + data.moveStatus.y
+      })
+    }} onPinchIn={function(data) {
+      setFillPickerFocusedDisplacementStart(
+        updateFillPickerFocused({
+          scale: fillPickerFocusedDisplacementStart.scale + data.scale
         })
-      }
-    }} onWheel={function(event) {
-      if(fillPickerFocused) {
-        if(event.deltaY > 0) {
-          
-          setFillPickerFocusedDisplacementStart(
-            updateFillPickerFocused({scale: fillPickerFocusedDisplacementStart.scale - 0.1})
-          )
-        } else {
-          setFillPickerFocusedDisplacementStart(
-            updateFillPickerFocused({scale: fillPickerFocusedDisplacementStart.scale + 0.1})
-          )
+      )
+    }} onPinchOut={function(data) {
+      setFillPickerFocusedDisplacementStart(
+        updateFillPickerFocused({
+          scale: fillPickerFocusedDisplacementStart.scale - data.scale
+        })
+      )
+    }}>
+      <div className={currentTool} id="map-div" style={{position: "absolute", left: "0", top: "0", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column"}} onMouseDown={mobile ? null : function(event) {
+        if(fillPickerFocused) {
+          setFillPickerFocusedMousePositionStart({x: event.clientX, y: event.clientY})
+          return
         }
-        return
-      }
-      if(event.deltaY > 0) {
-        let unrounded = Math.max(currentZoom + ((0 - currentZoom) / 5) || 0.1, 0.25)
-        setCurrentZoom(roundToTwo(unrounded))
-      } else {
-        let unrounded = Math.min(currentZoom - ((0 - currentZoom) / 5) || 0.1, 3)
-        setCurrentZoom(roundToTwo(unrounded))
-      }
-    }} onMouseUp={mobile ? null : function(event) {
-      if(fillPickerFocusedMousePositionStart) {
-        setFillPickerFocusedMousePositionStart(null)
-      }
-      selectingTerritories = false
-      setCurrentlyDrawingNode(false)
-      if(currentTool == "pen" || currentTool == "eraser" && selectedTerritory) {
-        penCachedImage.getContext("2d").restore()
-      }
-
-      if(currentlyMovingMarker) {
-        dragging = false
-        setCurrentlyMovingMarker(null)
-      }
-
-      setCurrentlyMoving(false)
-    }} onMouseMove={mobile ? null : function(event) {
-      if(fillPickerFocused && fillPickerFocusedMousePositionStart) {
-        // fillPickerFocused is either null or a function
-        let delta = {
-          x: fillPickerFocusedMousePositionStart.x - event.clientX,
-          y: fillPickerFocusedMousePositionStart.y - event.clientY
+        
+        if(event.target.id == "map-div" || event.target.id == "map-svg") {
+          setSelectedTerritory(null)
         }
-        lastAssetDisplacementData = setFillPickerFocusedDisplacementStart(updateFillPickerFocused({
-          displaceX: delta.x + fillPickerFocusedMousePositionStart.x,
-          displaceY: delta.y + fillPickerFocusedMousePositionStart.y
-        }))
-        return
-      }
-      if(currentlyDrawingNode) {
-        if(currentTool == "pen") {
-          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-          let mouseX = (event.clientX - mapRect.x) / currentZoom
-          let mouseY = (event.clientY - mapRect.y) / currentZoom
-  
+
+        if(currentTool == "pen" && !eyedropperOpened) {
+          var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+          var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
+
           let context = penCachedImage.getContext("2d")
+          if(selectedTerritory) {
+            context.save()
+            if(Array.isArray(selectedTerritory)) {
+              let fullPath = ""
+              for(let i = 0; i != selectedTerritory.length; i++) {
+                fullPath += "M 0,0 " + selectedTerritory[i].path
+              }
+              context.clip(new Path2D(fullPath))
+            } else {
+              context.clip(new Path2D(selectedTerritory.path))
+            }
+          }
           context.beginPath()
           context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
           context.fillStyle = penColor
           context.fill()
-          context.beginPath()
-          context.moveTo(mouseX, mouseY)
-          context.lineTo(lastPoint.x, lastPoint.y)
-          context.strokeStyle = penColor
-          context.lineWidth = penSize * 2
-          context.stroke()
-
           setLastPoint({x: mouseX, y: mouseY})
+          setCurrentlyDrawingNode(true)
           onMapDrawn()
+          drawnOnMap = true
         } else if(currentTool == "eraser") {
-          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-          let mouseX = (event.clientX - mapRect.x) / currentZoom
-          let mouseY = (event.clientY - mapRect.y) / currentZoom
+          var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+          var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
 
           let context = penCachedImage.getContext("2d")
+          if(selectedTerritory) {
+            context.save()
+            if(Array.isArray(selectedTerritory)) {
+              let fullPath = ""
+              for(let i = 0; i != selectedTerritory.length; i++) {
+                fullPath += "M 0,0 " + selectedTerritory[i].path
+              }
+              context.clip(new Path2D(fullPath))
+            } else {
+              context.clip(new Path2D(selectedTerritory.path))
+            }
+          }
           context.save()
           context.globalCompositeOperation = "destination-out"
           context.beginPath()
           context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
-          context.fillStyle = penColor
           context.fill()
-          context.beginPath()
-          context.moveTo(mouseX, mouseY)
-          context.lineTo(lastPoint.x, lastPoint.y)
-          context.strokeStyle = penColor
-          context.lineWidth = eraserSize * 2
-          context.stroke()
           context.restore()
 
           setLastPoint({x: mouseX, y: mouseY})
+          setCurrentlyDrawingNode(true)
           onMapDrawn()
-        }
-      } else if(currentTool == "marker") {
-        if(currentlyMovingMarker) {
-          let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-          let mouseX = (event.clientX - mapRect.x) / currentZoom
-          let mouseY = (event.clientY - mapRect.y) / currentZoom
-          let delta = {
-            x: mouseX - movingMarkerStartingPositionMouse.x,
-            y: mouseY - movingMarkerStartingPositionMouse.y
-          }
-          let newPosition = {
-            x: delta.x + movingMarkerStartingPosition.x,
-            y: delta.y + movingMarkerStartingPosition.y
-          }
-          setMarkers(markers.map(marker => {
-            if(marker.index == currentlyMovingMarker) {
-              return {
-                ...marker,
-                ...newPosition
-              }
-            } else {
-              return marker
+        } else if(currentTool == "marker") {
+          let territories = document.elementsFromPoint(event.pageX, event.pageY)
+          let hoveringTerritories = false
+          for(let i = 0; i != territories.length; i++) {
+            if(territories[i].getAttribute("class") == "territory-path") {
+              hoveringTerritories = true
+              break
             }
-          }))
-        }
-      }
-      if(currentlyMoving) {
-        let delta = {
-          x: event.clientX - movingStartPosition.x,
-          y: event.clientY - movingStartPosition.y
-        }
-        
-        setMoved(delta)
-      }
-    }} onTouchStart={!mobile ? null : function(event) {
-      if(currentTool == "pen") {
-        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
-        var [mouseX, mouseY] = [(event.touches[0].clientX - mapRect.x) / currentZoom, (event.touches[0].clientY - mapRect.y) / currentZoom]
-
-        let context = penCachedImage.getContext("2d")
-        if(selectedTerritory) {
-          context.save()
-          if(Array.isArray(selectedTerritory)) {
-            let fullPath = ""
-            for(let i = 0; i != selectedTerritory.length; i++) {
-              fullPath += "M 0,0 " + selectedTerritory[i].path
-            }
-            context.clip(new Path2D(fullPath))
-          } else {
-            context.clip(new Path2D(selectedTerritory.path))
           }
-        }
-        context.beginPath()
-        context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
-        context.fillStyle = penColor
-        context.fill()
-
-        setLastPoint({x: mouseX, y: mouseY})
-        setCurrentlyDrawingNode(true)
-        onMapDrawn()
-        drawnOnMap = true
-      } else if(currentTool == "eraser") {
-        var mapRect = document.getElementById("map-svg").getBoundingClientRect()
-        var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
-
-        let context = penCachedImage.getContext("2d")
-        if(selectedTerritory) {
-          context.save()
-          if(Array.isArray(selectedTerritory)) {
-            let fullPath = ""
-            for(let i = 0; i != selectedTerritory.length; i++) {
-              fullPath += "M 0,0 " + selectedTerritory[i].path
-            }
-            context.clip(new Path2D(fullPath))
-          } else {
-            context.clip(new Path2D(selectedTerritory.path))
+          if(!hoveringTerritories) {
+            setSelectedMarker(null)
           }
+        } else if(currentTool == "move") {
+          setCurrentlyMoving(true)
+          setMovingStartPosition({
+            x: event.clientX + moved.x,
+            y: event.clientY + moved.y
+          })
         }
-        context.save()
-        context.globalCompositeOperation = "destination-out"
-        context.beginPath()
-        context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
-        context.fill()
-        context.restore()
-
-        setLastPoint({x: mouseX, y: mouseY})
-        setCurrentlyDrawingNode(true)
-        onMapDrawn()
-      } else if(currentTool == "move") {
-        setCurrentlyMoving(true)
-        setMovingStartPosition({
-          x: event.touches[0].clientX - moved.x,
-          y: event.touches[0].clientY - moved.y
-        })
-      } else if(currentTool == "cursor") {
-        if(event.target.id == "map-div" || event.target.id == "map-svg") {
-          setSelectedTerritory(null)
-        }
-      } else if(currentTool == "marker") {
-        let territories = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].pageY)
-        let hoveringTerritories = false
-        for(let i = 0; i != territories.length; i++) {
-          if(territories[i].getAttribute("class") == "territory-path") {
-            hoveringTerritories = true
-            break
-          }
-        }
-        if(!hoveringTerritories) {
-          setSelectedMarker(null)
-        }
-      } else if(currentTool == "move") {
-        setCurrentlyMoving(true)
-        setMovingStartPosition({
-          x: event.touches[0].clientX - moved.x,
-          y: event.touches[0].clientY - moved.y
-        })
-      }
-    }} onTouchMove={!mobile ? null : function(event) {
-      if(currentlyMoving) {
-        let delta = {
-          x: event.touches[0].clientX - movingStartPosition.x,
-          y: event.touches[0].clientY - movingStartPosition.y
-        }
-        
-        setMoved(delta)
-      }
-
-    }} onTouchEnd={!mobile ? null : function(event) {
-      selectingTerritories = false
-
-      if(currentTool == "pen" || currentTool == "eraser" && selectedTerritory) {
-        penCachedImage.getContext("2d").restore()
-      }
-
-      setCurrentlyMoving(false)
-    }}>
-      {
-        eyedropperOpened && lastPngPreview
-          ? <div style={{maxHeight: "100%", maxWidth: "100%", display: "flex", flexDirection: "column", alignItems: "center"}}>
-            <p id="eyedropper-label" style={{textAlign: "center", color: "white", fontFamily: "rubik"}}>Hover over the map and click to pick a color.</p>
-            <img style={{width: "calc(100% - 20px)", cursor: "crosshair"}} onMouseDown={mobile ? null : function(event) {
-              if(!lastPngPreview || !eyedropperOpened || !eyedropperImageData) {
-                return
-              }
-              let eyedropperImageBoundingBox = eyedropperImageRef.current.getBoundingClientRect()
-              let eyedropperImageMousePosition = {
-                x: eyedropperMousePosition.x - eyedropperImageBoundingBox.left,
-                y: eyedropperMousePosition.y - eyedropperImageBoundingBox.top
-              }
-              let color = eyedropperImageData.getImageData(eyedropperImageMousePosition.x, eyedropperImageMousePosition.y, 1, 1).data
-              setEyedropperOpened(false)
-              setEyedropperMousePosition({x: 0, y: 0})
-              eyedropperSetter(color)
-              setEyedropperSetter(null)
-              setEyedropperImageData(null)
-              setLastPngPreview(null)
-            }} onTouchEnd={!mobile ? null : function() {
-              if(!lastPngPreview || !eyedropperOpened || !eyedropperImageData) {
-                return
-              }
-              let eyedropperImageBoundingBox = eyedropperImageRef.current.getBoundingClientRect()
-              let eyedropperImageMousePosition = {
-                x: eyedropperMousePosition.x - eyedropperImageBoundingBox.left,
-                y: eyedropperMousePosition.y - eyedropperImageBoundingBox.top
-              }
-              let scale = eyedropperImageRef.current.offsetWidth / mapDimensions.width
-              let color = eyedropperImageData.getImageData(eyedropperImageMousePosition.x / scale, eyedropperImageMousePosition.y / scale, 1, 1).data
-              setEyedropperOpened(false)
-              setEyedropperMousePosition({x: 0, y: 0})
-              eyedropperSetter(color)
-              setEyedropperSetter(null)
-              setEyedropperImageData(null)
-              setLastPngPreview(null)
-            }} ref={eyedropperImageRef} src={lastPngPreview} onMouseMove={mobile ? null : function(event) {
-              setEyedropperMousePosition({x: event.clientX, y: event.clientY})
-            }} onTouchMove={!mobile ? null : function(event) {
-              setEyedropperMousePosition({x: event.touches[0].clientX, y: event.touches[0].clientY})
-            }}></img>
-            <canvas ref={eyedropperCanvasRef} width="150px" height="150px" style={{borderRadius: "50%", position: "absolute", left: eyedropperMousePosition.x + 10 + "px", top: eyedropperMousePosition.y + 10 + "px"}}></canvas>
-          </div>
-          : <svg id="map-svg" onTouchMove={!mobile ? null : function(event) {
-            if(currentlyDrawingNode) {
-              let clientX = event.touches[0].clientX;
-              let clientY = event.touches[0].clientY;
-              if(currentTool == "pen") {
-                let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                let mouseX = (clientX - mapRect.x) / currentZoom
-                let mouseY = (clientY - mapRect.y) / currentZoom
-        
-                let context = penCachedImage.getContext("2d")
-                context.beginPath()
-                context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
-                context.fillStyle = penColor
-                context.fill()
-                context.beginPath()
-                context.moveTo(mouseX, mouseY)
-                context.lineTo(lastPoint.x, lastPoint.y)
-                context.strokeStyle = penColor
-                context.lineWidth = penSize * 2
-                context.stroke()
-      
-                setLastPoint({x: mouseX, y: mouseY})
-                onMapDrawn()
-              } else if(currentTool == "eraser") {
-                let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                let mouseX = (clientX - mapRect.x) / currentZoom
-                let mouseY = (clientY - mapRect.y) / currentZoom
-      
-                let context = penCachedImage.getContext("2d")
-                context.save()
-                context.globalCompositeOperation = "destination-out"
-                context.beginPath()
-                context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
-                context.fillStyle = penColor
-                context.fill()
-                context.beginPath()
-                context.moveTo(mouseX, mouseY)
-                context.lineTo(lastPoint.x, lastPoint.y)
-                context.strokeStyle = penColor
-                context.lineWidth = eraserSize * 2
-                context.stroke()
-                context.restore()
-      
-                onMapDrawn()
-                setLastPoint({x: mouseX, y: mouseY})
-              }
-            }
-            if(currentTool == "marker") {
-              if(currentlyMovingMarker) {
-                let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
-                let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
-                let delta = {
-                  x: mouseX - movingMarkerStartingPositionMouse.x,
-                  y: mouseY - movingMarkerStartingPositionMouse.y
-                }
-                let newPosition = {
-                  x: delta.x + movingMarkerStartingPosition.x,
-                  y: delta.y + movingMarkerStartingPosition.y
-                }
-                setMarkers(markers.map(marker => {
-                  if(marker.index == currentlyMovingMarker) {
-                    return {
-                      ...marker,
-                      ...newPosition
-                    }
-                  } else {
-                    return marker
-                  }
-                }))
-              }
-            }
+      }} onWheel={function(event) {
+        if(fillPickerFocused) {
+          if(event.deltaY > 0) {
             
-            if(selectingTerritories && currentTool == "cursor") {
-              let clientX = event.touches[0].clientX;
-              let clientY = event.touches[0].clientY;
-              let element = document.elementFromPoint(clientX, clientY)
-              if(element.dataset.index) {
-                let territory = territories[element.dataset.index]
-                if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
-                  return
-                } else if(selectedTerritory.index == territory.index) {
-                  return
+            setFillPickerFocusedDisplacementStart(
+              updateFillPickerFocused({scale: fillPickerFocusedDisplacementStart.scale - 0.1})
+            )
+          } else {
+            setFillPickerFocusedDisplacementStart(
+              updateFillPickerFocused({scale: fillPickerFocusedDisplacementStart.scale + 0.1})
+            )
+          }
+          return
+        }
+        if(event.deltaY > 0) {
+          let unrounded = Math.max(currentZoom + ((0 - currentZoom) / 5) || 0.1, 0.25)
+          setCurrentZoom(roundToTwo(unrounded))
+        } else {
+          let unrounded = Math.min(currentZoom - ((0 - currentZoom) / 5) || 0.1, 3)
+          setCurrentZoom(roundToTwo(unrounded))
+        }
+      }} onMouseUp={mobile ? null : function(event) {
+        if(fillPickerFocusedMousePositionStart) {
+          setFillPickerFocusedMousePositionStart(null)
+        }
+        selectingTerritories = false
+        setCurrentlyDrawingNode(false)
+        if(currentTool == "pen" || currentTool == "eraser" && selectedTerritory) {
+          penCachedImage.getContext("2d").restore()
+        }
+
+        if(currentlyMovingMarker) {
+          dragging = false
+          setCurrentlyMovingMarker(null)
+        }
+
+        setCurrentlyMoving(false)
+      }} onMouseMove={mobile ? null : function(event) {
+        if(fillPickerFocused && fillPickerFocusedMousePositionStart) {
+          // fillPickerFocused is either null or a function
+          let delta = {
+            x: fillPickerFocusedMousePositionStart.x - event.clientX,
+            y: fillPickerFocusedMousePositionStart.y - event.clientY
+          }
+          lastAssetDisplacementData = setFillPickerFocusedDisplacementStart(updateFillPickerFocused({
+            displaceX: delta.x + fillPickerFocused.displaceX,
+            displaceY: delta.y + fillPickerFocused.displaceY
+          }))
+          return
+        }
+        if(currentlyDrawingNode) {
+          if(currentTool == "pen") {
+            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+            let mouseX = (event.clientX - mapRect.x) / currentZoom
+            let mouseY = (event.clientY - mapRect.y) / currentZoom
+    
+            let context = penCachedImage.getContext("2d")
+            context.beginPath()
+            context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+            context.fillStyle = penColor
+            context.fill()
+            context.beginPath()
+            context.moveTo(mouseX, mouseY)
+            context.lineTo(lastPoint.x, lastPoint.y)
+            context.strokeStyle = penColor
+            context.lineWidth = penSize * 2
+            context.stroke()
+
+            setLastPoint({x: mouseX, y: mouseY})
+            onMapDrawn()
+          } else if(currentTool == "eraser") {
+            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+            let mouseX = (event.clientX - mapRect.x) / currentZoom
+            let mouseY = (event.clientY - mapRect.y) / currentZoom
+
+            let context = penCachedImage.getContext("2d")
+            context.save()
+            context.globalCompositeOperation = "destination-out"
+            context.beginPath()
+            context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
+            context.fillStyle = penColor
+            context.fill()
+            context.beginPath()
+            context.moveTo(mouseX, mouseY)
+            context.lineTo(lastPoint.x, lastPoint.y)
+            context.strokeStyle = penColor
+            context.lineWidth = eraserSize * 2
+            context.stroke()
+            context.restore()
+
+            setLastPoint({x: mouseX, y: mouseY})
+            onMapDrawn()
+          }
+        } else if(currentTool == "marker") {
+          if(currentlyMovingMarker) {
+            let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+            let mouseX = (event.clientX - mapRect.x) / currentZoom
+            let mouseY = (event.clientY - mapRect.y) / currentZoom
+            let delta = {
+              x: mouseX - movingMarkerStartingPositionMouse.x,
+              y: mouseY - movingMarkerStartingPositionMouse.y
+            }
+            let newPosition = {
+              x: delta.x + movingMarkerStartingPosition.x,
+              y: delta.y + movingMarkerStartingPosition.y
+            }
+            setMarkers(markers.map(marker => {
+              if(marker.index == currentlyMovingMarker) {
+                return {
+                  ...marker,
+                  ...newPosition
                 }
-                setSelectedTerritory(createArray(selectedTerritory, territory))
+              } else {
+                return marker
               }
+            }))
+          }
+        }
+        if(currentlyMoving) {
+          let delta = {
+            x: event.clientX - movingStartPosition.x,
+            y: event.clientY - movingStartPosition.y
+          }
+          
+          setMoved(delta)
+        }
+      }} onTouchStart={!mobile ? null : function(event) {
+        if(currentTool == "pen") {
+          var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+          var [mouseX, mouseY] = [(event.touches[0].clientX - mapRect.x) / currentZoom, (event.touches[0].clientY - mapRect.y) / currentZoom]
+
+          let context = penCachedImage.getContext("2d")
+          if(selectedTerritory) {
+            context.save()
+            if(Array.isArray(selectedTerritory)) {
+              let fullPath = ""
+              for(let i = 0; i != selectedTerritory.length; i++) {
+                fullPath += "M 0,0 " + selectedTerritory[i].path
+              }
+              context.clip(new Path2D(fullPath))
+            } else {
+              context.clip(new Path2D(selectedTerritory.path))
             }
-          }} width={mapDimensions.width} height={mapDimensions.height} style={{minWidth: mapDimensions.width + "px", minHeight: mapDimensions.height + "px", transform: `translate(-50%,-50%) translate(${moved.x}px, ${moved.y}px) scale(${parsedScale})`, transition: "", position: "absolute", top: "50%", left: "50%"}}>
-            {
-              shownTerritories
-                .map((territory) => {
-                  let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
-                  defs = <>
-                    {defs}
-                    {style.defs}
-                  </>
-                  let selected = false
-                  if(selectedTerritory) {
-                    if(Array.isArray(selectedTerritory)) {
-                      selected = selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)
-                    } else {
-                      selected = selectedTerritory.index == territory.index
-                    }
-                  }
-                  return <g className="territory" key={territory.index} style={selectedTerritory ? {opacity: selected ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
-                    <path
-                      className="territory-path"
-                      data-index={territory.index}
-                      d={territory.path}
-                      fill={style.fill}
-                      stroke={style.outlineColor}
-                      strokeWidth={style.outlineSize}
-                      style={defaultMapCSSStyle}
-                      onMouseDown={mobile ? null :
-                        function(event) {
-                          if(currentTool == "cursor") {
-                            if(selectedTerritory && (territory.index == selectedTerritory.index)) {
-                              setSelectedTerritory(null)
-                            } else {
-                              setSelectedTerritory(territory)
-                              selectingTerritories = true
-                            }
-                          } else if(currentTool == "marker") {
-                            if(!dragging) {
-                              let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
-                              for(let i = 0; i != markersElements.length; i++) {
-                                if(markersElements[i].matches(":hover")) {
-                                  return
-                                }
-                              }
-                    
-                              let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                              let mouseX = (event.clientX - mapRect.x) / currentZoom
-                              let mouseY = (event.clientY - mapRect.y) / currentZoom
-                    
-                              let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
-                              setSelectedMarker(newMarker)
-                    
-                              setMarkers([
-                                ...markers,
-                                newMarker
-                              ])
-                            }
-                          }
-                        }
-                      }
-                      onTouchStart={!mobile ? null :
-                        function(event) {
-                          if(currentTool == "cursor") {
-                            if(selectedTerritory && (territory.index == selectedTerritory.index)) {
-                              setSelectedTerritory(null)
-                            } else {
-                              setSelectedTerritory(territory)
-                            }
-                            selectingTerritories = true
-                          } else if(currentTool == "pen") {
-                            var mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                            let clientX = event.touches[0].clientX;
-                            let clientY = event.touches[0].clientY;
-                            var [mouseX, mouseY] = [(clientX - mapRect.x) / currentZoom, (clientY - mapRect.y) / currentZoom]
-                    
-                            let context = penCachedImage.getContext("2d")
-                            context.beginPath()
-                            context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
-                            context.fillStyle = penColor
-                            context.fill()
-                    
-                            setLastPoint({x: mouseX, y: mouseY})
-                            setCurrentlyDrawingNode(true)
-                            drawnOnMap = true
-                          } else if(currentTool == "marker") {
-                            if(!dragging) {
-                              let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
-                    
-                              let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                              let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
-                              let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
-                    
-                              let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
-                              setSelectedMarker(newMarker)
-                    
-                              setMarkers([
-                                ...markers,
-                                newMarker
-                              ])
-                            }
-                          }
-                        }
-                      }
-                      onTouchEnd={!mobile ? null :
-                        function(event) {
-                          selectingTerritories = false
-                        }
-                      }
-                      onMouseEnter={mobile ? null :
-                        function(event) {
-                          if(selectingTerritories) {
-                            if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
-                              return
-                            } else if(selectedTerritory.index == territory.index) {
-                              return
-                            }
-                            setSelectedTerritory(createArray(selectedTerritory, territory))
-                          }
-                        }
-                      }
-                      filter={/* effects.innerShadow.enabled ? "url(#inner-shadow)" :  */null}
-                    ></path>
-                    {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)" strokeWidth={style.outlineSize} stroke={style.outlineColor}></path> : null}
-                  </g>
+          }
+          context.beginPath()
+          context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+          context.fillStyle = penColor
+          context.fill()
+
+          setLastPoint({x: mouseX, y: mouseY})
+          setCurrentlyDrawingNode(true)
+          onMapDrawn()
+          drawnOnMap = true
+        } else if(currentTool == "eraser") {
+          var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+          var [mouseX, mouseY] = [(event.clientX - mapRect.x) / currentZoom, (event.clientY - mapRect.y) / currentZoom]
+
+          let context = penCachedImage.getContext("2d")
+          if(selectedTerritory) {
+            context.save()
+            if(Array.isArray(selectedTerritory)) {
+              let fullPath = ""
+              for(let i = 0; i != selectedTerritory.length; i++) {
+                fullPath += "M 0,0 " + selectedTerritory[i].path
+              }
+              context.clip(new Path2D(fullPath))
+            } else {
+              context.clip(new Path2D(selectedTerritory.path))
+            }
+          }
+          context.save()
+          context.globalCompositeOperation = "destination-out"
+          context.beginPath()
+          context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
+          context.fill()
+          context.restore()
+
+          setLastPoint({x: mouseX, y: mouseY})
+          setCurrentlyDrawingNode(true)
+          onMapDrawn()
+        } else if(currentTool == "move") {
+          setCurrentlyMoving(true)
+          setMovingStartPosition({
+            x: event.touches[0].clientX - moved.x,
+            y: event.touches[0].clientY - moved.y
+          })
+        } else if(currentTool == "cursor") {
+          if(event.target.id == "map-div" || event.target.id == "map-svg") {
+            setSelectedTerritory(null)
+          }
+        } else if(currentTool == "marker") {
+          let territories = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].pageY)
+          let hoveringTerritories = false
+          for(let i = 0; i != territories.length; i++) {
+            if(territories[i].getAttribute("class") == "territory-path") {
+              hoveringTerritories = true
+              break
+            }
+          }
+          if(!hoveringTerritories) {
+            setSelectedMarker(null)
+          }
+        } else if(currentTool == "move") {
+          setCurrentlyMoving(true)
+          setMovingStartPosition({
+            x: event.touches[0].clientX - moved.x,
+            y: event.touches[0].clientY - moved.y
+          })
+        }
+      }} onTouchMove={!mobile ? null : function(event) {
+        if(currentlyMoving) {
+          let delta = {
+            x: event.touches[0].clientX - movingStartPosition.x,
+            y: event.touches[0].clientY - movingStartPosition.y
+          }
+          
+          setMoved(delta)
+        }
+
+      }} onTouchEnd={!mobile ? null : function(event) {
+        selectingTerritories = false
+
+        if(currentTool == "pen" || currentTool == "eraser" && selectedTerritory) {
+          penCachedImage.getContext("2d").restore()
+        }
+
+        setCurrentlyMoving(false)
+      }}>
+        {
+          eyedropperOpened && lastPngPreview
+            ? <div style={{maxHeight: "100%", maxWidth: "100%", display: "flex", flexDirection: "column", alignItems: "center"}}>
+              <p id="eyedropper-label" style={{textAlign: "center", color: "white", fontFamily: "rubik"}}>Hover over the map and click to pick a color.</p>
+              <img style={{width: "calc(100% - 20px)", cursor: "crosshair"}} onMouseDown={mobile ? null : function(event) {
+                if(!lastPngPreview || !eyedropperOpened || !eyedropperImageData) {
+                  return
                 }
-              )
-            }
-            {
-              shownTerritories
-                .map((territory) => {
-                  return (territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")
-                })
-            }
-            {boosting ? drawnOnMap ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null : null}
-            {
-              markers
-                .filter((marker) => {
-                  return !marker.hidden
-                })
-                .map((marker, index) => {
-                  let parsedStyle = {fill: marker.fill || defaultMarkerStyle.fill, outlineColor: marker.outlineColor || defaultMarkerStyle.outlineColor, outlineSize: marker.outlineSize || defaultMarkerStyle.outlineSize}
-                  defs = <>
-                    {defs}
-                    {parsedStyle.fill.getDefs(marker, "marker.fill")}
-                    {parsedStyle.outlineColor.getDefs(marker, "marker.outline-color")}
-                  </>
-    
-                  let selected = selectedMarker ? marker.index == selectedMarker.index : true
-    
-                  return <path onTouchStart={!mobile ? null : function(event) {
-                    if(selectedMarker && selectedMarker.index == marker.index) {
-                      setSelectedMarker(null)
-                      return
-                    }
-                    
+                let eyedropperImageBoundingBox = eyedropperImageRef.current.getBoundingClientRect()
+                let eyedropperImageMousePosition = {
+                  x: eyedropperMousePosition.x - eyedropperImageBoundingBox.left,
+                  y: eyedropperMousePosition.y - eyedropperImageBoundingBox.top
+                }
+                let color = eyedropperImageData.getImageData(eyedropperImageMousePosition.x, eyedropperImageMousePosition.y, 1, 1).data
+                setEyedropperOpened(false)
+                setEyedropperMousePosition({x: 0, y: 0})
+                eyedropperSetter(color)
+                setEyedropperSetter(null)
+                setEyedropperImageData(null)
+                setLastPngPreview(null)
+              }} onTouchEnd={!mobile ? null : function() {
+                if(!lastPngPreview || !eyedropperOpened || !eyedropperImageData) {
+                  return
+                }
+                let eyedropperImageBoundingBox = eyedropperImageRef.current.getBoundingClientRect()
+                let eyedropperImageMousePosition = {
+                  x: eyedropperMousePosition.x - eyedropperImageBoundingBox.left,
+                  y: eyedropperMousePosition.y - eyedropperImageBoundingBox.top
+                }
+                let scale = eyedropperImageRef.current.offsetWidth / mapDimensions.width
+                let color = eyedropperImageData.getImageData(eyedropperImageMousePosition.x / scale, eyedropperImageMousePosition.y / scale, 1, 1).data
+                setEyedropperOpened(false)
+                setEyedropperMousePosition({x: 0, y: 0})
+                eyedropperSetter(color)
+                setEyedropperSetter(null)
+                setEyedropperImageData(null)
+                setLastPngPreview(null)
+              }} ref={eyedropperImageRef} src={lastPngPreview} onMouseMove={mobile ? null : function(event) {
+                setEyedropperMousePosition({x: event.clientX, y: event.clientY})
+              }} onTouchMove={!mobile ? null : function(event) {
+                setEyedropperMousePosition({x: event.touches[0].clientX, y: event.touches[0].clientY})
+              }}></img>
+              <canvas ref={eyedropperCanvasRef} width="150px" height="150px" style={{borderRadius: "50%", position: "absolute", left: eyedropperMousePosition.x + 10 + "px", top: eyedropperMousePosition.y + 10 + "px"}}></canvas>
+            </div>
+            : <>
+              {
+                fillPickerFocused
+                  ? <div style={{maxWidth: "calc(100% - 40px)", height: "60px", marginBottom: "20px", boxShadow: "#00000059 -7px 12px 60px", borderRadius: "10px", backgroundColor: "#455077", width: "1200px"}}>
+                    {fillPickerFocusedInterface}
+                  </div>
+                  : null
+              }
+              <svg id="map-svg" onTouchMove={!mobile ? null : function(event) {
+                if(currentlyDrawingNode) {
+                  let clientX = event.touches[0].clientX;
+                  let clientY = event.touches[0].clientY;
+                  if(currentTool == "pen") {
+                    let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                    let mouseX = (clientX - mapRect.x) / currentZoom
+                    let mouseY = (clientY - mapRect.y) / currentZoom
+            
+                    let context = penCachedImage.getContext("2d")
+                    context.beginPath()
+                    context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+                    context.fillStyle = penColor
+                    context.fill()
+                    context.beginPath()
+                    context.moveTo(mouseX, mouseY)
+                    context.lineTo(lastPoint.x, lastPoint.y)
+                    context.strokeStyle = penColor
+                    context.lineWidth = penSize * 2
+                    context.stroke()
+          
+                    setLastPoint({x: mouseX, y: mouseY})
+                    onMapDrawn()
+                  } else if(currentTool == "eraser") {
+                    let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                    let mouseX = (clientX - mapRect.x) / currentZoom
+                    let mouseY = (clientY - mapRect.y) / currentZoom
+          
+                    let context = penCachedImage.getContext("2d")
+                    context.save()
+                    context.globalCompositeOperation = "destination-out"
+                    context.beginPath()
+                    context.arc(mouseX, mouseY, eraserSize, 0, 2 * Math.PI)
+                    context.fillStyle = penColor
+                    context.fill()
+                    context.beginPath()
+                    context.moveTo(mouseX, mouseY)
+                    context.lineTo(lastPoint.x, lastPoint.y)
+                    context.strokeStyle = penColor
+                    context.lineWidth = eraserSize * 2
+                    context.stroke()
+                    context.restore()
+          
+                    onMapDrawn()
+                    setLastPoint({x: mouseX, y: mouseY})
+                  }
+                }
+                if(currentTool == "marker") {
+                  if(currentlyMovingMarker) {
                     let mapRect = document.getElementById("map-svg").getBoundingClientRect()
                     let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
                     let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
-    
-                    dragging = true
-                    setSelectedMarker(marker)
-                    setCurrentlyMovingMarker(marker.index)
-                    setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
-                    setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
-                  }} onMouseDown={mobile ? null : function(event) {
-                    if(selectedMarker && selectedMarker.index == marker.index) {
-                      setSelectedMarker(null)
+                    let delta = {
+                      x: mouseX - movingMarkerStartingPositionMouse.x,
+                      y: mouseY - movingMarkerStartingPositionMouse.y
+                    }
+                    let newPosition = {
+                      x: delta.x + movingMarkerStartingPosition.x,
+                      y: delta.y + movingMarkerStartingPosition.y
+                    }
+                    setMarkers(markers.map(marker => {
+                      if(marker.index == currentlyMovingMarker) {
+                        return {
+                          ...marker,
+                          ...newPosition
+                        }
+                      } else {
+                        return marker
+                      }
+                    }))
+                  }
+                }
+                
+                if(selectingTerritories && currentTool == "cursor") {
+                  let clientX = event.touches[0].clientX;
+                  let clientY = event.touches[0].clientY;
+                  let element = document.elementFromPoint(clientX, clientY)
+                  if(element.dataset.index) {
+                    let territory = territories[element.dataset.index]
+                    if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
+                      return
+                    } else if(selectedTerritory.index == territory.index) {
                       return
                     }
-                    
-                    let mapRect = document.getElementById("map-svg").getBoundingClientRect()
-                    let mouseX = (event.clientX - mapRect.x) / currentZoom
-                    let mouseY = (event.clientY - mapRect.y) / currentZoom
-    
-                    dragging = true
-                    setSelectedMarker(marker)
-                    setCurrentlyMovingMarker(marker.index)
-                    setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
-                    setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
-                  }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
-                })
-            }
-            <defs>
-              {
-                assets.map(asset => {
-                  return <pattern patternTransform={`translate(${asset.displaceX}, ${asset.displaceY}) scale(${asset.scale})`} id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
-                      <image preserveAspectRatio="none" href={asset.data} width="1" height="1"></image>
-                  </pattern>
-                })
-              }
-              {defs}
-              {
-                drawnOnMap
-                  ? <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
-                    <image width={mapDimensions.width} height={mapDimensions.height} href={penCachedImage ? penCachedImage.toDataURL('image/png') : null}></image>
-                  </pattern>
-                : null
-              }
-              {/* {
-                effects.innerShadow.enabled
-                  ? <filter id="inner-shadow">
-                    <feOffset dx="0" dy="0"/>                                                         
-                    <feGaussianBlur stdDeviation={10 * effects.innerShadow.scale}  result="offset-blur"/>                           
-                    <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/> 
-                    <feFlood floodColor="black" floodOpacity="1" result="color"/>                     
-                    <feComposite operator="in" in="color" in2="inverse" result="shadow"/>               
-                    <feComponentTransfer in="shadow" result="shadow">                                   
-                        <feFuncA type="linear" slope=".75"/>
-                    </feComponentTransfer>
-                    <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite>
-                  </filter>
-                : null
-              } */}
-            </defs>
-          </svg>
-      }
-    </div>
-    
+                    setSelectedTerritory(createArray(selectedTerritory, territory))
+                  }
+                }
+              }} width={mapDimensions.width} height={mapDimensions.height} viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`} style={{width: fillPickerFocused ? "1200px" : null, minWidth: fillPickerFocused ? null : (mapDimensions.width + "px"), minHeight: fillPickerFocused ? null : mapDimensions.height + "px", height: fillPickerFocused ? "800px" : null, maxHeight: fillPickerFocused ? "calc(100% - 120px)" : null, maxWidth: "calc(100% - 40px)", transform: fillPickerFocused ? null : `translate(-50%,-50%) translate(${moved.x}px, ${moved.y}px) scale(${parsedScale})`, transition: "", position: fillPickerFocused ? null : "absolute", top: "50%", left: "50%"}}>
+                {
+                  shownTerritories
+                    .map((territory) => {
+                      let style = getTerritoryComputedStyle(territory, defaultStyle, territoriesHTML[territory.index])
+                      defs = <>
+                        {defs}
+                        {style.defs}
+                      </>
+                      let selected = false
+                      if(selectedTerritory) {
+                        if(Array.isArray(selectedTerritory)) {
+                          selected = selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)
+                        } else {
+                          selected = selectedTerritory.index == territory.index
+                        }
+                      }
+                      return <g className="territory" key={territory.index} style={selectedTerritory ? {opacity: selected ? "1" : "0.3", ...defaultMapCSSStyle} : defaultMapCSSStyle}>
+                        <path
+                          className="territory-path"
+                          data-index={territory.index}
+                          d={territory.path}
+                          fill={style.fill}
+                          stroke={style.outlineColor}
+                          strokeWidth={style.outlineSize}
+                          style={defaultMapCSSStyle}
+                          onMouseDown={mobile ? null :
+                            function(event) {
+                              if(fillPickerFocused) {
+                                return
+                              }
+                              if(currentTool == "cursor") {
+                                if(selectedTerritory && (territory.index == selectedTerritory.index)) {
+                                  setSelectedTerritory(null)
+                                } else {
+                                  setSelectedTerritory(territory)
+                                  selectingTerritories = true
+                                }
+                              } else if(currentTool == "marker") {
+                                if(!dragging) {
+                                  let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
+                                  for(let i = 0; i != markersElements.length; i++) {
+                                    if(markersElements[i].matches(":hover")) {
+                                      return
+                                    }
+                                  }
+                        
+                                  let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                                  let mouseX = (event.clientX - mapRect.x) / currentZoom
+                                  let mouseY = (event.clientY - mapRect.y) / currentZoom
+                        
+                                  let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
+                                  setSelectedMarker(newMarker)
+                        
+                                  setMarkers([
+                                    ...markers,
+                                    newMarker
+                                  ])
+                                }
+                              }
+                            }
+                          }
+                          onTouchStart={!mobile ? null :
+                            function(event) {
+                              if(currentTool == "cursor") {
+                                if(selectedTerritory && (territory.index == selectedTerritory.index)) {
+                                  setSelectedTerritory(null)
+                                } else {
+                                  setSelectedTerritory(territory)
+                                }
+                                selectingTerritories = true
+                              } else if(currentTool == "pen") {
+                                var mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                                let clientX = event.touches[0].clientX;
+                                let clientY = event.touches[0].clientY;
+                                var [mouseX, mouseY] = [(clientX - mapRect.x) / currentZoom, (clientY - mapRect.y) / currentZoom]
+                        
+                                let context = penCachedImage.getContext("2d")
+                                context.beginPath()
+                                context.arc(mouseX, mouseY, penSize, 0, 2 * Math.PI)
+                                context.fillStyle = penColor
+                                context.fill()
+                        
+                                setLastPoint({x: mouseX, y: mouseY})
+                                setCurrentlyDrawingNode(true)
+                                drawnOnMap = true
+                              } else if(currentTool == "marker") {
+                                if(!dragging) {
+                                  let markersElements = Array.from(document.getElementsByClassName("marker-annotation"))
+                        
+                                  let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                                  let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
+                                  let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
+                        
+                                  let newMarker = {index: ++markerIndex, x: mouseX, y: mouseY, width: 29, height: 40, hidden: false}
+                                  setSelectedMarker(newMarker)
+                        
+                                  setMarkers([
+                                    ...markers,
+                                    newMarker
+                                  ])
+                                }
+                              }
+                            }
+                          }
+                          onTouchEnd={!mobile ? null :
+                            function(event) {
+                              selectingTerritories = false
+                            }
+                          }
+                          onMouseEnter={mobile ? null :
+                            function(event) {
+                              if(selectingTerritories) {
+                                if(Array.isArray(selectedTerritory) && selectedTerritory.some(selectedTerritoryPiece => territory.index == selectedTerritoryPiece.index)) {
+                                  return
+                                } else if(selectedTerritory.index == territory.index) {
+                                  return
+                                }
+                                setSelectedTerritory(createArray(selectedTerritory, territory))
+                              }
+                            }
+                          }
+                          filter={/* effects.innerShadow.enabled ? "url(#inner-shadow)" :  */null}
+                        ></path>
+                        {boosting ? null : drawnOnMap ? <path style={{pointerEvents: "none"}} d={territory.path} fill="url(#drawn-pattern)" strokeWidth={style.outlineSize} stroke={style.outlineColor}></path> : null}
+                      </g>
+                    }
+                  )
+                }
+                {
+                  shownTerritories
+                    .map((territory) => {
+                      return (territory.dataVisualizer || defaultDataVisualizer).render(territory.boundingBox, territory.value || defaultValue, territory, territory.index + "b")
+                    })
+                }
+                {boosting ? drawnOnMap ? <path style={{pointerEvents: "none"}} d={mapSvgPath} fill="url(#drawn-pattern)"></path> : null : null}
+                {
+                  markers
+                    .filter((marker) => {
+                      return !marker.hidden
+                    })
+                    .map((marker, index) => {
+                      let parsedStyle = {fill: marker.fill || defaultMarkerStyle.fill, outlineColor: marker.outlineColor || defaultMarkerStyle.outlineColor, outlineSize: marker.outlineSize || defaultMarkerStyle.outlineSize}
+                      defs = <>
+                        {defs}
+                        {parsedStyle.fill.getDefs(marker, "marker.fill")}
+                        {parsedStyle.outlineColor.getDefs(marker, "marker.outline-color")}
+                      </>
+        
+                      let selected = selectedMarker ? marker.index == selectedMarker.index : true
+        
+                      return <path onTouchStart={!mobile ? null : function(event) {
+                        if(selectedMarker && selectedMarker.index == marker.index) {
+                          setSelectedMarker(null)
+                          return
+                        }
+                        
+                        let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                        let mouseX = (event.touches[0].clientX - mapRect.x) / currentZoom
+                        let mouseY = (event.touches[0].clientY - mapRect.y) / currentZoom
+        
+                        dragging = true
+                        setSelectedMarker(marker)
+                        setCurrentlyMovingMarker(marker.index)
+                        setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
+                        setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
+                      }} onMouseDown={mobile ? null : function(event) {
+                        if(selectedMarker && selectedMarker.index == marker.index) {
+                          setSelectedMarker(null)
+                          return
+                        }
+                        
+                        let mapRect = document.getElementById("map-svg").getBoundingClientRect()
+                        let mouseX = (event.clientX - mapRect.x) / currentZoom
+                        let mouseY = (event.clientY - mapRect.y) / currentZoom
+        
+                        dragging = true
+                        setSelectedMarker(marker)
+                        setCurrentlyMovingMarker(marker.index)
+                        setMovingMarkerStartingPositionMouse({x: mouseX, y: mouseY})
+                        setMovingMarkerStartingPosition({x: marker.x, y: marker.y})
+                      }} className="marker-annotation" fill={parsedStyle.fill.getBackground(marker, "marker.fill")} stroke={parsedStyle.outlineColor.getBackground(marker, "marker.outline-color")} strokeWidth={parsedStyle.outlineSize} key={marker.index} style={{opacity: selected ? 1 : 0.3, transition: "opacity 0.3s", transform: `translate(${marker.x - marker.width / 2}px, ${marker.y - marker.height}px)`}} d="M13.4897 0.0964089C11.6959 0.29969 10.6697 0.518609 9.51035 0.948628C6.43963 2.09795 3.87025 4.20113 2.12339 7.00798C0.478362 9.65846 -0.281484 13.0908 0.0945223 16.1557C0.705532 21.0891 4.23059 27.8913 10.0744 35.4283C11.453 37.2109 13.2312 39.3454 13.6386 39.7129C14.1791 40.1976 14.8371 40.1976 15.3776 39.7129C15.7849 39.3454 17.5631 37.2109 18.9418 35.4283C24.1981 28.6496 27.5743 22.4887 28.6397 17.7037C28.9138 16.4762 29 15.6787 29 14.3965C28.9922 10.6436 27.4881 7.05489 24.7699 4.34968C22.5296 2.10577 19.8897 0.753165 16.7798 0.244961C16.0435 0.127683 14.0224 0.0338607 13.4897 0.0964089ZM15.4246 7.32854C18.3465 7.71947 20.767 9.81483 21.5582 12.6373C21.7697 13.3801 21.848 14.8734 21.7227 15.6865C21.3545 18.0008 19.8348 20.0336 17.6806 21.0813C16.4116 21.699 15.1113 21.9335 13.7874 21.785C12.7534 21.6677 12.2286 21.5192 11.3355 21.0813C9.18134 20.0336 7.66165 18.0008 7.29347 15.6865C7.16814 14.8734 7.24647 13.3801 7.45798 12.6373C8.43716 9.15026 11.8917 6.84379 15.4246 7.32854Z"/>
+                    })
+                }
+                <defs>
+                  {
+                    assets.map(asset => {
+                      return <pattern patternTransform={`translate(${asset.displaceX}, ${asset.displaceY}) scale(${asset.scale})`} id={`asset.${asset.id}`} width="100%" height="100%" patternContentUnits="objectBoundingBox" viewBox="0 0 1 1" preserveAspectRatio="xMidYMid slice">
+                          <image preserveAspectRatio="none" href={asset.data} width="1" height="1"></image>
+                      </pattern>
+                    })
+                  }
+                  {defs}
+                  {
+                    drawnOnMap
+                      ? <pattern patternUnits="userSpaceOnUse" id="drawn-pattern" width={mapDimensions.width} height={mapDimensions.height}>
+                        <image width={mapDimensions.width} height={mapDimensions.height} href={penCachedImage ? penCachedImage.toDataURL('image/png') : null}></image>
+                      </pattern>
+                    : null
+                  }
+                  {/* {
+                    effects.innerShadow.enabled
+                      ? <filter id="inner-shadow">
+                        <feOffset dx="0" dy="0"/>                                                         
+                        <feGaussianBlur stdDeviation={10 * effects.innerShadow.scale}  result="offset-blur"/>                           
+                        <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse"/> 
+                        <feFlood floodColor="black" floodOpacity="1" result="color"/>                     
+                        <feComposite operator="in" in="color" in2="inverse" result="shadow"/>               
+                        <feComponentTransfer in="shadow" result="shadow">                                   
+                            <feFuncA type="linear" slope=".75"/>
+                        </feComponentTransfer>
+                        <feComposite operator="over" in="shadow" in2="SourceGraphic"></feComposite>
+                      </filter>
+                    : null
+                  } */}
+                </defs>
+              </svg>
+            </>
+            
+        }
+      </div>
+    </Gesture>
   )
 }
 
@@ -2802,7 +2835,7 @@ function TerritoryFillPickerPopup(props) {
               id: ++lastAssetId,
               displaceX: 0,
               displaceY: 0,
-              scale: 0.2,
+              scale: 1,
               data
             }])
           }} style={{display: "none"}}></input>
@@ -2820,10 +2853,12 @@ function TerritoryFillPickerPopup(props) {
                   <IconButton className="transform-asset" size="small" style={{marginLeft: "5px", height: "25px", width: "25px"}} onClick={function(event) {
                     setFillPickerFocused(asset)
                     setFillPickerFocusedDisplacementStart(asset)
-                    setFillPickerFocusedInterface(<div style={{display: "flex", justifyContent: "space-between"}}>
-                      <p>Drag to displace image, zoom/scroll to scale.</p>
-                      <IconButton style={{marginLeft: "10px"}} onClick={function() {
-                        
+                    setFillPickerFocusedInterface(<div style={{height: "100%", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+                      <p style={{fontFamily: "rubik", fontSize: "22px", color: "white", marginLeft: "15px", marginTop: "0px", marginBottom: "0px"}}>Drag to displace image, zoom/scroll to scale.</p>
+                      <IconButton style={{marginRight: "15px", width: "50px", height: "50px"}} onClick={function() {
+                        setFillPickerFocused(false)
+                        setFillPickerFocusedDisplacementStart(null)
+                        setFillPickerFocusedInterface(null)
                       }}>
                         <CheckIcon></CheckIcon>
                       </IconButton>
