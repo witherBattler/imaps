@@ -2206,6 +2206,230 @@ export const FLAGS = [
         "id": "german_empire",
         "name": "German Empire",
         "type": "png"
+    },
+    {
+        "name": "AL (USA)",
+        "id": "us-al"
+    },
+    {
+        "name": "AK (USA)",
+        "id": "us-ak"
+    },
+    {
+        "name": "AZ (USA)",
+        "id": "us-az"
+    },
+    {
+        "name": "AR (USA)",
+        "id": "us-ar"
+    },
+    {
+        "name": "CA (USA)",
+        "id": "us-ca"
+    },
+    {
+        "name": "CO (USA)",
+        "id": "us-co"
+    },
+    {
+        "name": "CT (USA)",
+        "id": "us-ct"
+    },
+    {
+        "name": "DE (USA)",
+        "id": "us-de"
+    },
+    {
+        "name": "FL (USA)",
+        "id": "us-fl"
+    },
+    {
+        "name": "GA (USA)",
+        "id": "us-ga"
+    },
+    {
+        "name": "GU (USA)",
+        "id": "us-gu"
+    },
+    {
+        "name": "HI (USA)",
+        "id": "us-hi"
+    },
+    {
+        "name": "ID (USA)",
+        "id": "us-id"
+    },
+    {
+        "name": "IL (USA)",
+        "id": "us-il"
+    },
+    {
+        "name": "IN (USA)",
+        "id": "us-in"
+    },
+    {
+        "name": "IA (USA)",
+        "id": "us-ia"
+    },
+    {
+        "name": "KS (USA)",
+        "id": "us-ks"
+    },
+    {
+        "name": "KY (USA)",
+        "id": "us-ky"
+    },
+    {
+        "name": "LA (USA)",
+        "id": "us-la"
+    },
+    {
+        "name": "ME (USA)",
+        "id": "us-me"
+    },
+    {
+        "name": "MH (USA)",
+        "id": "us-mh"
+    },
+    {
+        "name": "MD (USA)",
+        "id": "us-md"
+    },
+    {
+        "name": "MA (USA)",
+        "id": "us-ma"
+    },
+    {
+        "name": "MI (USA)",
+        "id": "us-mi"
+    },
+    {
+        "name": "MN (USA)",
+        "id": "us-mn"
+    },
+    {
+        "name": "MS (USA)",
+        "id": "us-ms"
+    },
+    {
+        "name": "MO (USA)",
+        "id": "us-mo"
+    },
+    {
+        "name": "MT (USA)",
+        "id": "us-mt"
+    },
+    {
+        "name": "NE (USA)",
+        "id": "us-ne"
+    },
+    {
+        "name": "NV (USA)",
+        "id": "us-nv"
+    },
+    {
+        "name": "NH (USA)",
+        "id": "us-nh"
+    },
+    {
+        "name": "NJ (USA)",
+        "id": "us-nj"
+    },
+    {
+        "name": "NM (USA)",
+        "id": "us-nm"
+    },
+    {
+        "name": "NY (USA)",
+        "id": "us-ny"
+    },
+    {
+        "name": "NC (USA)",
+        "id": "us-nc"
+    },
+    {
+        "name": "ND (USA)",
+        "id": "us-nd"
+    },
+    {
+        "name": "MP (USA)",
+        "id": "us-mp"
+    },
+    {
+        "name": "OH (USA)",
+        "id": "us-oh"
+    },
+    {
+        "name": "OK (USA)",
+        "id": "us-ok"
+    },
+    {
+        "name": "OR (USA)",
+        "id": "us-or"
+    },
+    {
+        "name": "PW (USA)",
+        "id": "us-pw"
+    },
+    {
+        "name": "PA (USA)",
+        "id": "us-pa"
+    },
+    {
+        "name": "PR (USA)",
+        "id": "us-pr"
+    },
+    {
+        "name": "RI (USA)",
+        "id": "us-ri"
+    },
+    {
+        "name": "SC (USA)",
+        "id": "us-sc"
+    },
+    {
+        "name": "SD (USA)",
+        "id": "us-sd"
+    },
+    {
+        "name": "TN (USA)",
+        "id": "us-tn"
+    },
+    {
+        "name": "TX (USA)",
+        "id": "us-tx"
+    },
+    {
+        "name": "UT (USA)",
+        "id": "us-ut"
+    },
+    {
+        "name": "VT (USA)",
+        "id": "us-vt"
+    },
+    {
+        "name": "VI (USA)",
+        "id": "us-vi"
+    },
+    {
+        "name": "VA (USA)",
+        "id": "us-va"
+    },
+    {
+        "name": "WA (USA)",
+        "id": "us-wa"
+    },
+    {
+        "name": "WV (USA)",
+        "id": "us-wv"
+    },
+    {
+        "name": "WI (USA)",
+        "id": "us-wi"
+    },
+    {
+        "name": "WY (USA)",
+        "id": "us-wy"
     }
 ]
 
