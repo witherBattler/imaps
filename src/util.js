@@ -1,4 +1,6 @@
 import {serverLocation} from "./constants.js"
+import {paper, Path} from "paper"
+paper.setup(document.createElement("canvas"))
 
 function getMapImageUrl(id) {
     return `./maps/${id}.svg`
@@ -295,6 +297,25 @@ function rgbaToHex(r, g, b, a) {
   return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
+function unitePaths(path1, path2) {
+    let paperPath1 = new Path(path1)
+    let paperPath2 = new Path(path2)
+    let paperUnitedPath = paperPath1.unite(paperPath2)
+    let svgElement = paperUnitedPath.exportSVG()
+    let svgPath = svgElement.getAttribute("d")
+    return svgPath
+}
+function unitePathsArray(array) {
+    let fullPath = new Path(array[0])
+    for(let i = 1; i != array.length; i++) {
+        let secondPath = new Path(array[i])
+        fullPath = fullPath.unite(secondPath)
+    }
+    let svgElement = fullPath.exportSVG()
+    let svgPath = svgElement.getAttribute("d")
+    return svgPath
+}
+
 export {
     getMapImageUrl,
     ajax,
@@ -317,5 +338,7 @@ export {
     hexToRgb,
     getBase64,
     getImageDataCoordinate,
-    rgbaToHex
+    rgbaToHex,
+    unitePaths,
+    unitePathsArray
 }

@@ -17,7 +17,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider } from '@mui/material/styles';
-import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp, post, get, combineBoundingBoxes, getBase64, getImageDataCoordinate, rgbaToHex } from "./util"
+import { getRectFromPoints, getMapImageUrl, ajax, parseSvg, getTerritoryComputedStyle, typeToValue, generateId, orEmptyString, roundToTwo, createArray, svgToPng, download, isMobile, getAnnotationComputedStyle, convertSvgUrlsToBase64, svgToJpg, svgToWebp, post, get, combineBoundingBoxes, getBase64, getImageDataCoordinate, rgbaToHex, unitePathsArray } from "./util"
 import { ColorFill, FlagFill, decodeFill } from "./fill"
 import { Scrollbars } from 'react-custom-scrollbars';
 import CheckIcon from '@mui/icons-material/Check';
@@ -59,6 +59,8 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Gesto from "gesto";
 import Gesture from 'rc-gesture';
+import { Point } from "paper"
+
 
 
 
@@ -1024,6 +1026,41 @@ function ZoomWidget({fillPickerFocused, eyedropperOpened, savingToCloud, saving,
         ? <img style={{width: "50px", height: "50px", marginRight: "10px", cursor: "pointer"}} src="icons/autosave.svg" id="autosave-icon" className={"saving" + (saving ? " animating" : null)}/>
         : null
     }
+    <div id="remove-borders-icon" style={{display: selectedTerritory && Array.isArray(selectedTerritory) ? "flex" : "none", alignItems: "center", justifyContent: "center", cursor: "pointer", borderRadius: "10px", marginRight: "10px", backgroundColor: "#465077", width: "50px", height: "50px"}} onClick={function() {
+      let newPath = unitePathsArray(selectedTerritory.map(territory => territory.path))
+      let object = {
+        index: generateId(),
+        dataVisualizerScale: selectedTerritory[0].dataVisualizerScale || 1,
+        dataOffsetX: 0,
+        dataOffsetY: 0,
+        dataVisualizer: selectedTerritory[0].dataVisualizer || null,
+        value: selectedTerritory[0].value || null,
+        path: newPath,
+        boundingBox: null,
+        id: "Unified Territory",
+        name: "Unified Territory",
+        fill: selectedTerritory[0].fill || null,
+        outlineColor: selectedTerritory[0].outlineColor || null,
+        outlineSize: selectedTerritory[0].outlineSize || null,
+        hidden: false
+      }
+      let boundingBox = {x: 0, y: 0, height: 0, width: 0}
+      let newTerritories = territories.filter(territory => {
+        if(Array.isArray(selectedTerritory)) {
+          if(selectedTerritory.some(territory2 => territory2.index == territory.index)) {
+            boundingBox = combineBoundingBoxes(boundingBox, territory.boundingBox)
+            return false
+          }
+        }
+        
+        return true
+      })
+      object.boundingBox = boundingBox
+      newTerritories.push(object)
+      setTerritories(newTerritories)
+    }}>
+      <img src="icons/remove-borders.svg" style={{maxWidth: "60%", maxHeight: "60%"}}></img>
+    </div>
     <div id="unite-icon" style={{display: selectedTerritory && Array.isArray(selectedTerritory) ? "flex" : "none", alignItems: "center", justifyContent: "center", cursor: "pointer", borderRadius: "10px", marginRight: "10px", backgroundColor: "#465077", width: "50px", height: "50px"}} onClick={function() {
       setUniteTerritoriesAlertOpened(true)
     }}>

@@ -27,6 +27,7 @@
     "material-ui-number-input": "^5.0.24",
     "material-ui-numeric-input": "^3.1.1",
     "openssl": "^2.0.0",
+    "paper": "^0.12.17",
     "rc-gesture": "^0.0.22",
     "react": "^18.2.0",
     "react-color": "^2.19.3",
