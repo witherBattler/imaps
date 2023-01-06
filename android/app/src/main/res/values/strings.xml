@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Periphern - Map charts</string>
+    <string name="title_activity_main">Periphern - Map charts</string>
+    <string name="package_name">com.periphern.www</string>
+    <string name="custom_url_scheme">com.periphern.www</string>
+</resources>

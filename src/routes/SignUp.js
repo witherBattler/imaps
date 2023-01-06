@@ -15,6 +15,7 @@ import "../login.css"
 function SignUpWithGoogle() {
   const login = useGoogleLogin({
     onSuccess: async data => {
+      window.localStorage.clear()
       let sessionId = await post("/sign-up", {
         method: "google",
         access_token: data.access_token
@@ -34,6 +35,7 @@ function SignUpWithGoogle() {
 
 function SignUpWithDiscord() {
   const login = function() {
+    window.localStorage.clear()
     window.open(discordOauth2UrlSignUp, "_self")
   }
 
@@ -60,6 +62,7 @@ export default function SignUp() {
     }
     setErrorMessage("")
     setRequestPending(true)
+    window.localStorage.clear()
     post("/sign-up", {
       method: "password",
       username: usernameValue,
@@ -75,7 +78,7 @@ export default function SignUp() {
     })
   }
 
-  return <GoogleOAuthProvider clientId="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com">
+  return <GoogleOAuthProvider clientId="810830680892-nnfl3t1ctbcc9cgd0fh1dq5dsbnfj90s.apps.googleusercontent.com">
     <div id="background" className="mobile">
       <div className="top">
         <img src="logo-globe.svg"></img>

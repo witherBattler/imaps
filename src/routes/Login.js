@@ -16,6 +16,7 @@ import "../login.css"
 function LoginWithGoogle() {
   const login = useGoogleLogin({
     onSuccess: async data => {
+      window.localStorage.clear()
       let sessionId = await post("/login", {
         method: "google",
         access_token: data.access_token
@@ -37,6 +38,7 @@ function LoginWithGoogle() {
 
 function LoginWithDiscord() {
   const login = function() {
+    window.localStorage.clear()
     window.open(discordOauth2UrlLogin, "_self")
   }
 
@@ -49,7 +51,7 @@ export default function Login() {
   const [requestPending, setRequestPending] = useState(false)
   const [errorMessage, setErrorMessage] = useState(null)
 
-  return <GoogleOAuthProvider clientId="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com">
+  return <GoogleOAuthProvider clientId="810830680892-nnfl3t1ctbcc9cgd0fh1dq5dsbnfj90s.apps.googleusercontent.com">
     <div id="background" className="mobile">
       <div className="top">
         <img src="logo-globe.svg"></img>
@@ -78,6 +80,7 @@ export default function Login() {
               return
             }
             setRequestPending(true)
+            window.localStorage.clear()
             post("/login", {
               method: "password",
               username: usernameValue,
@@ -127,6 +130,7 @@ export default function Login() {
               return
             }
             setRequestPending(true)
+            window.localStorage.clear()
             post("/login", {
               method: "password",
               username: usernameValue,

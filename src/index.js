@@ -3174,26 +3174,36 @@ let DiscordOauthComponentSignUp = function() {
 
   return null
 }
-root.render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={
-        <GoogleOAuthProvider clientId="850241591522-8eh7ghm3g99tcue9cc9lc5v94d515022.apps.googleusercontent.com">
-          <App></App>  
-        </GoogleOAuthProvider>
-      }></Route>
-      <Route path="login" element={<Login/>}></Route>
-      <Route path="sign-up" element={<SignUp/>}></Route>
-      <Route path="discord-oauth-login" element={<DiscordOauthComponentLogin/>}></Route>
-      <Route path="discord-oauth-signup" element={<DiscordOauthComponentSignUp/>}></Route>
-      <Route path="dashboard" element={<Dashboard/>}></Route>
-      <Route path="dashboard/:stage" element={<Dashboard/>}></Route>
-      <Route path="edit-map/:id" element={<EditMap/>}></Route>
-      <Route path="download" element={<Download/>}></Route>
-      <Route path="*" element={<NotFound/>}></Route>
-    </Routes>
-  </BrowserRouter>
-);
+
+function renderReactDom() {
+  root.render(
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={
+          <GoogleOAuthProvider clientId="810830680892-nnfl3t1ctbcc9cgd0fh1dq5dsbnfj90s.apps.googleusercontent.com">
+            <App></App>  
+          </GoogleOAuthProvider>
+        }></Route>
+        <Route path="login" element={<Login/>}></Route>
+        <Route path="sign-up" element={<SignUp/>}></Route>
+        <Route path="discord-oauth-login" element={<DiscordOauthComponentLogin/>}></Route>
+        <Route path="discord-oauth-signup" element={<DiscordOauthComponentSignUp/>}></Route>
+        <Route path="dashboard" element={<Dashboard/>}></Route>
+        <Route path="dashboard/:stage" element={<Dashboard/>}></Route>
+        <Route path="edit-map/:id" element={<EditMap/>}></Route>
+        <Route path="download" element={<Download/>}></Route>
+        <Route path="*" element={<NotFound/>}></Route>
+      </Routes>
+    </BrowserRouter>
+  );  
+}
+if (window.cordova) {
+  document.addEventListener('deviceready', () => {
+    renderReactDom();
+  }, false);
+} else {
+  renderReactDom();
+}
 
 
 

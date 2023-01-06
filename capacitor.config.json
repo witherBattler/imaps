@@ -1,0 +1,6 @@
+{
+  "appId": "com.periphern.www",
+  "appName": "Periphern - Map charts",
+  "webDir": "build",
+  "bundledWebRuntime": false
+}
