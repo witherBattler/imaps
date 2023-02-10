@@ -1,6 +1,6 @@
 import { GEOMETRY_DASH_ICONS } from "./constants.js"
 import { generateId, orEmptyString } from "./util.js"
-import { ColorFill } from "./fill.js"
+import { ColorFill, decodeFill } from "./fill.js"
 
 class DataVisualizer {
     constructor(data) {
@@ -51,7 +51,16 @@ class DataVisualizer {
         }
     }
     encode() {
-        return {objectType: "dataVisualizer", dataVisualizerType: this.type, data: this.data}
+        return {objectType: "dataVisualizer", dataVisualizerType: this.type, data: {
+            ...this.data,
+            text: {
+                style: {
+                    ...this.data.text.style,
+                    fill: this.data.text.style.fill.encode(),
+                    outlineColor: this.data.text.style.fill.encode()
+                }
+            }
+        }}
     }
 }
 
@@ -204,6 +213,12 @@ class GeometryDashDataVisualizer extends DataVisualizer {
 }
 
 function decodeDataVisualizer(object) {
+    // decode the fills for text
+    console.log(object.data.text.style, "HEYYY")
+    object.data.text.style.fill = decodeFill(object.data.text.style.fill)
+    object.data.text.style.outlineColor = decodeFill(object.data.text.style.outlineColor)
+
+
     switch(object.dataVisualizerType) {
         case null:
             return new DataVisualizer()

@@ -126,6 +126,9 @@ class ImageFill extends Fill {
 }
 
 function decodeFill(object) {
+    if(object == undefined) {
+        return new ColorFill(0, 0, 0, 1, null)
+    }
     switch(object.fillType) {
         case "color":
             return new ColorFill(object.data.color.r, object.data.color.g, object.data.color.b, object.data.color.a, object.data)
