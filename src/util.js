@@ -23,6 +23,11 @@ function ajax(url, method, data) {
     })
 }
 export async function post(route, body) {
+    if(window.localStorage.getItem("sessionId") && window.localStorage.getItem("sessionId").includes("\n")) {
+        window.localStorage.clear()
+        window.location = "/login"
+        return
+    }
     let s = await fetch(serverLocation + route, {
       method: "POST",
       headers: {
@@ -36,6 +41,11 @@ export async function post(route, body) {
   }
   
   export async function get(route) {
+    if(window.localStorage.getItem("sessionId") && window.localStorage.getItem("sessionId").includes("\n")) {
+        window.localStorage.clear()
+        window.location = "/login"
+        return
+    }
     let s = await fetch(serverLocation + route, {
       method: "GET",
       headers: {

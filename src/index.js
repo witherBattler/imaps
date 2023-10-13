@@ -1107,6 +1107,7 @@ function EditableMap(props) {
   const [movingMarkerStartingPosition, setMovingMarkerStartingPosition] = useState({x: null, y: null})
   const [currentlyMoving, setCurrentlyMoving] = useState(false)
   const [movingStartPosition, setMovingStartPosition] = useState(null)
+  const [movingMouseStartPosition, setMovingMouseStartPosition] = useState(null)
   const [eyedropperMousePosition, setEyedropperMousePosition] = useState({x: 0, y: 0})
   const [eyedropperImageData, setEyedropperImageData] = useState(null)
   const [fillPickerFocusedMousePositionStart, setFillPickerFocusedMousePositionStart] = useState(null)
@@ -1203,8 +1204,8 @@ function EditableMap(props) {
     }} onPinchMove={function(data) {
       if(!fillPickerFocused) {
         setMoved({
-          x: pinchStartMoved.x + data.moveStatus.x,
-          y: pinchStartMoved.y + data.moveStatus.y
+          x: data.moveStatus.x,
+          y: data.moveStatus.y
         })
       }
     }}>
@@ -1285,8 +1286,12 @@ function EditableMap(props) {
         } else if(currentTool == "move") {
           setCurrentlyMoving(true)
           setMovingStartPosition({
-            x: event.clientX + moved.x,
-            y: event.clientY + moved.y
+            x: moved.x,
+            y: moved.y
+          })
+          setMovingMouseStartPosition({
+            x: event.clientX,
+            y: event.clientY
           })
         }
       }} onWheel={function(event) {
@@ -1408,12 +1413,15 @@ function EditableMap(props) {
           }
         }
         if(currentlyMoving) {
-          let delta = {
-            x: event.clientX - movingStartPosition.x,
-            y: event.clientY - movingStartPosition.y
+/*           let delta = {
+            x: event.clientX - event.touches[event.touches.length - 1].clientX + movingStartPosition.x,
+            y: event.clientY - event.touches[event.touches.length - 1].clientY + movingStartPosition.y
           }
-          
-          setMoved(delta)
+          console.log(event) */
+          setMoved({
+            x: movingStartPosition.x + (event.clientX - movingMouseStartPosition.x),
+            y: movingStartPosition.y + (event.clientY - movingMouseStartPosition.y)
+          })
         }
       }} onTouchStart={!mobile ? null : function(event) {
         if(currentTool == "pen") {
@@ -1472,8 +1480,12 @@ function EditableMap(props) {
         } else if(currentTool == "move") {
           setCurrentlyMoving(true)
           setMovingStartPosition({
-            x: event.touches[0].clientX - moved.x,
-            y: event.touches[0].clientY - moved.y
+            x: moved.x,
+            y: moved.y
+          })
+          setMovingMouseStartPosition({
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY
           })
         } else if(currentTool == "cursor") {
           if(event.target.id == "map-div" || event.target.id == "map-svg") {
@@ -1491,19 +1503,14 @@ function EditableMap(props) {
           if(!hoveringTerritories) {
             setSelectedMarker(null)
           }
-        } else if(currentTool == "move") {
-          setCurrentlyMoving(true)
-          setMovingStartPosition({
-            x: event.touches[0].clientX - moved.x,
-            y: event.touches[0].clientY - moved.y
-          })
         }
       }} onTouchMove={!mobile ? null : function(event) {
         if(currentlyMoving) {
           let delta = {
-            x: event.touches[0].clientX - movingStartPosition.x,
-            y: event.touches[0].clientY - movingStartPosition.y
+            x: event.touches[0].clientX + movingStartPosition.x,
+            y: event.touches[0].clientY + movingStartPosition.y
           }
+          console.log(movingStartPosition)
           
           setMoved(delta)
         }
@@ -1569,7 +1576,19 @@ function EditableMap(props) {
                   </div>
                   : null
               }
-              <svg id="map-svg" onTouchMove={!mobile ? null : function(event) {
+              <canvas id="map-svg" width={mapDimensions.width} height={mapDimensions.height} style={{
+                width: fillPickerFocused ? "1200px" : null,
+                minWidth: fillPickerFocused ? null : (mapDimensions.width + "px"),
+                minHeight: fillPickerFocused ? null : mapDimensions.height + "px",
+                height: fillPickerFocused ? "800px" : null,
+                maxHeight: fillPickerFocused ? "calc(100% - 120px)" : null,
+                maxWidth: "calc(100% - 40px)",
+                transform: fillPickerFocused ? null : `translate(-50%,-50%) translate(${moved.x}px, ${moved.y}px) scale(${parsedScale})`,
+                transition: "",
+                position: fillPickerFocused ? null : "absolute",
+                top: "50%",
+                left: "50%"
+              }} onTouchMove={!mobile ? null : function(event) {
                 if(currentlyDrawingNode) {
                   let clientX = event.touches[0].clientX;
                   let clientY = event.touches[0].clientY;
@@ -1656,7 +1675,27 @@ function EditableMap(props) {
                     setSelectedTerritory(createArray(selectedTerritory, territory))
                   }
                 }
-              }} width={mapDimensions.width} height={mapDimensions.height} viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`} style={{width: fillPickerFocused ? "1200px" : null, minWidth: fillPickerFocused ? null : (mapDimensions.width + "px"), minHeight: fillPickerFocused ? null : mapDimensions.height + "px", height: fillPickerFocused ? "800px" : null, maxHeight: fillPickerFocused ? "calc(100% - 120px)" : null, maxWidth: "calc(100% - 40px)", transform: fillPickerFocused ? null : `translate(-50%,-50%) translate(${moved.x}px, ${moved.y}px) scale(${parsedScale})`, transition: "", position: fillPickerFocused ? null : "absolute", top: "50%", left: "50%"}}>
+              }} ref={ref => {
+                if(ref) {
+                  let canvasContext = ref.getContext("2d")
+                  shownTerritories.forEach((territory) => {
+                    let territoryFill = territory.fill || defaultStyle.fill
+                    let territoryOutlineColor = territory.outlineColor || defaultStyle.outlineColor
+                    let territoryOutlineSize = territory.outlineSize || defaultStyle.outlineSize
+                    let territoryPath = new Path2D(territory.path)
+                    
+                    canvasContext.fillStyle = territoryFill.getBackgroundCSS()
+                    console.log(territoryFill)
+                    canvasContext.strokeStyle = territoryOutlineColor
+                    canvasContext.lineWidth = territoryOutlineSize
+                    canvasContext.fill(territoryPath)
+                    canvasContext.stroke(territoryPath)
+                  })
+                }
+              }}>
+
+              </canvas>
+              <svg id="map-svg">
                 {
                   shownTerritories
                     .map((territory) => {

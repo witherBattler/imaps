@@ -26,6 +26,7 @@ export default function EditMap() {
       } else if(mapData == "Map with this ID on your account wasn't found.") {
         window.location = "/dashboard"
       } else {
+        console.log(mapData, "mapData")
         mapData = JSON.parse(mapData)
         setChosenMap(mapData.map)
         setMapId(mapData.id)
